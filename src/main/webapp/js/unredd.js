@@ -74,7 +74,9 @@ UNREDD.Layer = function (layerName, layerDefinition)
 
     // set WMS servers urls
     var baseUrl = layerDefinition.baseUrl;
-    var urls = [baseUrl];
+    // oscarfonts: pulling 'baseurl' out of 'urls', it will render pinky patchwork if no GeoServer in localhost.
+    // TODO: Move to customizable file and agree on a definite solution for this.
+    var urls = []; /*baseUrl*/
     var urlsLength = UNREDD.wmsServers.length;
     for (var i = 0; i < urlsLength; i++) {
         var server = UNREDD.wmsServers[i];
