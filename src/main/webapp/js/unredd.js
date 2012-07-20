@@ -805,102 +805,58 @@ $(window).load(function () {
     //}
     //deforestation.mergeNewParams({'styles': 'deforestation_temp_' + (year)}); // hack, couldn't do with time dimension in geoserver
 
-    var FeedbackControl = OpenLayers.Class(OpenLayers.Control, {
-        defaultHandlerOptions: {
-            'single': true,
-            'double': false,
-            'pixelTolerance': 0,
-            'stopSingle': false,
-            'stopDouble': false
-        },
-
-        initialize: function (options) {
-            this.handlerOptions = OpenLayers.Util.extend({}, this.defaultHandlerOptions);
-            OpenLayers.Control.prototype.initialize.apply(this, arguments);
-            this.handler = new OpenLayers.Handler.Click(
-                this,
-                {
-                    'click': this.trigger
-                },
-                this.handlerOptions
+     OpenLayers.Control.Feedback = OpenLayers.Class(OpenLayers.Control, {
+    	initialize: function (options) {
+    		OpenLayers.Control.prototype.initialize.apply(this, [options]);
+    		this.handler = new OpenLayers.Handler.Polygon(
+                this, 						// control
+                {'done': this.openDialog}, // callbacks
+                {}     						// handlerOptions
             );
-        },
+    	},
+    	
+    	openDialog: function (polygon) {
+    		$("#feedback_info_div").fadeOut(200);
 
-        trigger: function (e) {
-            var position,
-                size,
-                offset,
-                icon,
-                markersLayer,
-                marker,
-                x,
-                y;
+            $("#feedback_submit").click(function () {
+                $("#feedback_popup").dialog('close');
+                // TODO: add real submit action
+            });
 
-            //if (mapTool === "feedback") {
-               if (true) { // DEBUG
-                $("#feedback_info_div").fadeOut(200);
+            $("#feedback_cancel").click(function () {
+                $("#feedback_popup").dialog('close');
+                // TODO: Destroy polygon
+            });
 
-                //var lonlat = map.getLonLatFromViewPortPx(e.xy);
-                //var position = this.events.getMousePosition(e);
-
-                // place marker
-                position     = UNREDD.map.getLonLatFromPixel(e.xy);
-                size         = new OpenLayers.Size(21, 25);
-                offset       = new OpenLayers.Pixel(-(size.w / 2), -size.h);
-                icon         = new OpenLayers.Icon('js/OpenLayers-2.11/img/marker.png', size, offset);
-                markersLayer = UNREDD.map.getLayer('markers');
-                marker       = new OpenLayers.Marker(position, icon);
-
-                markersLayer.addMarker(marker);
-
-                $("#feedback_submit").click(function () {
-                    $("#feedback_popup").dialog('close'); // TODO: add real submit action
-                });
-
-                $("#feedback_cancel").click(function () {
-                    $("#feedback_popup").dialog('close');
-                    markersLayer.removeMarker(marker);
-                    //marker.destroy();
-                });
-
-                x = e.xy.x + 20;
-                y = e.xy.y - 200;
-
-                $("#feedback_popup").dialog({
-                    position: [x, y],
-                    closeOnEscape: false,
-                    //height: 180,
-                    minHeight: 400,
-                    maxHeight: 400,
-                    width: 340,
-                    height: 330,
-                    zIndex: 2000,
-                    resizable: false,
-                    open: function (event, ui) {
-                        position.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-
-                        $("#fb_coord_x").text(position.lon.toFixed(2));
-                        $("#fb_coord_y").text(position.lat.toFixed(2));
-                        $('#name').val('');
-                        $('#email').val('');
-                        $('#feedback').val('');
-                        //feedback = false;
-                        feedbackControl.deactivate();
-                    },
-                    close: function (event, ui) {
-                        $("#button_feedback").removeClass('selected');
-                        feedbackControl.deactivate();
-                        infoControl.activate();
-                    }
-                });
-            }
-        }
+            $("#feedback_popup").dialog({
+                closeOnEscape: false,
+                minHeight: 400,
+                maxHeight: 400,
+                width: 340,
+                height: 330,
+                zIndex: 2000,
+                resizable: false,
+                
+                open: function (event, ui) {
+                    $("#fb_polygon").text(polygon.transform(
+                    		UNREDD.map.projection,
+                    		UNREDD.map.displayProjection).toString());
+                    $('#name').val('');
+                    $('#email').val('');
+                    $('#feedback').val('');
+                    feedbackControl.deactivate();
+                },
+                
+                close: function (event, ui) {
+                    $("#button_feedback").removeClass('selected');
+                }
+            });
+    	}
     });
-
-    feedbackControl = new FeedbackControl;
+    
+    var feedbackControl = new OpenLayers.Control.Feedback();
     UNREDD.map.addControl(feedbackControl);
-    //feedbackControl.activate();
-
+    
     // Info click handler
     infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
         url: 'http://localhost/geoserver/wms',

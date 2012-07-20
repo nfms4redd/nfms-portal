@@ -15,7 +15,8 @@ page contentType="text/html" pageEncoding="UTF-8"
     
     <link type="text/css" href="css/custom-theme2/jquery-ui-1.8.16.custom.css" rel="stylesheet">
     <link rel="stylesheet" href="js/fancybox-2.0.5/source/jquery.fancybox.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" />
+    <!-- link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
+    <link rel="stylesheet" href="js/OpenLayers-2.12/theme/default/style.css" type="text/css" />
     <link rel="stylesheet" href="css/unredd.css" type="text/css">
     
     <script type="text/javascript">
@@ -24,7 +25,8 @@ page contentType="text/html" pageEncoding="UTF-8"
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="js/fancybox-2.0.5/source/jquery.fancybox.pack.js"></script>
-    <script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script>
+    <!-- script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
+    <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script>
     <script type='text/javascript' src='js/unredd.js?v=2'></script>
     <script type='text/javascript' src='js/custom.js'></script>
   </head>
@@ -76,7 +78,7 @@ page contentType="text/html" pageEncoding="UTF-8"
         <tr>
           <td></td>
           <td>
-            Lat: <span id="fb_coord_x"></span> - Lon: <span id="fb_coord_y"></span>
+            Polygon: <span id="fb_polygon" style="display:none;"></span>
           </td>
         </tr>
         <tr>
