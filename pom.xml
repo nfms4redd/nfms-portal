@@ -1,316 +1,286 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.fao</groupId>
-    <artifactId>UNREDDPortal</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+	<groupId>org.fao</groupId>
+	<artifactId>UNREDDPortal</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>war</packaging>
 
-    <name>UNREDD Portal</name>
+	<name>UNREDD Portal</name>
 
-    <properties>
-        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
-        
-        <geostore.version>1.0-SNAPSHOT</geostore.version>
-        
-        <country>sample_country</country>
-    </properties>
+	<properties>
+		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
 
-    <dependencies>
-        <!--
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>1.4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>1.9.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
-            <version>6.0</version>
-            <scope>provided</scope>
-        </dependency>
-        -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>1.3.2</version>
-        </dependency>
+		<jetty.version>6.1.14</jetty.version>
+		<geostore.version>1.0-SNAPSHOT</geostore.version>
 
-        <dependency>
-            <groupId>it.geosolutions.geostore</groupId>
-            <artifactId>geostore-rest-client</artifactId>
-            <version>${geostore.version}</version>
-        </dependency>
+		<country>sample_country</country>
+	</properties>
 
-        <dependency>
-            <groupId>it.geosolutions.geostore</groupId>
-            <artifactId>geostore-model</artifactId>
-            <version>${geostore.version}</version>
-        </dependency>
+	<dependencies>
 
-        <dependency>
-            <groupId>it.geosolutions.geostore</groupId>
-            <artifactId>geostore-rest-api</artifactId>
-            <version>${geostore.version}</version>
-        </dependency>
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
 
-        <dependency>
-           <groupId>it.geosolutions.unredd</groupId>
-           <artifactId>unredd-geostore-model</artifactId>
-           <version>1.0-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>   
-            <groupId>net.sf.json-lib</groupId>   
-            <artifactId>json-lib</artifactId>   
-            <version>2.4</version>   
-            <classifier>jdk15</classifier>   
-        </dependency>
+		<!-- Logging: log4j and slf4j -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.6</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-        
-         <dependency>
-           <groupId>javax.servlet</groupId>
-           <artifactId>jstl</artifactId>
-           <version>1.1.2</version>
-         </dependency>
-         
-         <dependency>
-          <groupId>javax.servlet</groupId>
-          <artifactId>servlet-api</artifactId>
-          <version>2.4</version>
-          <scope>provided</scope>
-        </dependency>
-        
-        <dependency>   
-          <groupId>taglibs</groupId> 
-          <artifactId>standard</artifactId> 
-          <version>1.1.2</version> 
-        </dependency>
-        
-        <dependency>   
-          <groupId>javax.servlet.jsp</groupId> 
-          <artifactId>jsp-api</artifactId> 
-          <version>2.0</version>
-          <scope>provided</scope>
-        </dependency>
+		<!-- Jetty, with jsp support -->
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty</artifactId>
+			<version>${jetty.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-plus</artifactId>
+			<version>${jetty.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jsp-2.1</artifactId>
+			<version>${jetty.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jsp-api-2.1</artifactId>
+			<version>${jetty.version}</version>
+			<type>jar</type>
+		</dependency>
 
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.7.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>3.1.1.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>UNREDDAdmin</artifactId>
-            <version>${project.version}</version>
-            <classifier>classes</classifier>
-        </dependency>
-    </dependencies>
+		<!-- Apache commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.7.0</version>
+		</dependency>
 
-    <repositories>
-        <repository>
-            <id>geosolutions</id>
-            <name>GeoSolutions public maven repository</name>
-            <url>http://maven.geo-solutions.it/</url>
-        </repository>
-        
-        <repository>
-            <id>mule-deps</id>
-            <name>Mule Dependencies</name>
-            <url>http://dist.codehaus.org/mule/dependencies/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>3.1.1.RELEASE</version>
+		</dependency>
 
-    <build>
-        <finalName>unredd-portal</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                    <compilerArguments>
-                        <endorseddirs>${endorsed.dir}</endorseddirs>
-                    </compilerArguments>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                    
-                    <webResources>
-                        <!-- jsp pages to be copied into WEB-INF -->
-                        <resource>
-                            <directory>webResources/${country}</directory>
-                            <targetPath>WEB-INF/jsp</targetPath>
-                            <includes>
-                                <include>*.jsp</include>
-                            </includes>
-                        </resource>
-                        
-                        <!-- message bundle files -->
-                        <resource>
-                            <directory>webResources/${country}</directory>
-                            <targetPath>WEB-INF/classes</targetPath>
-                            <includes>
-                                <include>messages*.properties</include>
-                            </includes>
-                        </resource>
-                        
-                        <resource>
-                            <directory>webResources/${country}</directory>
-                            <targetPath>css</targetPath>
-                            <includes>
-                                <include>*.css</include>
-                            </includes>
-                        </resource>
-                        
-                        <!-- country specific data -->
-                        <resource>
-                            <directory>webResources/${country}</directory>
-                            <includes>
-                                <include>data/</include>
-                                <include>images/</include>
-                                <include>loc/</include>
-                            </includes>
-                        </resource>
-                        
-                        <!-- country specific js file -->
-                        <resource>
-                            <directory>webResources/${country}</directory>
-                            <targetPath>js</targetPath>
-                            <includes>
-                                <include>custom.js</include>
-                            </includes>
-                        </resource>
-                    </webResources>
-                </configuration>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.1</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${endorsed.dir}</outputDirectory>
-                            <silent>true</silent>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>javax</groupId>
-                                    <artifactId>javaee-endorsed-api</artifactId>
-                                    <version>6.0</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>maven-jetty-plugin</artifactId>
-                <version>6.1.20</version>
-                <configuration>
-<!--					<webAppSourceDirectory>${basedir}/war</webAppSourceDirectory>-->
-                    <webAppConfig>
-                        <contextPath>/portal</contextPath>
-                    </webAppConfig>
-                    <connectors>
-                        <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                            <port>8101</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                        </connector>
-                    </connectors>
-                    <reload>automatic</reload>
-                </configuration>
-            </plugin>
-            
-            <!--
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>8.0.1.v20110908</version>
-                <configuration>
-                    <reload>automatic</reload>
-                    <scanIntervalSeconds>5</scanIntervalSeconds>
-                    <webAppConfig>
-                        <contextPath>/portal</contextPath>
-                    </webAppConfig>
-                    <connectors>
-                        <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                            <port>8101</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                        </connector>
-                    </connectors>
-                </configuration>
-            </plugin>
-            -->
-            <!--
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat6-maven-plugin</artifactId>
-                <version>2.0-SNAPSHOT</version>
-                <configuration>
-                    <path>/portal</path>
-                    <port>8101</port>
-                </configuration>
-            </plugin>
-            -->
-            <!--
+		<!-- JSTL & taglibs -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<version>2.4</version>
+			<classifier>jdk15</classifier>
+		</dependency>
+
+		<!-- Geostore -->
+		<dependency>
+			<groupId>it.geosolutions.geostore</groupId>
+			<artifactId>geostore-rest-client</artifactId>
+			<version>${geostore.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>it.geosolutions.geostore</groupId>
+			<artifactId>geostore-model</artifactId>
+			<version>${geostore.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>it.geosolutions.geostore</groupId>
+			<artifactId>geostore-rest-api</artifactId>
+			<version>${geostore.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>it.geosolutions.unredd</groupId>
+			<artifactId>unredd-geostore-model</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- UNREDD Admin -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>UNREDDAdmin</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>geosolutions</id>
+			<name>GeoSolutions public maven repository</name>
+			<url>http://maven.geo-solutions.it/</url>
+		</repository>
+
+		<repository>
+			<id>mule-deps</id>
+			<name>Mule Dependencies</name>
+			<url>http://dist.codehaus.org/mule/dependencies/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<build>
+		<finalName>unredd-portal</finalName>
+		<plugins>
 			<plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>tomcat-maven-plugin</artifactId>
-                <configuration>
-                    <!- -<url>http://192.168.1.7:8080/manager</url>- ->
-                    <server>tomcat</server>
-                    <path>/portal</path>
-                    <port>8101</port>
-                </configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<compilerArguments>
+						<endorseddirs>${endorsed.dir}</endorseddirs>
+					</compilerArguments>
+				</configuration>
 			</plugin>
-            -->
-        </plugins>
-    </build>
 
+
+			<!-- Deploy: copy country specific files from webResources -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+
+					<webResources>
+						<!-- jsp pages to be copied into WEB-INF -->
+						<resource>
+							<directory>webResources/${country}</directory>
+							<targetPath>WEB-INF/jsp</targetPath>
+							<includes>
+								<include>*.jsp</include>
+							</includes>
+						</resource>
+
+						<!-- message bundle files -->
+						<resource>
+							<directory>webResources/${country}</directory>
+							<targetPath>WEB-INF/classes</targetPath>
+							<includes>
+								<include>messages*.properties</include>
+							</includes>
+						</resource>
+
+						<resource>
+							<directory>webResources/${country}</directory>
+							<targetPath>css</targetPath>
+							<includes>
+								<include>*.css</include>
+							</includes>
+						</resource>
+
+						<!-- country specific data -->
+						<resource>
+							<directory>webResources/${country}</directory>
+							<includes>
+								<include>data/</include>
+								<include>images/</include>
+								<include>loc/</include>
+							</includes>
+						</resource>
+
+						<!-- country specific js file -->
+						<resource>
+							<directory>webResources/${country}</directory>
+							<targetPath>js</targetPath>
+							<includes>
+								<include>custom.js</include>
+							</includes>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
+			<!-- Copy dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${endorsed.dir}</outputDirectory>
+							<silent>true</silent>
+							<artifactItems>
+								<artifactItem>
+									<groupId>javax</groupId>
+									<artifactId>javaee-endorsed-api</artifactId>
+									<version>6.0</version>
+									<type>jar</type>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Maven Jetty -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>maven-jetty-plugin</artifactId>
+				<version>${jetty.version}</version>
+				<configuration>
+					<webAppConfig>
+						<contextPath>/portal</contextPath>
+					</webAppConfig>
+					<connectors>
+						<connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+							<port>8101</port>
+							<maxIdleTime>60000</maxIdleTime>
+						</connector>
+					</connectors>
+					<reload>automatic</reload>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
 </project>
