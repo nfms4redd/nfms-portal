@@ -51,12 +51,13 @@ UNREDD.wmsServers = [
     "http://84.33.1.31"
 ]
 
-UNREDD.Layer = function (layerName, layerDefinition)
+UNREDD.Layer = function (layerId, layerDefinition)
 {
     /*
     layerDefinition object example:
 
     "forestClassification": {
+      "id": "layer_id",
       "label": "<spring:message code="facet_forest_classification" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:forest_classification",
@@ -69,7 +70,7 @@ UNREDD.Layer = function (layerName, layerDefinition)
     }
     */
 
-    this.name = layerName
+    this.name = layerId
     this.configuration = layerDefinition;
 
     // set WMS servers urls
@@ -96,7 +97,7 @@ UNREDD.Layer = function (layerName, layerDefinition)
 
     // Create the OpenLayers object for this layer
     this.olLayer = new OpenLayers.Layer.WMS(
-        layerName,
+        layerId,
         urls,
         wmsParams,
         {transitionEffect: "resize", removeBackBufferDelay: 0, isBaseLayer: false, 'buffer': 0, visibility: layerDefinition.visible === 'true', projection: 'EPSG:900913', noMagic: true}
@@ -104,12 +105,13 @@ UNREDD.Layer = function (layerName, layerDefinition)
 }
 
 
-UNREDD.Context = function (contextName, contextDefinition)
+UNREDD.Context = function (contextId, contextDefinition)
 {
     /*
     contextDefinition object example:
 
-    "administrativeUnits": {
+    "administrativeUnits":{
+      "id": "context_id",
       "infoFile": "administrative_boundaries_def.html",
       "label": "<spring:message code="admin_units" />",
       "layers": ["administrativeUnits", "administrativeUnits_simp"],
@@ -119,7 +121,7 @@ UNREDD.Context = function (contextName, contextDefinition)
 
     var nLayers = 0;
 
-    this.name = contextName;
+    this.name = contextId;
     this.configuration = contextDefinition;
     this.layers = [];
 
@@ -132,7 +134,7 @@ UNREDD.Context = function (contextName, contextDefinition)
 
     if (contextDefinition.layers) {
         // if there's no layer property in the contextDefinition.layers, it's a stub for later use
-        // mapContexts[contextName] = {};
+        // mapContexts[contextId] = {};
 
         nLayers = contextDefinition.layers.length;
         for (var i = 0; i < nLayers; i++) {
@@ -276,22 +278,24 @@ $(window).load(function () {
             loadContextGroups;
 
         // Create layers objects
-        jQuery.each(data_.layers, function (layerName, layerDefinition) {
-            var layer = new UNREDD.Layer(layerName, layerDefinition);
+        jQuery.each(data_.layers, function (i, layerDefinition) {
+            var layerId = layerDefinition.id;
+            var layer = new UNREDD.Layer(layerId, layerDefinition);
 
             if (layerDefinition.visible) {
                 UNREDD.visibleLayers.push(layer.olLayer);
             }
 
-            UNREDD.allLayers[layerName] = layer;
+            UNREDD.allLayers[layerId] = layer;
             if (layerDefinition.queryable) { UNREDD.queryableLayers.push(layer); }
             if (typeof layer.configuration.wmsTime !== 'undefined') { UNREDD.timeDependentLayers.push(layer) }
         });
 
         // Create context objects
-        jQuery.each(data_.contexts, function (contextName, contextDefinition) {
-            var context = new UNREDD.Context(contextName, contextDefinition);
-            UNREDD.mapContexts[contextName] = context;
+        jQuery.each(data_.contexts, function (i, contextDefinition) {
+            var contextId = contextDefinition.id;
+            var context = new UNREDD.Context(contextId, contextDefinition);
+            UNREDD.mapContexts[contextId] = context;
         });
         
         // set the langData variable (used to localized content dynamically created
@@ -311,7 +315,6 @@ $(window).load(function () {
         updateActiveLayersPane = function () {
             var //div,
                 table, tr, td, td2, layers, inlineLegend, transparencyDiv;
-
             // empty the active_layers div (layer on the UI -> context here)
             $('#active_layers_pane div').empty();
 
@@ -412,6 +415,7 @@ $(window).load(function () {
 
         // Though recursive and ready for n level groupings with some adjustments, this function
         // is meant to work with three level grouping of contexts
+        // TODO: use some templating engine?
         loadContextGroups = function (contextGroups, level, element) {
             jQuery.each(contextGroups.items, function (contextGroupName, contextGroupDefinition) {
                 var innerElement = null,
@@ -420,7 +424,7 @@ $(window).load(function () {
                     header,
                     contextName,
                     tr,
-                    td1,
+                    //td1,
                     td3,
                     td4,
                     label,
@@ -467,7 +471,7 @@ $(window).load(function () {
 
                         var context = UNREDD.mapContexts[contextName];
 
-                        if (typeof context !== "undefined" && typeof context.configuration.layers !== "undefined") {
+                        if (typeof context !== "undefined") {
                             var contextConf = context.configuration
 
                             tr = $('<tr class="layer_row">');
@@ -478,40 +482,67 @@ $(window).load(function () {
                             
                             if (contextConf.hasOwnProperty('inlineLegendUrl')) {
                                 // context has an inline legend
-                                td1 = $('<td style="width:20px">');
+                                var td1 = $('<td style="width:20px">');
                                 inlineLegend = $('<img class="inline-legend" src="' + contextConf.inlineLegendUrl + '">');
                                 td1.append(inlineLegend);
                             } else if (context.hasLegend) {
                                 // context has a legend to be shown on the legend pane
                                 // add link to show the legend pane
                                 if (active) {
-                                    td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
+                                    var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
                                     // Add the legend to the legend pane (hidden when page loads)
                                     setLegends(context, true);
                                 } else {
-                                    td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
+                                    var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
                                 }
-                            } else {
-                                td1 = $('<td></td>');
+                            } else if (typeof contextConf.layers !== "undefined") {
+                                var td1 = $('<td></td>');
                             }
                             
-                            var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
-                            if (active) {
-                                checkbox.addClass('checked');
+                            if (typeof contextConf.layers !== "undefined") {
+                                var td2 = $('<td style="width:16px"></td>');
+                                var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
+                                if (active) {
+                                    checkbox.addClass('checked');
+                                }
+
+                                (function (element) {
+                                    // emulate native checkbox behaviour
+                                    element.mousedown(function () {
+                                        element.addClass('mousedown');
+                                    }).mouseup(function () {
+                                        element.removeClass('mousedown');
+                                    }).mouseleave(function () {
+                                        element.removeClass('in');
+                                    }).mouseenter(function () {
+                                        element.addClass('in');
+                                    }).click(function () {
+                                        element.toggleClass('checked');
+                                        
+                                        var active = !contextConf.active;
+                                        setContextVisibility(context, active);
+                                        setLegends(context, active);
+                                        updateActiveLayersPane();
+                                    });
+                                }(checkbox));
+
+                                td2.append(checkbox);
                             }
-                            var td2 = $('<td style="width:16px"></td>');
-                            td2.append(checkbox);
-                            
+
                             td3 = $('<td style="color:#FFF">');
                             td3.text(contextConf.label);
+
                             td4        = $('<td style="width:16px;padding:0">');
                             infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
                             
                             if (typeof contextConf.infoFile !== 'undefined') {
                                 td4.append(infoButton);
                             }
-                            if (td1) {tr.append(td1);}
-                            tr.append(td2, td3, td4);
+
+                            if (td1) { tr.append(td1); }
+                            if (td2) { tr.append(td2); }
+
+                            tr.append(td3, td4);
 
                             element.append(tr);
                             
@@ -523,27 +554,7 @@ $(window).load(function () {
                                 tr.removeClass('hover');
                             });
                             */
-                            
-                            (function (element) {
-                                // emulate native checkbox behaviour
-                                element.mousedown(function () {
-                                    element.addClass('mousedown');
-                                }).mouseup(function () {
-                                    element.removeClass('mousedown');
-                                }).mouseleave(function () {
-                                    element.removeClass('in');
-                                }).mouseenter(function () {
-                                    element.addClass('in');
-                                }).click(function () {
-                                    element.toggleClass('checked');
-                                    
-                                    var active = !contextConf.active;
-                                    setContextVisibility(context, active);
-                                    setLegends(context, active);
-                                    updateActiveLayersPane();
-                                });
-                            }(checkbox))
-                            
+                                                        
                         } else if (typeof contextConf !== "undefined") {
                             tr  = $('<tr style="font-size:10px;height:22px">');
                             td1 = $('<td colspan="3" style="color:#FFF">');

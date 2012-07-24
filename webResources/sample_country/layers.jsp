@@ -2,14 +2,16 @@
 %><%@taglib uri="http://www.springframework.org/tags" prefix="spring"
 %><%@ page contentType="application/json" pageEncoding="UTF-8"
 %>{
-  "layers": {
-    "blueMarble": {
+  "layers": [
+    {
+      "id": "blueMarble",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:world_topo_bathy",
       "imageFormat": "image/jpeg",
       "visible": true
     },
-    "forestClassification": {
+    {
+      "id": "forestClassification",
       "label": "<spring:message code="facet_forest_classification" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:forest_classification",
@@ -19,7 +21,8 @@
       "sourceLink": "http://osfac.net/facet.html",
       "sourceLabel": "FACET"
     },
-    "uclForestClassification": {
+    {
+      "id": "uclForestClassification",
       "label": "<spring:message code="ucl_forest_classification" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:ucl_rdc_classification",
@@ -29,7 +32,8 @@
       "sourceLink": "http://sites.uclouvain.be/enge/map_server/UCL_RDC_classification.color.tif",
       "sourceLabel": "UCL"
     },
-    "landsat": {
+    {
+      "id": "landsat",
       "baseUrl": "/geoserver_drc/wms",
       "wmsTime":  "2000-01-01T00:00:00.000Z,2005-01-01T00:00:00.000Z",
       "wmsName": "unredd:landsat-time",
@@ -38,7 +42,8 @@
       "sourceLink": "http://osfac.net/facet.html",
       "sourceLabel": "FACET"
     },
-    "hillshade": {
+    {
+      "id": "hillshade",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:color_hillshade",
       "imageFormat": "image/jpeg",
@@ -46,7 +51,8 @@
       "sourceLink": "http://srtm.csi.cgiar.org/",
       "sourceLabel": "CGIARS"
     },
-    "deforestation": {
+    {
+      "id": "deforestation",
       "label": "<spring:message code="deforestation" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:deforestation_2000-2010",
@@ -56,7 +62,8 @@
       "sourceLink": "http://osfac.net/facet.html",
       "sourceLabel": "FACET"
     },
-    "trainingData": {
+    {
+      "id": "trainingData",
       "label": "<spring:message code="preliminary_material" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "nov_training_2011_data",
@@ -64,7 +71,8 @@
       "visible": true,
       "legend": "nov_workshop_data.png"
     },
-    "reddPlusProjects": {
+    {
+      "id": "reddPlusProjects",
       "label": "<spring:message code="redd_plus_projects" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:redd_plus_projects",
@@ -74,14 +82,16 @@
       "sourceLink": "http://www.observatoire-comifac.net/",
       "sourceLabel": "OFAC"
     },
-    "reddPlusProjects_simp": {
+    {
+      "id": "reddPlusProjects_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:redd_plus_projects_simp",
       "imageFormat": "image/png",
       "visible": false,
       "queryable": true
     },
-    "reddPlusInitiatives": {
+    {
+      "id": "reddPlusInitiatives",
       "label": "<spring:message code="redd_plus_initiatives" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:redd_plus_initiatives",
@@ -91,14 +101,16 @@
       "sourceLink": "http://www.observatoire-comifac.net/",
       "sourceLabel": "OFAC"
     },
-    "reddPlusInitiatives_simp": {
+    {
+      "id": "reddPlusInitiatives_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:redd_plus_initiatives_simp",
       "imageFormat": "image/png",
       "visible": false,
       "queryable": true
     },
-    "hydrography": {
+    {
+      "id": "hydrography",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "hydrography",
       "imageFormat": "image/png",
@@ -106,7 +118,8 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "intactForest": {
+    {
+      "id": "intactForest",
       "label": "<spring:message code="intact_forest" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsTime": "2000-01-01T00:00:00.000Z,2005-01-01T00:00:00.000Z,2010-01-01T00:00:00.000Z",
@@ -117,7 +130,8 @@
       "sourceLink": "http://www.intactforests.org/",
       "sourceLabel": "www.intactforests.org"
     },
-    "loggingConcessions": {
+    {
+      "id": "loggingConcessions",
       "label": "<spring:message code="logging_concessions" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:logging_concessions",
@@ -127,14 +141,16 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "loggingConcessions_simp": {
+    {
+      "id": "loggingConcessions_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:logging_concessions_simp",
       "imageFormat": "image/jpeg",
       "visible": false,
       "queryable": true
     },
-    "protectedAreas": {
+    {
+      "id": "protectedAreas",
       "label": "<spring:message code="protected_areas" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:protected_areas",
@@ -144,14 +160,16 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "protectedAreas_simp": {
+    {
+      "id": "protectedAreas_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:protected_areas_simp",
       "imageFormat": "image/png",
       "visible": false,
       "queryable": true
     },
-    "administrativeUnits": {
+    {
+      "id": "administrativeUnits",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:admin_units",
       "imageFormat": "image/png",
@@ -159,14 +177,16 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "administrativeUnits_simp": {
+    {
+      "id": "administrativeUnits_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:admin_units_simp",
       "imageFormat": "image/png",
       "visible": false,
       "queryable": true
     },
-    "provinces": {
+    {
+      "id": "provinces",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "provinces_labels",
       "imageFormat": "image/png",
@@ -174,14 +194,16 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "provinces_simp": {
+    {
+      "id": "provinces_simp",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:provinces",
       "imageFormat": "image/png",
       "visible": false,
       "queryable": true
     },
-    "roads": {
+    {
+      "id": "roads",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:roads",
       "imageFormat": "image/png",
@@ -189,7 +211,8 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "settlements": {
+    {
+      "id": "settlements",
       "label": "<spring:message code="settlements" />",
       "baseUrl": "/geoserver_drc/wms",
       "wmsName": "unredd:settlements",
@@ -199,7 +222,8 @@
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI"
     },
-    "ecoregions": {
+    {
+      "id": "ecoregions",
       "label": "<spring:message code="ecoregions" />",
       "baseUrl": "/geoserver_drc/gwc/service/wms",
       "wmsName": "unredd:ecoregions",
@@ -209,165 +233,197 @@
       "sourceLink": "http://www.worldwildlife.org/science/ecoregions/item1267.html)",
       "sourceLabel": "WWF"
     }
-  },
+  ],
   
-  "contexts": {
-    "blueMarble": {
+  "contexts": [
+    {
+      "id": "blueMarble",
       "active": true,
       "infoFile": "bluemarble_def.html",
       "label": "<spring:message code="blue_marble" />",
       "layers": ["blueMarble"]
     },
-    "facetForestClassification": {
+    {
+      "id": "facetForestClassification",
       "infoFile": "forest_classification_def.html",
       "label": "<spring:message code="facet_forest_classification" />",
       "layers": ["forestClassification"]
     },
-    "uclForestClassification": {
+    {
+      "id": "uclForestClassification",
       "infoFile": "ucl_forest_classification_def.html",
       "label": "<spring:message code="ucl_forest_classification" />",
       "layers": ["uclForestClassification"]
     },
-    "landsat": {
+    {
+      "id": "landsat",
       "infoFile": "landsat_def.html",
       "label": "<spring:message code="landsat" />",
       "layers": ["landsat"]
     },
-    "hillshade": {
+    {
+      "id": "hillshade",
       "infoFile": "hillshade_def.html",
       "label": "<spring:message code="hillshade" />",
       "layers": ["hillshade"]
     },
-    "deforestation": {
+    {
+      "id": "deforestation",
       "infoFile": "deforestation_def.html",
       "label": "<spring:message code="deforestation" />",
       "layers": ["deforestation"]
     },
-    "trainingData": {
+    {
+      "id": "trainingData",
       "infoFile": "training_data_def.html",
       "label": "<spring:message code="preliminary_material" />",
       "layers": ["trainingData"]
     },
-    "reddPlusProjects": {
+    {
+      "id": "reddPlusProjects",
       "infoFile": "redd_plus_projects_def.html",
       "label": "<spring:message code="redd_plus_projects" />",
       "layers": ["reddPlusProjects", "reddPlusProjects_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:redd_plus_projects&TRANSPARENT=true"
     },
-    "reddPlusInitiatives": {
+    {
+      "id": "reddPlusInitiatives",
       "infoFile": "redd_plus_initiatives_def.html",
       "label": "<spring:message code="redd_plus_initiatives" />",
       "layers": ["reddPlusInitiatives", "reddPlusInitiatives_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:redd_plus_projects&STYLE=redd_plus_initiatives&TRANSPARENT=true"
     },
-    "hydrography": {
+    {
+      "id": "hydrography",
       "infoFile": "hydrography_def.html",
       "label": "<spring:message code="hydrography" />",
       "layers": ["hydrography"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:hydro_surface&TRANSPARENT=true"
     },
-    "loggingConcessions": {
+    {
+      "id": "loggingConcessions",
       "infoFile": "logging_concessions_def.html",
       "label": "<spring:message code="logging_concessions" />",
       "layers": ["loggingConcessions", "loggingConcessions_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:logging_concessions&TRANSPARENT=true"
     },
-    "protectedAreas": {
+    {
+      "id": "protectedAreas",
       "infoFile": "protected_areas_def.html",
       "label": "<spring:message code="protected_areas" />",
       "layers": ["protectedAreas", "protectedAreas_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:protected_areas&TRANSPARENT=true"
     },
-    "provinces": {
+    {
+      "id": "provinces",
       "active": true,
       "infoFile": "provinces_def.html",
       "label": "<spring:message code="provinces" />",
       "layers": ["provinces", "provinces_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:provinces&TRANSPARENT=true"
     },
-    "administrativeUnits": {
+    {
+      "id": "administrativeUnits",
       "infoFile": "administrative_boundaries_def.html",
       "label": "<spring:message code="admin_units" />",
       "layers": ["administrativeUnits", "administrativeUnits_simp"],
       "inlineLegendUrl": "/geoserver_drc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:admin_units&TRANSPARENT=true"
     },
-    "roads": {
+    {
+      "id": "roads",
       "infoFile": "roads_def.html",
       "label": "<spring:message code="roads" />",
       "layers": ["roads"]
     },
-    "settlements": {
+    {
+      "id": "settlements",
       "infoFile": "settlements_def.html",
       "label": "<spring:message code="settlements" />",
       "layers": ["settlements"]
     },
-    "intactForest": {
+    {
+      "id": "intactForest",
       "infoFile": "intact_forest_def.html",
       "label": "<spring:message code="intact_forest" />",
       "layers": ["intactForest"]
     },
-    "ecoregions": {
+    {
+      "id": "ecoregions",
       "infoFile": "ecoregions_def.html",
       "label": "<spring:message code="ecoregions" />",
       "layers": ["ecoregions"]
     },
-    "reddPlusActivitiesDeforestation": {
+    {
+      "id": "reddPlusActivitiesDeforestation",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="deforestation" />"
     },
-    "reddPlusActivitiesDegradation": {
+    {
+      "id": "reddPlusActivitiesDegradation",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="degradation" />"
     },
-    "reddPlusActivitiesEnhancement": {
+    {
+      "id": "reddPlusActivitiesEnhancement",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="enhancement" />"
     },
-    "reddPlusActivitiesConservation": {
+    {
+      "id": "reddPlusActivitiesConservation",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="conservation" />"
     },
-    "reddPlusActivitiesSustainableForestManagement": {
+    {
+      "id": "reddPlusActivitiesSustainableForestManagement",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="sustainable_management" />"
     },
-    "environmental": {
+    {
+      "id": "environmental",
       "infoFile": "environmental.html",
       "label": "<spring:message code="environmental" />"
     },
-    "social": {
+    {
+      "id": "social",
       "infoFile": "social.html",
       "label": "<spring:message code="social" />"
     },
-    "degradation": {
+    {
+      "id": "degradation",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="degradation" />"
     },
-    "regrowth": {
+    {
+      "id": "regrowth",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="regrowth" />"
     },
-    "conservation": {
+    {
+      "id": "conservation",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="conservation" />"
     },
-    "afforestation": {
+    {
+      "id": "afforestation",
       "infoFile": "afforestation_def.html",
       "label": "<spring:message code="afforestation" />"
     },
-    "reforestation": {
+    {
+      "id": "reforestation",
       "infoFile": "reforestation_def.html",
       "label": "<spring:message code="reforestation" />"
     },
-    "activeFire": {
+    {
+      "id": "activeFire",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="active_fire" />"
     },
-    "burntArea": {
+    {
+      "id": "burntArea",
       "infoFile": "data_not_available.html",
       "label": "<spring:message code="burnt_area" />"
     }
-  },
+  ],
   
   "contextGroups": 
   {
