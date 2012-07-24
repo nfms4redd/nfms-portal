@@ -15,6 +15,7 @@
 		<netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
 
 		<jetty.version>6.1.14</jetty.version>
+		<maven.jetty.version>6.1.26</maven.jetty.version>
 		<geostore.version>1.0-SNAPSHOT</geostore.version>
 
 		<country>sample_country</country>
@@ -266,7 +267,7 @@
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>maven-jetty-plugin</artifactId>
-				<version>${jetty.version}</version>
+				<version>${maven.jetty.version}</version>
 				<configuration>
 					<webAppConfig>
 						<contextPath>/portal</contextPath>
