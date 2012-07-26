@@ -36,6 +36,8 @@
 })(jQuery);
 */
 
+OpenLayers.ProxyHost = "custom/proxy?url=";
+
 var UNREDD = {
     //wmsLayers: {},
     allLayers: {},
@@ -46,6 +48,7 @@ var UNREDD = {
 };
 
 UNREDD.wmsServers = [
+    //"http://demo1.geo-solutions.it"
     "http://unredd.geo-solutions.it",
     "http://www.rdc-snsf.org",
     "http://84.33.1.31"
@@ -287,7 +290,7 @@ $(window).load(function () {
             }
 
             UNREDD.allLayers[layerId] = layer;
-            if (layerDefinition.queryable) { UNREDD.queryableLayers.push(layer); }
+            if (layerDefinition.queryable) { UNREDD.queryableLayers.push(layer.olLayer); }
             if (typeof layer.configuration.wmsTime !== 'undefined') { UNREDD.timeDependentLayers.push(layer) }
         });
 
@@ -330,7 +333,7 @@ $(window).load(function () {
 
                     if (contextConf.hasOwnProperty('inlineLegendUrl')) {
                         td = $('<td style="width:20px"></td>');
-                        inlineLegend = $('<img class="inline-legend" src="' + contextConf.inlineLegendUrl + '">');
+                        inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
                         td.append(inlineLegend);
                         tr.append(td);
                         td2 = $('<td></td>');
@@ -403,7 +406,7 @@ $(window).load(function () {
                         }
                         table += '</tr>';
                         table += '<tr class="legend_image">';
-                        table += '<td colspan="2" style="width:100%;background-color:white"><img src="loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
+                        table += '<td colspan="2" style="width:100%;background-color:white"><img src="custom/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
                         table += '</tr>';
                         table += '</table>';
                     }
@@ -483,7 +486,7 @@ $(window).load(function () {
                             if (contextConf.hasOwnProperty('inlineLegendUrl')) {
                                 // context has an inline legend
                                 var td1 = $('<td style="width:20px">');
-                                inlineLegend = $('<img class="inline-legend" src="' + contextConf.inlineLegendUrl + '">');
+                                inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
                                 td1.append(inlineLegend);
                             } else if (context.hasLegend) {
                                 // context has a legend to be shown on the legend pane
@@ -870,7 +873,7 @@ $(window).load(function () {
     
     // Info click handler
     infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
-        url: 'http://localhost/geoserver/wms',
+        url: UNREDD.wmsServers[0],
         title: 'Identify features by clicking',
         layers: UNREDD.queryableLayers,
         queryVisible: true,

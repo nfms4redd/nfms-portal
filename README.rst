@@ -11,24 +11,35 @@ This is a customizable web-based map viewer that will let users access:
 * Pre-calculated charts based on layer time changes.
 
 
-building nfms-portal
---------------------
-
-Portal can be customized and localized for each implementing country.
-
-Customization files are kept separate in ``webResources`` directory. When building a new customization, start from the ``sample_country`` profile under ``webResources``.
-
-Maven is used to build the project and to merge the customization profile into the resulting .war file.
-
-To change the customization profile, edit the ``<country>`` propery in ``pom.xml``, and run::
-
-  mvn install
-
-This will compile the customized portal, run test, and generate the deployable ``war`` file under ``target`` directory.
-
-
 Customizing nfms-portal
 -----------------------
 
-To learn about portal customization, please follow the project's `technical documentation <http://nfms4redd.org/doc/html/portal/index.html>`_ (documentation sources also on `github <https://github.com/nfms4redd/nfms-documentation>`_).
+Portal can be customized and localized for each implementing country. Customization
+files are kept in a separate directory. Use the JVM property ``PORTAL_CONFIG_DIR``
+to point to your custom files.
 
+To create a new customization, copy the ``default_config`` profile located under
+``src/main/java/webapp/WEB-INF`` to your own directory.
+
+Details on how to customize the portal can be found in the project's
+`technical documentation <http://nfms4redd.org/doc/html/portal/index.html>`.
+
+
+Running, building and deploying nfms-portal
+-------------------------------------------
+
+To run portal using maven, set the ``<portal_config_dir>`` property in ``pom.xml``,
+and run::
+
+  mvn jetty:run
+
+To deploy in a tomcat server, run::
+
+  mvn install
+  
+And copy the war file generated under ``target`` into tomcat ``webapps``.
+
+You will need to indicate where the ``PORTAL_CONFIG_DIR`` is located, using the ``-D``
+option. For example, in `setenv`, add::
+
+  -DPORTAL_CONFIG_DIR="/var/portal/drc"

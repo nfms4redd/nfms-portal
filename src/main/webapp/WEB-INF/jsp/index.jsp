@@ -1,11 +1,10 @@
-<%@page import="java.util.Enumeration"%><%@
-page import="java.util.Locale"%><%@
-page import="java.util.ResourceBundle"%><%@ page session="true"
-%><%@taglib uri="http://www.springframework.org/tags" prefix="spring"
-%><%@
-page contentType="text/html" pageEncoding="UTF-8"
-%><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-   "http://www.w3.org/TR/html4/loose.dtd">
+<%@page import="java.util.Enumeration"%>
+<%@page import="java.util.Locale"%>
+<%@page import="java.util.ResourceBundle"%>
+<%@page session="true"%>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
@@ -17,7 +16,7 @@ page contentType="text/html" pageEncoding="UTF-8"
     <link rel="stylesheet" href="js/fancybox-2.0.5/source/jquery.fancybox.css" type="text/css" media="screen" />
     <!-- link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
     <link rel="stylesheet" href="js/OpenLayers-2.12/theme/default/style.css" type="text/css" />
-    <link rel="stylesheet" href="css/unredd.css" type="text/css">
+    <link rel="stylesheet" href="custom/unredd.css" type="text/css">
     
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
@@ -28,11 +27,11 @@ page contentType="text/html" pageEncoding="UTF-8"
     <!-- script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
     <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script>
     <script type='text/javascript' src='js/unredd.js?v=2'></script>
-    <script type='text/javascript' src='js/custom.js'></script>
+    <script type='text/javascript' src='custom/custom.js'></script>
   </head>
   <body>
     <div id="header">
-      <%@ include file="banner.jsp" %>
+      ${config.header}
       
       <div id="toolbar">
         <a href="./?lang=en" class="blue_button lang_button <%= "en".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_en" style="right:10px">English</a>
@@ -61,7 +60,7 @@ page contentType="text/html" pageEncoding="UTF-8"
     
     <a class="blue_button" style="z-index:1000;top:150px;right:20px;margin-right:0px;position:absolute;width:60px" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
     
-    <%@ include file="footer.jsp" %>
+    ${config.footer}
     
     <a href="#" onclick="UNREDD.map.zoomIn();return false" id="zoom_in"></a>
     <a href="#" onclick="UNREDD.map.zoomOut();return false" id="zoom_out"></a>
@@ -147,3 +146,4 @@ page contentType="text/html" pageEncoding="UTF-8"
     
   </body>
 </html>
+

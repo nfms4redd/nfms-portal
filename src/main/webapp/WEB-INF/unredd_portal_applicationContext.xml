@@ -34,9 +34,9 @@ default-autowire="autodetect">
     </mvc:interceptors>
 
     <bean id="messageSource"
-        class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
-        <property name="basename" value="classpath:messages" />
-        <property name="defaultEncoding" value="UTF-8"/>
+        class="org.fao.unredd.portal.BundleMessage">
+		<property name="basename" value="file:#{config.dir}/messages/messages"/>
+		<property name="defaultEncoding" value="UTF-8"/>
     </bean>
 
     <bean id="localeChangeInterceptor"
@@ -61,10 +61,8 @@ default-autowire="autodetect">
         <property name="suffix" value=".jsp"/>
     </bean>
     
-    
-    
     <bean id="geostoreRestUrl" class="java.lang.String">
-    	<constructor-arg type="String" value="http://localhost:9191/geostore/rest"/>
+    	<constructor-arg type="String" value="http://demo1.geo-solutions.it/stg_geostore/rest"/>
     </bean>
     <bean id="geostoreUsername" class="java.lang.String">
     	<constructor-arg type="String" value="admin"/>
@@ -78,5 +76,5 @@ default-autowire="autodetect">
         <property name="username" ref="geostoreUsername"/>
         <property name="password" ref="geostorePassword"/>
     </bean>
-    
+     
 </beans>

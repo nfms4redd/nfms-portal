@@ -6,65 +6,196 @@ import it.geosolutions.unredd.geostore.UNREDDGeostoreManager;
 import it.geosolutions.unredd.geostore.model.UNREDDLayer;
 import it.geosolutions.unredd.geostore.model.UNREDDLayerUpdate;
 import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStreamWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.FileNameMap;
+import java.net.URLDecoder;
+import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Enumeration;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import net.sf.json.JSONObject;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.lang.NotImplementedException;
+
+import org.apache.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class ApplicationController {
     
+	private static Logger logger = Logger.getLogger(ApplicationController.class);
+	
     @Autowired
     GeoStoreClient client;
     
+    @Autowired
+    org.fao.unredd.portal.Config config;
+
     @RequestMapping(value="/index.do", method=RequestMethod.GET)
     public ModelAndView index(Model model) {
         ModelAndView mv = new ModelAndView();
         mv.setViewName("index");
-        
         return mv;
     }
     
-    @RequestMapping(value="/layers.json", method=RequestMethod.GET)
-    public ModelAndView layers(Model model) {
-        ModelAndView mv = new ModelAndView();
-        mv.setViewName("layers");
+    @RequestMapping("/messages.json")
+    public ModelAndView locale() {
+    	return new ModelAndView("messages", "messages", config.getMessages());
+    }
+       
+    @RequestMapping("/**")
+    public void getFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	// Get path to file
+    	String fileName = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         
+    	// Verify file exists
+    	File file = new File(config.getDir()+"/www/"+fileName);
+    	if (!file.isFile()) {
+    		response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    		return;
+    	}
+		
+    	// Set content type
+    	FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String type = fileNameMap.getContentTypeFor(fileName);
+    	response.setContentType(type);
+    	
+    	// Send contents
+    	try {
+        	InputStream is = new FileInputStream(config.getDir()+"/www/"+fileName);
+            IOUtils.copy(is, response.getOutputStream());
+            response.flushBuffer();
+		} catch (IOException e) {
+			logger.error("Error reading file", e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+    }
+
+	@RequestMapping(value = "/proxy")
+	public final void proxyAjaxCall(
+			@RequestParam(required = true, value = "url") String url,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+
+		// URL needs to be url decoded
+		url = URLDecoder.decode(url, "utf-8");
+
+		OutputStreamWriter writer = new OutputStreamWriter(
+				response.getOutputStream());
+		HttpClient client = new HttpClient();
+		try {
+			HttpMethod method = null;
+
+			// Split this according to the type of request
+			if (request.getMethod().equals("GET")) {
+				method = new GetMethod(url);
+			} else if (request.getMethod().equals("POST")) {
+				method = new PostMethod(url);
+
+				// Set any eventual parameters that came with our original
+				// request (POST params, for instance)
+				@SuppressWarnings("rawtypes")
+				Enumeration paramNames = request.getParameterNames();
+				while (paramNames.hasMoreElements()) {
+					String paramName = paramNames.nextElement().toString();
+					((PostMethod) method).setParameter(paramName,
+							request.getParameter(paramName));
+				}
+			} else {
+				throw new NotImplementedException(
+						"This proxy only supports GET and POST methods.");
+			}
+
+			// Execute the method
+			client.executeMethod(method);
+
+			// Set the content type, as it comes from the server
+			Header[] headers = method.getResponseHeaders();
+			for (Header header : headers) {
+				if ("Content-Type".equalsIgnoreCase(header.getName())) {
+					response.setContentType(header.getValue());
+				}
+			}
+
+			// Write the body, flush and close
+			writer.write(method.getResponseBodyAsString());
+			writer.flush();
+			writer.close();
+		} catch (HttpException e) {
+			writer.write(e.toString());
+			throw e;
+		} catch (IOException e) {
+			e.printStackTrace();
+			writer.write(e.toString());
+			throw e;
+		}
+	}
+    
+    @RequestMapping("/layers.json")
+    public void layers(HttpServletResponse response) throws IOException {
+    	
+    	
+    	response.setContentType("application/json;charset=UTF-8");
+    	try {
+			response.getWriter().print(setLayerTimes());
+            response.flushBuffer();
+		} catch (IOException e) {
+			logger.error("Error reading file", e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+    }
+    
+    private String setLayerTimes() {
         List<Resource> layers = null;
         UNREDDGeostoreManager manager = null;
+    	String jsonLayers = config.getLayers();
         try {
             manager = new UNREDDGeostoreManager(client);
-            
             layers = manager.getLayers();
         } catch (Exception ex) {
-            Logger.getLogger(Layers.class.getName()).log(Level.SEVERE, "Error connecting to GeoStore");
+        	logger.error("Error connecting to GeoStore", ex);
         }
         
-        if (layers != null)
-        {
+        if (layers != null) {
             for (Resource layer : layers) {
                 String wmsTimes;
                 try {
                     wmsTimes = getWmsTimeString(manager, layer);
-                    model.addAttribute(layer.getName(), wmsTimes.toString());
+                    jsonLayers = jsonLayers.replaceAll("\\$\\{time\\."+layer.getName()+"\\}", wmsTimes.toString());
                 } catch (Exception ex) {
-                    Logger.getLogger(Layers.class.getName()).log(Level.SEVERE, "Error getting time dimension for layer {0}", layer.getName());
+                	logger.error("Error getting time dimension for layer" + layer.getName());
                 }
             }
         }
         
-        return mv;
+        return jsonLayers;
     }
-
+    
     private String getWmsTimeString(UNREDDGeostoreManager manager, Resource layer) throws JAXBException, UnsupportedEncodingException {
         StringBuilder wmsTimes = new StringBuilder();
         List<Resource> layerUpdates = manager.searchLayerUpdatesByLayerName(layer.getName());
@@ -99,7 +230,7 @@ public class ApplicationController {
         try {
             controller.test();
         } catch (Exception ex) {
-            Logger.getLogger(LayersController.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(null, ex);
         }
     }
     

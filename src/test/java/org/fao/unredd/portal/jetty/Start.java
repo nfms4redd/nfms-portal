@@ -1,13 +1,11 @@
 package org.fao.unredd.portal.jetty;
 
+import org.apache.log4j.Logger;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.bio.SocketConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.BoundedThreadPool;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Jetty starter, will run Portal inside the Jetty web container.<br>
@@ -17,7 +15,7 @@ import java.util.logging.Logger;
  * @author wolf
  */
 public class Start {
-    private static final Logger log = Logger.getLogger(Start.class.getName());
+    private static final Logger logger = Logger.getLogger(Start.class);
 
     public static void main(String[] args) {
         Server jettyServer = null;
@@ -53,13 +51,13 @@ public class Start {
             // jetty stop just after you started it...)
             // jettyServer.stop();
         } catch (Throwable e) {
-            log.log(Level.SEVERE, "Could not start the Jetty server: " + e.getMessage(), e);
+            logger.error("Could not start the Jetty server: " + e.getMessage(), e);
 
             if (jettyServer != null) {
                 try {
                     jettyServer.stop();
                 } catch (Exception e1) {
-                    log.log(Level.SEVERE, "Unable to stop the " + "Jetty server:" + e1.getMessage(), e1);
+                	logger.error("Unable to stop the " + "Jetty server:" + e1.getMessage(), e1);
                 }
             }
         }

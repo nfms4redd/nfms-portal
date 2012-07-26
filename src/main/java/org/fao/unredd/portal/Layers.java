@@ -12,14 +12,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
+
+import org.apache.log4j.Logger;
 import org.fao.unredd.Util;
 
 /**
@@ -27,6 +27,8 @@ import org.fao.unredd.Util;
  * @author sgiaccio
  */
 public class Layers extends HttpServlet {
+	
+	private static Logger logger = Logger.getLogger(Layers.class);
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -68,9 +70,9 @@ public class Layers extends HttpServlet {
             RequestDispatcher rd = request.getRequestDispatcher("layers.jsp");
             rd.forward(request, response);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Layers.class.getName()).log(Level.SEVERE, null, ex);
+        	logger.error(null, ex);
         } catch (JAXBException ex) {
-            Logger.getLogger(Layers.class.getName()).log(Level.SEVERE, null, ex);
+        	logger.error(null, ex);
         }
     }
 

@@ -45,13 +45,17 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>Spring MVC Dispatcher Servlet</servlet-name>
+        <url-pattern>/index.do</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Spring MVC Dispatcher Servlet</servlet-name>
         <url-pattern>*.json</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Spring MVC Dispatcher Servlet</servlet-name>
-        <url-pattern>/index.do</url-pattern>
+        <url-pattern>/custom/*</url-pattern>
     </servlet-mapping>
-    
+
     <!--
     <servlet>
         <servlet-name>Layers</servlet-name>
