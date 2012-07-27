@@ -2,4 +2,5 @@
 .project
 .settings/
 target/
-/webResources/pry/
+/webResources
+/portal_config_dirs
