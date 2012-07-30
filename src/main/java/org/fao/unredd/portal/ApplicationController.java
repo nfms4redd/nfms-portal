@@ -68,13 +68,13 @@ public class ApplicationController {
     	return new ModelAndView("messages", "messages", config.getMessages());
     }
        
-    @RequestMapping("/custom/**")
+    @RequestMapping("/static/**")
     public void getFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	// Get path to file
     	String fileName = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         
     	// Verify file exists
-    	File file = new File(config.getDir()+"/www/"+fileName);
+    	File file = new File(config.getDir()+"/static/"+fileName);
     	if (!file.isFile()) {
     		response.sendError(HttpServletResponse.SC_NOT_FOUND);
     		return;
@@ -87,7 +87,7 @@ public class ApplicationController {
     	
     	// Send contents
     	try {
-        	InputStream is = new FileInputStream(config.getDir()+"/www/"+fileName);
+        	InputStream is = new FileInputStream(file);
             IOUtils.copy(is, response.getOutputStream());
             response.flushBuffer();
 		} catch (IOException e) {

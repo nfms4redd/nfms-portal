@@ -406,7 +406,7 @@ $(window).load(function () {
                         }
                         table += '</tr>';
                         table += '<tr class="legend_image">';
-                        table += '<td colspan="2" style="width:100%;background-color:white"><img src="custom/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
+                        table += '<td colspan="2" style="width:100%;background-color:white"><img src="static/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
                         table += '</tr>';
                         table += '</table>';
                     }

@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="js/fancybox-2.0.5/source/jquery.fancybox.css" type="text/css" media="screen" />
     <!-- link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
     <link rel="stylesheet" href="js/OpenLayers-2.12/theme/default/style.css" type="text/css" />
-    <link rel="stylesheet" href="custom/unredd.css" type="text/css">
+    <link rel="stylesheet" href="static/unredd.css" type="text/css">
     
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
@@ -27,7 +27,7 @@
     <!-- script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
     <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script>
     <script type='text/javascript' src='js/unredd.js?v=2'></script>
-    <script type='text/javascript' src='custom/custom.js'></script>
+    <script type='text/javascript' src='static/custom.js'></script>
   </head>
   <body>
     <div id="header">
