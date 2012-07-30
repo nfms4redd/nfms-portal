@@ -1,3 +1,18 @@
+/*
+ * nfms4redd Portal Interface - http://nfms4redd.org/
+ *
+ * (C) 2012, FAO Forestry Department (http://www.fao.org/forestry/)
+ *
+ * This application is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ */
 package org.fao.unredd.portal;
 
 import java.io.BufferedInputStream;
@@ -16,10 +31,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
+/**
+ * Utility class to access the custom resources placed in PORTAL_CONFIG_DIR.
+ * 
+ * @author Oscar Fonts
+ */
 @Component("config")
 public class Config implements ServletContextAware {
 
