@@ -36,7 +36,7 @@
 })(jQuery);
 */
 
-OpenLayers.ProxyHost = "custom/proxy?url=";
+OpenLayers.ProxyHost = "proxy?url=";
 
 var UNREDD = {
     //wmsLayers: {},

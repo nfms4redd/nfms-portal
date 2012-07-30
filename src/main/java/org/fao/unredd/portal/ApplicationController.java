@@ -68,7 +68,7 @@ public class ApplicationController {
     	return new ModelAndView("messages", "messages", config.getMessages());
     }
        
-    @RequestMapping("/**")
+    @RequestMapping("/custom/**")
     public void getFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	// Get path to file
     	String fileName = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
