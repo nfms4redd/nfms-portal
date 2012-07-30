@@ -10,51 +10,16 @@ UNREDD.currentTime = 2005;
 UNREDD.timeStep    = 5;
 
 UNREDD.layerInfo = {
-    /*
-    pry_admin1: function (feature) {
-        var that = {};
-        that.title = function () { return jQuery.i18n.prop('province') + ": " + feature.attributes.NAME1; };
-        that.statsLink = function () { return 'data/charts/' + languageCode + '/admin1/admin1_' + feature.attributes.ID + '.html?name=' + feature.attributes.NAME1; };
-        return that;
-    },
+    provinces: function(feature) {
+       var that = {};
+       that.title = function() {
+           return "Province: " + feature.attributes.PROVINCE;
+       };
+       that.statsLink = function() {
+           return '/stg_geostore/rest/misc/category/name/ChartData/resource/name/deforestation_script_' +  feature.attributes.OBJECTID + '_' + languageCode + '/data?name=' + feature.attributes.PROVINCE;
+       };
 
-    pry_admin2: function (feature) {
-        var that = {};
-        that.title = function () { return jQuery.i18n.prop('admin_unit') + ": " + feature.attributes.NAME2; };
-        that.statsLink = function () { return 'data/charts/' + languageCode + '/admin2/admin2_' + feature.attributes.ID + '.html?name=' + feature.attributes.NAME2; };
-        return that;
-    },
-    */
-	
-    pry_landsat_p228r75: function (feature) {
-        var that = {};
-        that.title = function () {
-            return "Datos producidos durante el taller de formaciÃ³n";
-        };
-        that.statsLink = function () {
-            return 'data/charts/' + languageCode + '/training_data/training_chart.html';
-        };
-        return that;
-    },
-	
-    pry_alto_paraguay_simp: function (feature) {
-        var that = {};
-        that.title = function () {
-            return "Uso Agropecuario 1997 - 2001 Alto Paraguay";
-        };
-        that.statsLink = function () {
-            return 'data/charts/' + languageCode + '/land_use/land_use.html';
-        };
-        return that;
-    }
-    
-    /*
-    pry_protected_areas: function (feature) {
-        var that = {};
-        that.title = function () {return jQuery.i18n.prop('province') + ": " + "";};
-        that.statsLink = function () {return 'data/charts/' + languageCode + '/admin1/admin1_' + feature.attributes.OBJECTID + '.html?name=' + "";};
-        return that;
-    }
-    */
+       return that;
+    }    
 };
 

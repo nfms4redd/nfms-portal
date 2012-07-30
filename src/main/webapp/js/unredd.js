@@ -290,153 +290,161 @@ $(window).load(function () {
     UNREDD.map = new OpenLayers.Map('map', openLayersOptions);
 
 
-    $.ajax({url: 'layers.json', dataType: 'json', async: false, success: function (data_) {
-        var setupAllContexts,
+    $.ajax({
+        url: 'layers.json', 
+        dataType: 'json', 
+        async: false, 
+        success: function (data_) {
+            var setupAllContexts,
             setLegends,
             loadContextGroups;
 
-        // Create layers objects
-        jQuery.each(data_.layers, function (i, layerDefinition) {
-            var layerId = layerDefinition.id;
-            var layer = new UNREDD.Layer(layerId, layerDefinition);
+            // Create layers objects
+            jQuery.each(data_.layers, function (i, layerDefinition) {
+                var layerId = layerDefinition.id;
+                var layer = new UNREDD.Layer(layerId, layerDefinition);
 
-            if (layerDefinition.visible) {
-                UNREDD.visibleLayers.push(layer.olLayer);
-            }
+                if (layerDefinition.visible) {
+                    UNREDD.visibleLayers.push(layer.olLayer);
+                }
 
-            UNREDD.allLayers[layerId] = layer;
-            if (layerDefinition.queryable) { UNREDD.queryableLayers.push(layer.olLayer); }
-            if (typeof layer.configuration.wmsTime !== 'undefined') { UNREDD.timeDependentLayers.push(layer) }
-        });
-
-        // Create context objects
-        jQuery.each(data_.contexts, function (i, contextDefinition) {
-            var contextId = contextDefinition.id;
-            var context = new UNREDD.Context(contextId, contextDefinition);
-            UNREDD.mapContexts[contextId] = context;
-        });
-        
-        // set the langData variable (used to localized content dynamically created
-        // in Javascript
-        langData = data_.lang;
-        
-        var contextGroups = data_.contextGroups;
-
-        setupAllContexts = function () {
-            // look for active contexts
-            jQuery.each(UNREDD.mapContexts, function (contextName, context) {
-                var active = typeof context.configuration.active !== 'undefined' && context.configuration.active;
-                setContextVisibility(context, active);
+                UNREDD.allLayers[layerId] = layer;
+                if (layerDefinition.queryable) {
+                    UNREDD.queryableLayers.push(layer.olLayer);
+                }
+                if (typeof layer.configuration.wmsTime !== 'undefined') {
+                    UNREDD.timeDependentLayers.push(layer)
+                }
             });
-        };
 
-        updateActiveLayersPane = function () {
-            var //div,
+            // Create context objects
+            jQuery.each(data_.contexts, function (i, contextDefinition) {
+                var contextId = contextDefinition.id;
+                var context = new UNREDD.Context(contextId, contextDefinition);
+                UNREDD.mapContexts[contextId] = context;
+            });
+        
+            // set the langData variable (used to localized content dynamically created
+            // in Javascript
+            langData = data_.lang;
+        
+            var contextGroups = data_.contextGroups;
+
+            setupAllContexts = function () {
+                // look for active contexts
+                jQuery.each(UNREDD.mapContexts, function (contextName, context) {
+                    var active = typeof context.configuration.active !== 'undefined' && context.configuration.active;
+                    setContextVisibility(context, active);
+                });
+            };
+
+            updateActiveLayersPane = function () {
+                var //div,
                 table, tr, td, td2, layers, inlineLegend, transparencyDiv;
-            // empty the active_layers div (layer on the UI -> context here)
-            $('#active_layers_pane div').empty();
+                // empty the active_layers div (layer on the UI -> context here)
+                $('#active_layers_pane div').empty();
 
-            table = $('<table style="width:90%;margin:auto"></table>');
-            $('#active_layers_pane div').append(table);
+                table = $('<table style="width:90%;margin:auto"></table>');
+                $('#active_layers_pane div').append(table);
 
-            jQuery.each(UNREDD.mapContexts, function (contextName, context) {
-                var contextConf = context.configuration;
+                jQuery.each(UNREDD.mapContexts, function (contextName, context) {
+                    var contextConf = context.configuration;
                 
-                if (contextConf.active) {
-                    // First row: inline legend and context name
-                    tr = $('<tr></tr>');
+                    if (contextConf.active) {
+                        // First row: inline legend and context name
+                        tr = $('<tr></tr>');
 
-                    if (contextConf.hasOwnProperty('inlineLegendUrl')) {
-                        td = $('<td style="width:20px"></td>');
-                        inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
-                        td.append(inlineLegend);
-                        tr.append(td);
-                        td2 = $('<td></td>');
-                    /*
+                        if (contextConf.hasOwnProperty('inlineLegendUrl')) {
+                            td = $('<td style="width:20px"></td>');
+                            inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
+                            td.append(inlineLegend);
+                            tr.append(td);
+                            td2 = $('<td></td>');
+                        /*
                     } else if (data.contexts[contextName].hasOwnProperty('legendUrl')) {
                         td = $('<td style="width:20px"></td>');
                         inlineLegend = $('<img class="inline-legend" src="images/legend_off.gif">');
                         td.append(inlineLegend);
                         tr.append(td);
                     */
-                    } else {
-                        td2 = $('<td colspan="2"></td>');
+                        } else {
+                            td2 = $('<td colspan="2"></td>');
+                        }
+                        td2.append(contextConf.label);
+                        tr.append(td2);
+                        table.append(tr);
+
+                        // Another row
+                        tr = $('<tr></tr>');
+                        transparencyDiv = $('<div style="margin-top:4px; margin-bottom:12px;" id="' + contextName + '_transparency_slider"></div>');
+                        td = $('<td colspan="2"></td>');
+                        td.append(transparencyDiv);
+                        tr.append(td);
+                        table.append(tr);
+
+                        layers = contextConf.layers;
+
+                        (function (contextLayers) {
+                            $(transparencyDiv).slider({
+                                min: 0,
+                                max: 100,
+                                value: 100,
+                                slide: function (event, ui) {
+                                    $.each(contextLayers, function (n, layer) {
+                                        layer.olLayer.setOpacity(ui.value / 100);
+                                    });
+                                }
+                            });
+                        }(context.layers));
                     }
-                    td2.append(contextConf.label);
-                    tr.append(td2);
-                    table.append(tr);
+                });
+            };
 
-                    // Another row
-                    tr = $('<tr></tr>');
-                    transparencyDiv = $('<div style="margin-top:4px; margin-bottom:12px;" id="' + contextName + '_transparency_slider"></div>');
-                    td = $('<td colspan="2"></td>');
-                    td.append(transparencyDiv);
-                    tr.append(td);
-                    table.append(tr);
-
-                    layers = contextConf.layers;
-
-                    (function (contextLayers) {
-                        $(transparencyDiv).slider({
-                            min: 0,
-                            max: 100,
-                            value: 100,
-                            slide: function (event, ui) {
-                                $.each(contextLayers, function (n, layer) {
-                                    layer.olLayer.setOpacity(ui.value / 100);
-                                });
-                            }
-                        });
-                    }(context.layers));
-                }
-            });
-        };
-
-        // Add the legend images to the legend pane.
-        // This implementation works only if two contexts don't have a layer in common.
-        // A better implementation would have to scan all the active contexts and see which layers should be visible
-        setLegends = function (context, contextIsActive) {
-            jQuery.each(context.layers, function (n, layer) {
-                var //legendFile,
+            // Add the legend images to the legend pane.
+            // This implementation works only if two contexts don't have a layer in common.
+            // A better implementation would have to scan all the active contexts and see which layers should be visible
+            setLegends = function (context, contextIsActive) {
+                jQuery.each(context.layers, function (n, layer) {
+                    var //legendFile,
                     layerConf = layer.configuration,
                     table,
                     legendName;
 
-                if (layerConf.visible && typeof layerConf.legend !== "undefined") {
-                    //legendFile = layerDef.legend;
-                    legendName = context.name + '_legend';
+                    if (layerConf.visible && typeof layerConf.legend !== "undefined") {
+                        //legendFile = layerDef.legend;
+                        legendName = context.name + '_legend';
 
-                    if (!contextIsActive) {
-                        $('#' + legendName).remove();
-                    } else {
-                        table  = '<table class="layer_legend" id="' + legendName + '">';
-                        table += '<tr class="legend_header">';
-                        table += '<td class="layer_name">' + layerConf.label + '</td>';
-                        
-                        if (typeof layerConf.sourceLink !== "undefined") {
-                            // TODO: localize data source link
-                            table += '<td class="data_source_link"><span class="lang" id="data_source">Data source:</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
+                        if (!contextIsActive) {
+                            $('#' + legendName).remove();
                         } else {
-                            table += "<td></td>";
+                            table  = '<table class="layer_legend" id="' + legendName + '">';
+                            table += '<tr class="legend_header">';
+                            table += '<td class="layer_name">' + layerConf.label + '</td>';
+                        
+                            if (typeof layerConf.sourceLink !== "undefined") {
+                                // TODO: localize data source link
+                                table += '<td class="data_source_link"><span class="lang" id="data_source">Data source:</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
+                            } else {
+                                table += "<td></td>";
+                            }
+                            table += '</tr>';
+                            table += '<tr class="legend_image">';
+                            table += '<td colspan="2" style="width:100%;background-color:white"><img src="custom/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
+                            table += '</tr>';
+                            table += '</table>';
                         }
-                        table += '</tr>';
-                        table += '<tr class="legend_image">';
-                        table += '<td colspan="2" style="width:100%;background-color:white"><img src="static/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
-                        table += '</tr>';
-                        table += '</table>';
+
+                        $('#legend_pane_content').append(table);
                     }
+                });
+            };
 
-                    $('#legend_pane_content').append(table);
-                }
-            });
-        };
-
-        // Though recursive and ready for n level groupings with some adjustments, this function
-        // is meant to work with three level grouping of contexts
-        // TODO: use some templating engine?
-        loadContextGroups = function (contextGroups, level, element) {
-            jQuery.each(contextGroups.items, function (contextGroupName, contextGroupDefinition) {
-                var innerElement = null,
+            // Though recursive and ready for n level groupings with some adjustments, this function
+            // is meant to work with three level grouping of contexts
+            // TODO: use some templating engine?
+            loadContextGroups = function (contextGroups, level, element) {
+                jQuery.each(contextGroups.items, function (contextGroupName, contextGroupDefinition) {
+                    var innerElement = null,
                     accordionHeader,
                     contextsDiv,
                     header,
@@ -451,164 +459,287 @@ $(window).load(function () {
                     active,
                     infoButton;
 
-                if (contextGroupDefinition.hasOwnProperty('group')) {
-                    // it's a group
-                    if (level === 0) {
-                        if (typeof contextGroupDefinition.group.infoFile !== 'undefined') {
-                            accordionHeader = $('<div style="position:relative" class="accordion_header"><a style="width:190px" href="#">' + contextGroupDefinition.group.label
-                                + '</a></div>');
-                            infoButton = $('<a style="position:absolute;top:3px;right:7px;width:16px;height:16px;padding:0;" class="layer_info_button" href="loc/' + languageCode + '/html/' + contextGroupDefinition.group.infoFile + '"></a>')
-                            accordionHeader.append(infoButton);
+                    if (contextGroupDefinition.hasOwnProperty('group')) {
+                        // it's a group
+                        if (level === 0) {
+                            if (typeof contextGroupDefinition.group.infoFile !== 'undefined') {
+                                accordionHeader = $('<div style="position:relative" class="accordion_header"><a style="width:190px" href="#">' + contextGroupDefinition.group.label
+                                    + '</a></div>');
+                                infoButton = $('<a style="position:absolute;top:3px;right:7px;width:16px;height:16px;padding:0;" class="layer_info_button" href="loc/' + languageCode + '/html/' + contextGroupDefinition.group.infoFile + '"></a>')
+                                accordionHeader.append(infoButton);
                             
-                            // prevent accordion item from expanding when clicking on the info button
-                            infoButton.click(function (event) {
-                                event.stopPropagation();
-                            });
+                                // prevent accordion item from expanding when clicking on the info button
+                                infoButton.click(function (event) {
+                                    event.stopPropagation();
+                                });
+                            } else {
+                                accordionHeader = $("<div class=\"accordion_header\"><a href=\"#\">" +  contextGroupDefinition.group.label + "</a></div>");
+                            }
+                            element.append(accordionHeader);
+                            contextsDiv = $("<div class=\"context_buttonset\"></div>");
+                            innerElement = $('<table style="width:100%;border-collapse:collapse"></table>');
+
+                            contextsDiv.append(innerElement);
+                            element.append(contextsDiv);
                         } else {
-                            accordionHeader = $("<div class=\"accordion_header\"><a href=\"#\">" +  contextGroupDefinition.group.label + "</a></div>");
+                            header = $("<div><a href=\"#\">" + contextGroupDefinition.group.label + "</a></div>");
+                            element.append(header);
+                            innerElement = $('<table class="second_level" style="width:100%"></table>');
+                            element.append(innerElement);
                         }
-                        element.append(accordionHeader);
-                        contextsDiv = $("<div class=\"context_buttonset\"></div>");
-                        innerElement = $('<table style="width:100%;border-collapse:collapse"></table>');
 
-                        contextsDiv.append(innerElement);
-                        element.append(contextsDiv);
+                        loadContextGroups(contextGroupDefinition.group, level + 1, innerElement);
                     } else {
-                        header = $("<div><a href=\"#\">" + contextGroupDefinition.group.label + "</a></div>");
-                        element.append(header);
-                        innerElement = $('<table class="second_level" style="width:100%"></table>');
-                        element.append(innerElement);
-                    }
+                        // it's a context in a group
+                        if (element !== null) {
+                            contextName = contextGroupDefinition.context;
+                            active = UNREDD.mapContexts[contextName].configuration.active;
 
-                    loadContextGroups(contextGroupDefinition.group, level + 1, innerElement);
-                } else {
-                    // it's a context in a group
-                    if (element !== null) {
-                        contextName = contextGroupDefinition.context;
-                        active = UNREDD.mapContexts[contextName].configuration.active;
+                            var context = UNREDD.mapContexts[contextName];
 
-                        var context = UNREDD.mapContexts[contextName];
+                            if (typeof context !== "undefined") {
+                                var contextConf = context.configuration
 
-                        if (typeof context !== "undefined") {
-                            var contextConf = context.configuration
+                                tr = $('<tr class="layer_row">');
 
-                            tr = $('<tr class="layer_row">');
-
-                            //if (active) {
-                            //  tr.addClass('active');
-                            //}
+                                //if (active) {
+                                //  tr.addClass('active');
+                                //}
                             
-                            if (contextConf.hasOwnProperty('inlineLegendUrl')) {
-                                // context has an inline legend
-                                var td1 = $('<td style="width:20px">');
-                                inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
-                                td1.append(inlineLegend);
-                            } else if (context.hasLegend) {
-                                // context has a legend to be shown on the legend pane
-                                // add link to show the legend pane
-                                if (active) {
-                                    var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
-                                    // Add the legend to the legend pane (hidden when page loads)
-                                    setLegends(context, true);
-                                } else {
-                                    var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
+                                if (contextConf.hasOwnProperty('inlineLegendUrl')) {
+                                    // context has an inline legend
+                                    var td1 = $('<td style="width:20px">');
+                                    inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
+                                    td1.append(inlineLegend);
+                                } else if (context.hasLegend) {
+                                    // context has a legend to be shown on the legend pane
+                                    // add link to show the legend pane
+                                    if (active) {
+                                        var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
+                                        // Add the legend to the legend pane (hidden when page loads)
+                                        setLegends(context, true);
+                                    } else {
+                                        var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
+                                    }
+                                } else if (typeof contextConf.layers !== "undefined") {
+                                    var td1 = $('<td></td>');
                                 }
-                            } else if (typeof contextConf.layers !== "undefined") {
-                                var td1 = $('<td></td>');
-                            }
                             
-                            if (typeof contextConf.layers !== "undefined") {
-                                var td2 = $('<td style="width:16px"></td>');
-                                var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
-                                if (active) {
-                                    checkbox.addClass('checked');
-                                }
+                                if (typeof contextConf.layers !== "undefined") {
+                                    var td2 = $('<td style="width:16px"></td>');
+                                    var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
+                                    if (active) {
+                                        checkbox.addClass('checked');
+                                    }
 
-                                (function (element) {
-                                    // emulate native checkbox behaviour
-                                    element.mousedown(function () {
-                                        element.addClass('mousedown');
-                                    }).mouseup(function () {
-                                        element.removeClass('mousedown');
-                                    }).mouseleave(function () {
-                                        element.removeClass('in');
-                                    }).mouseenter(function () {
-                                        element.addClass('in');
-                                    }).click(function () {
-                                        element.toggleClass('checked');
+                                    (function (element) {
+                                        // emulate native checkbox behaviour
+                                        element.mousedown(function () {
+                                            element.addClass('mousedown');
+                                        }).mouseup(function () {
+                                            element.removeClass('mousedown');
+                                        }).mouseleave(function () {
+                                            element.removeClass('in');
+                                        }).mouseenter(function () {
+                                            element.addClass('in');
+                                        }).click(function () {
+                                            element.toggleClass('checked');
                                         
-                                        var active = !contextConf.active;
-                                        setContextVisibility(context, active);
-                                        setLegends(context, active);
-                                        updateActiveLayersPane();
-                                    });
-                                }(checkbox));
+                                            var active = !contextConf.active;
+                                            setContextVisibility(context, active);
+                                            setLegends(context, active);
+                                            updateActiveLayersPane();
+                                        });
+                                    }(checkbox));
 
-                                td2.append(checkbox);
-                            }
+                                    td2.append(checkbox);
+                                }
 
-                            td3 = $('<td style="color:#FFF">');
-                            td3.text(contextConf.label);
+                                td3 = $('<td style="color:#FFF">');
+                                td3.text(contextConf.label);
 
-                            td4        = $('<td style="width:16px;padding:0">');
-                            infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                td4        = $('<td style="width:16px;padding:0">');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
                             
-                            if (typeof contextConf.infoFile !== 'undefined') {
-                                td4.append(infoButton);
-                            }
+                                if (typeof contextConf.infoFile !== 'undefined') {
+                                    td4.append(infoButton);
+                                }
 
-                            if (td1) { tr.append(td1); }
-                            if (td2) { tr.append(td2); }
+                                if (td1) {
+                                    tr.append(td1);
+                                }
+                                if (td2) {
+                                    tr.append(td2);
+                                }
 
-                            tr.append(td3, td4);
+                                tr.append(td3, td4);
 
-                            element.append(tr);
+                                element.append(tr);
                             
-                            // The :hover pseudo-selector on non-anchor elements is known to make IE7 and IE8 slow in some cases
-                            /*
-                            tr.mouseenter(function () {
-                                tr.addClass('hover');
-                            }).mouseleave(function () {
-                                tr.removeClass('hover');
-                            });
-                            */
+                                // The :hover pseudo-selector on non-anchor elements is known to make IE7 and IE8 slow in some cases
+                                /*
+                                tr.mouseenter(function () {
+                                    tr.addClass('hover');
+                                }).mouseleave(function () {
+                                    tr.removeClass('hover');
+                                });
+                                */
                                                         
-                        } else if (typeof contextConf !== "undefined") {
-                            tr  = $('<tr style="font-size:10px;height:22px">');
-                            td1 = $('<td colspan="3" style="color:#FFF">');
-                            td2 = $('<td style="width:16px;padding:0">');
+                            } else if (typeof contextConf !== "undefined") {
+                                tr  = $('<tr style="font-size:10px;height:22px">');
+                                td1 = $('<td colspan="3" style="color:#FFF">');
+                                td2 = $('<td style="width:16px;padding:0">');
                             
-                            td1.text(contextConf.label);
+                                td1.text(contextConf.label);
                             
-                            infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
 
-                            td2.append(infoButton);
-                            tr.append(td1, td2);
-                            element.append(tr);
-                        }
+                                td2.append(infoButton);
+                                tr.append(td1, td2);
+                                element.append(tr);
+                            }
 
-                        if (typeof infoButton !== 'undefined') {
-                            infoButton.fancybox({
-                                'autoScale' : false,
-                                'openEffect' : 'elastic',
-                                'closeEffect' : 'elastic',
-                                'type': 'ajax',
-                                'overlayOpacity': 0.5
-                            });
+                            if (typeof infoButton !== 'undefined') {
+                                infoButton.fancybox({
+                                    'autoScale' : false,
+                                    'openEffect' : 'elastic',
+                                    'closeEffect' : 'elastic',
+                                    'type': 'ajax',
+                                    'overlayOpacity': 0.5
+                                });
+                            }
                         }
                     }
-                }
-            });
-        };
+                });
+            };
 
-        loadContextGroups(contextGroups, 0, $("#layers_pane"));
+            loadContextGroups(contextGroups, 0, $("#layers_pane"));
 
-        //$("#layers_pane").accordion({collapsible: true, autoHeight: false, animated: false});
-        $("#layers_pane").accordion({ collapsible: true, autoHeight: false, header: ".accordion_header", animated: false } );
-        $("#layers_pane").show();
+            //$("#layers_pane").accordion({collapsible: true, autoHeight: false, animated: false});
+            $("#layers_pane").accordion({
+                collapsible: true, 
+                autoHeight: false, 
+                header: ".accordion_header", 
+                animated: false
+            } );
+            $("#layers_pane").show();
         
-        setupAllContexts();
-    }});
+            setupAllContexts();
+
+            // create info dialog
+            var selectedFeatures = {};
+            $("#info_popup").dialog({
+                closeOnEscape: true,
+                height: 170,
+                minHeight: 400,
+                maxHeight: 400,
+                width: 300,
+                zIndex: 2000,
+                resizable: false,
+                close: function (event, ui) {
+                    // destroy all features
+                    $.each(selectedFeatures, function (layerId, feature) {
+                        feature.destroy();
+                    });
+                },
+                autoOpen: false
+            });
+
+            showInfo = function (evt) {
+                var x = evt.xy.x - 100,
+                y = evt.xy.y - 200,
+                i,
+                feature,
+                featureType,
+                infoPopup = $("#info_popup");
+
+                highlightLayer.destroyFeatures();
+                //$("#piemenu").hide();
+		
+                if (evt.features && evt.features.length) {
+                    // re-project to Google projection
+                    for (i = 0; i < evt.features.length; i++) {
+                        evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+                        feature = evt.features[i];
+                        featureType = feature.gml.featureType;
+                        selectedFeatures[featureType] = feature;
+                    }
+
+                    infoPopup.empty();
+
+                    $.each(selectedFeatures, function (layerId, feature) {
+                        var table = $("<table>"),
+                        info,
+                        tr1,
+                        td1,
+                        tr2,
+                        td2,
+                        tr3,
+                        td3;
+        
+                        info = UNREDD.layerInfo[layerId](feature);
+        
+                        tr1 = $("<tr/>");
+                        td1 = $('<td colspan="2" class="area_name" />');
+                        tr1.append(td1);
+                        table.append(tr1);
+                        table.mouseover(function () {
+                            highlightLayer.removeAllFeatures();
+                            highlightLayer.addFeatures(feature);
+                            highlightLayer.redraw();
+                        });
+                        table.mouseout(function () {
+                            //console.log(feature); // DEBUG
+                            highlightLayer.removeAllFeatures();
+                            highlightLayer.redraw();
+                        });
+                        td1.append(info.title().toLowerCase());
+
+                        tr2 = $("<tr/>");
+                        td2 = $("<td class=\"td_left\"/>");
+                        tr2.append(td2);
+                        table.append(tr2);
+                        
+                        // TODO: localize statistics and zoom to area buttons
+                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">" + 'Statistics' + "</a>");
+                        td3 = $("<td class=\"td_right\"/>");
+                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">" + 'Zoom to area' + "</a>");
+                        tr2.append(td3);
+                        infoPopup.append(table);
+
+                        $('#stats_link_' + layerId).fancybox({
+                            maxWidth	: 840,
+                            maxHeight	: 600,
+                            fitToView	: false,
+                            width		: 840,
+                            height		: 510,
+                            autoSize	: false,
+                            closeClick	: false,
+                            openEffect	: 'none',
+                            closeEffect	: 'fade'
+                        });
+
+                        if (info.info && info.info()) {
+                            tr3 = $("<tr/>");
+                            td3 = $("<td class=\"td_left\" colspan=\"2\"/>");
+                            tr3.append(td3);
+                            table.append(tr3);
+                            td3.append(info.info());
+                        }
+
+                        $("#zoom_to_feature_" + layerId).click(function () {
+                            UNREDD.map.zoomToExtent(feature.geometry.getBounds().scale(1.2));
+                        });
+                    });
+                    
+                    if (!infoPopup.dialog('isOpen')) {
+                        infoPopup.dialog('option', 'position', [x, y]);
+                    }
+                    infoPopup.dialog('open');
+                }
+            }
+        }
+    });
 
 
     var statsPolygonLayer = new OpenLayers.Layer.Vector("Statistics Polygon Layer");
