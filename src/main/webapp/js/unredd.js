@@ -53,13 +53,19 @@
 
 OpenLayers.ProxyHost = "proxy?url=";
 
+var RecaptchaOptions = {
+	lang: languageCode,
+	theme: 'blackglass'
+};
+
 var UNREDD = {
     //wmsLayers: {},
     allLayers: {},
     visibleLayers: [],
     queryableLayers: [],
     timeDependentLayers: [],
-    mapContexts: {}
+    mapContexts: {},
+    fb_toolbar: {}
 };
 
 UNREDD.wmsServers = [
@@ -867,6 +873,10 @@ $(window).load(function () {
 
             newDate = getClosestPastDate(selectedDate, dates);
             layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
+            UNREDD.map.events.triggerEvent("changelayer", {
+            	layer: layer.olLayer,
+            	property: "time"
+            });
         });
     };
 
@@ -964,59 +974,7 @@ $(window).load(function () {
     //  year = 2010;
     //}
     //deforestation.mergeNewParams({'styles': 'deforestation_temp_' + (year)}); // hack, couldn't do with time dimension in geoserver
-
-     OpenLayers.Control.Feedback = OpenLayers.Class(OpenLayers.Control, {
-    	initialize: function (options) {
-    		OpenLayers.Control.prototype.initialize.apply(this, [options]);
-    		this.handler = new OpenLayers.Handler.Polygon(
-                this, 						// control
-                {'done': this.openDialog}, // callbacks
-                {}     						// handlerOptions
-            );
-    	},
-    	
-    	openDialog: function (polygon) {
-    		$("#feedback_info_div").fadeOut(200);
-
-            $("#feedback_submit").click(function () {
-                $("#feedback_popup").dialog('close');
-                // TODO: add real submit action
-            });
-
-            $("#feedback_cancel").click(function () {
-                $("#feedback_popup").dialog('close');
-                // TODO: Destroy polygon
-            });
-
-            $("#feedback_popup").dialog({
-                closeOnEscape: false,
-                minHeight: 400,
-                maxHeight: 400,
-                width: 340,
-                height: 330,
-                zIndex: 2000,
-                resizable: false,
-                
-                open: function (event, ui) {
-                    $("#fb_polygon").text(polygon.transform(
-                    		UNREDD.map.projection,
-                    		UNREDD.map.displayProjection).toString());
-                    $('#name').val('');
-                    $('#email').val('');
-                    $('#feedback').val('');
-                    feedbackControl.deactivate();
-                },
-                
-                close: function (event, ui) {
-                    $("#button_feedback").removeClass('selected');
-                }
-            });
-    	}
-    });
-    
-    var feedbackControl = new OpenLayers.Control.Feedback();
-    UNREDD.map.addControl(feedbackControl);
-    
+   
     // Info click handler
     infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
         url: UNREDD.wmsServers[0],
@@ -1079,47 +1037,24 @@ $(window).load(function () {
 
     loadBundles('es');
     */
-   
-    $("#button_feedback").bind(
-        'click',
-        function () {
-            if (feedbackControl.active) {
-                $(this).removeClass('selected');
-                $("#feedback_info_div").fadeOut(200);
-                feedbackControl.deactivate();
-                drawStatsPolygonControl.deactivate();
-                infoControl.activate();
-            } else {
-                $("#button_statistics").removeClass('selected');
-                $(this).addClass('selected');
-                $("#feedback_info_div").show();
-                infoControl.deactivate();
-                drawStatsPolygonControl.deactivate();
-                feedbackControl.activate();
-            }
-            
-            return false;
-        }
-    );
-        
+          
     $("#button_statistics").bind(
         'click',
         function () {
-            if (drawStatsPolygonControl.active) {
-                $(this).removeClass('selected');
-                drawStatsPolygonControl.deactivate();
-                feedbackControl.deactivate();
-                infoControl.activate();
-                $("#statistics_info_div").fadeOut(200);
-            } else {
-                $("#button_feedback").removeClass('selected');
-                $(this).addClass('selected');
-                                infoControl.deactivate();
-                feedbackControl.deactivate();
-                drawStatsPolygonControl.activate();
-                $("#statistics_info_div").show();
-            }
-            
+        	if (!$("#button_feedback").hasClass('selected')) { // Prevent activation if feedback is active
+	            if (drawStatsPolygonControl.active) {
+	                $(this).removeClass('selected');
+	                drawStatsPolygonControl.deactivate();
+	                infoControl.activate();
+	                $("#statistics_info_div").fadeOut(200);
+	            } else {
+	                $("#button_feedback").removeClass('selected');
+	                $(this).addClass('selected');
+	                infoControl.deactivate();
+	                drawStatsPolygonControl.activate();
+	                $("#statistics_info_div").show();
+	            }
+        	}
             return false;
         }
     );
@@ -1143,12 +1078,156 @@ $(window).load(function () {
     highlightLayer = new OpenLayers.Layer.Vector("Highlighted Features", {styleMap: styleMap});
     UNREDD.map.addLayer(highlightLayer);
 
-    // markers layer (used for feedback)
-    markers = new OpenLayers.Layer.Markers("markers");
-    markers.id = "markers";
-    UNREDD.map.addLayer(markers);
+    
+    /**************/
+    /** Feedback **/
+    /**************/
+
+    // Feedback button
+    $("#button_feedback").bind(
+        'click',
+        function () {
+        	if (!$("#button_statistics").hasClass('selected')) { // Prevent activation if statistics is active
+	            if ($(this).hasClass('selected')) {
+	                $(this).removeClass('selected');
+	            } else {
+	                $(this).addClass('selected');
+	            	$("#button_statistics").removeClass('selected');
+	                openDialog();
+	            }
+        	}
+            return false;
+        }
+    );
+    
+    // Feedback vector layer
+    feedbackLayer = new OpenLayers.Layer.Vector("Feedback");  
+    UNREDD.map.addLayer(feedbackLayer);
+    
+    // Feedback form
+	function openDialog() {
+
+		$("#feedback_submit").button();
+        $("#feedback_submit").click(function () {
+    	    var mailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    	    if(!mailRegex.test($("#email_").val())) {
+    			$("#feedback-invalid-mail").dialog({
+    				height: 140,
+    				modal: true,
+    	            resizable: false,
+    	            buttons: { "Ok": function () { $(this).dialog( "close" ); } }
+    			});
+    	    } else {
+    	    	// TODO submit!!!
+            	$("#feedback_popup").dialog('close');       	    	
+    	    }
+        });
+
+        $("#feedback_cancel").button();
+        $("#feedback_cancel").click(function () {
+            $("#feedback_popup").dialog('close');
+        });
+        
+        $("#fb_layers").change(function(evt) {
+        	var layerId = $("#fb_layers").val();
+        	
+        	// Determine if layer is queryable
+        	var queryable = false;
+        	$.each(UNREDD.mapContexts[layerId].layers, function(index, layer) {
+        		if(layer.configuration.queryable) {
+        			queryable = layer.olLayer;
+        		}
+        	});
+			UNREDD.fb_toolbar.setQueryable(queryable);
+			
+			// Determine if layer is time-varying
+			var olLayer = UNREDD.allLayers[layerId].olLayer;
+			if (olLayer.params && olLayer.params.TIME) {
+				var date = new Date(olLayer.params.TIME);
+				$("#fb_time").html(messages.feedback_year + date.getFullYear());
+			} else {
+				$("#fb_time").html("");
+			}
+			
+        });
+
+        $("#feedback_popup").dialog({
+            closeOnEscape: false,
+            width: 340,
+            height: 415,
+            zIndex: 2000,
+            resizable: false,
+            position: [270, 150],
+            title: messages.feedback_title,
+            
+            open: function (event, ui) {
+            	// Empty form
+                $('#name_').val('');
+                $('#email_').val('');
+                $('#feedback_').val('');
+            	$('#fb_layers').empty();
+            	
+            	// Add draw toolbar
+                infoControl.deactivate();
+                UNREDD.fb_toolbar = new OpenLayers.Control.PortalToolbar(feedbackLayer, {div: document.getElementById("fb_toolbar")});
+                UNREDD.map.addControl(UNREDD.fb_toolbar);
+                           	
+                // Inform layers combo
+            	$.each(UNREDD.allLayers, function(key, layer) {
+            		if(layer.olLayer.visibility == true && UNREDD.mapContexts[layer.name]) {
+            			var name = layer.name;
+            			var label = UNREDD.mapContexts[name].configuration.label;
+                		$("#fb_layers").append('<option value="'+name+'">'+label+'</option>');
+            		}
+            	});
+				$("#fb_layers").change();
+            	
+				// Sync layers combo with visible layers
+            	UNREDD.map.events.on({
+            		"changelayer": function(evt) {
+            			if (evt.property == "visibility") {
+            				var layer = evt.layer;
+        					var name = layer.name;
+            				if(evt.layer.visibility == false) {
+            					$("#fb_layers option[value='"+name+"']").remove();
+            				} else {
+            					var label = UNREDD.mapContexts[name].configuration.label;
+            					$("#fb_layers").append('<option value="'+name+'">'+label+'</option>');
+            				}
+            				$("#fb_layers").change();
+            			}
+            			if (evt.property == "time" && evt.layer.name == $("#fb_layers").val()) {
+            				var date = new Date(evt.layer.params.TIME);
+            				$("#fb_time").html(messages.feedback_year + date.getFullYear());
+            			}
+            		}
+            	});
+            },
+            
+            /*
+            function validateEmail(email) { 
+                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\
+            ".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA
+            -Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(email);
+            }
+            */
+            
+            close: function (event, ui) {
+                $("#button_feedback").removeClass('selected');
+                UNREDD.map.removeControl(UNREDD.fb_toolbar);
+                UNREDD.fb_toolbar.deactivate();
+                UNREDD.fb_toolbar.destroy();
+                UNREDD.fb_toolbar=null;
+                infoControl.activate();
+                feedbackLayer.removeAllFeatures();
+            }
+        });
+	};
     
     UNREDD.map.setCenter(UNREDD.mapCenter, UNREDD.defaultZoomLevel);
+       
+    UNREDD.map.addControl(new OpenLayers.Control.Navigation());
     
     if (!UNREDD.map.getCenter()) {
         UNREDD.map.zoomToMaxExtent();

@@ -4,6 +4,9 @@
 <%@page session="true"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page import="net.tanesha.recaptcha.ReCaptcha" %>
+<%@ page import="net.tanesha.recaptcha.ReCaptchaFactory" %>
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
  nfms4redd Portal Interface - http://nfms4redd.org/
@@ -29,18 +32,21 @@
     
     <link type="text/css" href="css/custom-theme2/jquery-ui-1.8.16.custom.css" rel="stylesheet">
     <link rel="stylesheet" href="js/fancybox-2.0.5/source/jquery.fancybox.css" type="text/css" media="screen" />
-    <!-- link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
+    <!--link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
     <link rel="stylesheet" href="js/OpenLayers-2.12/theme/default/style.css" type="text/css" />
+    <link rel="stylesheet" href="css/toolbar.css" type="text/css" />
     <link rel="stylesheet" href="static/unredd.css" type="text/css">
     
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
+        var messages = <jsp:include page="messages.jsp"/>;
     </script>
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="js/fancybox-2.0.5/source/jquery.fancybox.pack.js"></script>
-    <!-- script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
+    <!--script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
     <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script>
+    <script type='text/javascript' src='js/toolbar.js'></script>
     <script type='text/javascript' src='js/unredd.js?v=2'></script>
     <script type='text/javascript' src='static/custom.js'></script>
   </head>
@@ -59,6 +65,7 @@
           <div id="time_slider_label">2005</div>
         </div>
       </div>
+
     </div>
     
     <div id="layer_list_selector_pane">
@@ -87,69 +94,66 @@
     </div>
     
     <div id="info_popup"></div>
+	<div id="feedback-invalid-mail" title="<spring:message code="invalid_email_title"/>">
+		<p><spring:message code="invalid_email_text"/></p>
+	</div>
     <div id="feedback_popup" style="display:none;">
-      <table style="font-size:12px;color:white">
+      <table class="feedback">
         <tr>
-          <td></td>
+          <th>
+            <spring:message code="layer" />:
+          </th>
           <td>
-            Polygon: <span id="fb_polygon" style="display:none;"></span>
+            <select id="fb_layers"></select>
+            <div id="fb_time"></div>
           </td>
         </tr>
         <tr>
+          <th>
+            <spring:message code="feedback_drawing_tools" />:
+          </th>
           <td>
-            <b><spring:message code="layer" />:</b>
-          </td>
-          <td>
-            <select>
-              <option value="deforestation">Deforestation</option>
-            </select>
+             <div id="fb_toolbar" class="olControlPortalToolbar"></div>
+             <div style="margin-left:80px;"><i><spring:message code="feedback_text" /></i></div>
           </td>
         </tr>
         <tr>
+          <th>
+            <spring:message code="name" />:
+          </th>
           <td>
-            <b><spring:message code="year" />:</b>
-          </td>
-          <td>
-            <select>
-              <option value="2005">2000-2005</option>
-              <option value="2010">2005-2010</option>
-            </select>
+            <input name="name_" id="name_" type="text">
           </td>
         </tr>
         <tr>
+          <th>
+            <spring:message code="email" />:
+          </th>
           <td>
-            <span style="font-size:12px;color:white;font-weight:bold"><spring:message code="name" />:</span>
-          </td>
-          <td>
-            <input name="name_" id="name_" type="text" size="28">
+            <input name="email_" id="email_" type="text">
           </td>
         </tr>
         <tr>
+          <th>
+            <spring:message code="feedback" />:
+          </th>
           <td>
-            <span style="font-size:12px;color:white;font-weight:bold"><spring:message code="email" /></span>
-          </td>
-          <td>
-            <input name="email_" id="email_" type="text" size="28">
+            <textarea id="feedback_" name="feedback_text_"></textarea>
           </td>
         </tr>
-        <tr>
-          <td style="vertical-align: top">
-            <b><spring:message code="feedback" />:</b>
-          </td>
-          <td style="vertical-align: top">
-            <textarea id="feedback_" name="feedback_text_" rows="5" cols="28"></textarea>
+		<tr>
+          <td colspan="2" class="recaptcha">
+		    <%
+		        ReCaptcha c = ReCaptchaFactory.newReCaptcha("6Ld5ydQSAAAAAGtZJG67QkQM7Z13X6MGf72RtmDE", "6Ld5ydQSAAAAAJW3To_tN6czS7C-HCnsBVhENfD9", false);
+		        out.print(c.createRecaptchaHtml(null, null));
+		    %>
           </td>
         </tr>
         <tr>
           <td></td>
           <td colspan="2">
-            <input type="button" id="feedback_cancel" value="Cancel" />
-            <input id="feedback_submit" type="submit">
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <spring:message code="feedback_text" />
+            <input id="feedback_submit" type="submit" value="<spring:message code="submit" />" />
+            <input type="button" id="feedback_cancel" value="<spring:message code="cancel" />" />
           </td>
         </tr>
       </table>

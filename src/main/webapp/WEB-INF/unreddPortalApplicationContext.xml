@@ -81,5 +81,5 @@ default-autowire="autodetect">
         <property name="username" ref="geostoreUsername"/>
         <property name="password" ref="geostorePassword"/>
     </bean>
-     
+
 </beans>

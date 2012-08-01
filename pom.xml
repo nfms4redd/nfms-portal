@@ -121,6 +121,13 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<!-- ReCAPTCHA for Java -->
+		<dependency>
+			<groupId>net.tanesha.recaptcha4j</groupId>
+			<artifactId>recaptcha4j</artifactId>
+			<version>0.0.7</version>
+		</dependency>
+
 		<!-- Geostore -->
 		<dependency>
 			<groupId>it.geosolutions.geostore</groupId>

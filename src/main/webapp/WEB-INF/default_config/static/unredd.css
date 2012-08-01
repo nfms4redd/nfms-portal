@@ -674,3 +674,36 @@ div.checkbox.checked.in.mousedown {
 table.second_level td:first-child {
     padding-left: 12px;
 }
+
+table.feedback {
+	font-size: 12px;
+	color: white;
+}
+
+table.feedback th {
+	vertical-align: top;
+	font-weight: bold;
+	width: 100px;
+}
+
+table.feedback select,
+table.feedback input,
+table.feedback textarea {
+	width: 100%;
+}
+
+table.feedback textarea {
+	resize: none;
+	height: 82px;
+}
+
+.recaptcha {
+	padding: 10px 0;
+}
+
+#feedback_cancel,
+#feedback_submit {
+	width: 45%;
+	float: right;
+	margin-left: 5px;
+}
