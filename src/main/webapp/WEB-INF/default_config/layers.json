@@ -537,14 +537,5 @@
         }
       }
     ]
-  },
-
-  "lang": {
-    "province": "${province}",
-    "deforestation_drivers": "${deforestation_drivers}",
-    "admin_unit": "${admin_unit}",
-    "logging": "${logging}",
-    "protected_area": "${protected_area}",
-    "redd_plus_activity": "${redd_plus_activity}"
   }
 }

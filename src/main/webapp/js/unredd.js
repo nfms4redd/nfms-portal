@@ -13,43 +13,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  */
-/*
-(function($,undefined){
-    // jquery.ui.widget
-    $.Widget.prototype._createWidget = function( options, element ) {
-        // $.widget.bridge stores the plugin instance, but we do it anyway
-        // so that it's stored even before the _create function runs
-        $.data( element, this.widgetName, this );
-        this.element = $( element );
-        this.options = $.extend( true, {},
-                this.options,
-                this._getCreateOptions(),
-                options );
-
-        var self = this;
-        // <--- memory leak
-        //this.element.bind( "remove." + this.widgetName, function() {
-        //      self.destroy();
-        //});
-
-        // <--- workaround -- start
-        this.element.bind( "remove." + this.widgetName,
-                                             {widgetName: this.widgetName},
-                                             this.__destroy);
-        // <--- workaround -- end
-
-        this._create();
-        this._trigger( "create" );
-        this._init();
-    };
-    // new __destroy method
-    $.Widget.prototype.__destroy = function(e){
-        var self = $(this).data(e.data.widgetName);
-        self.destroy();
-    }
-
-})(jQuery);
-*/
 
 OpenLayers.ProxyHost = "proxy?url=";
 
@@ -59,7 +22,6 @@ var RecaptchaOptions = {
 };
 
 var UNREDD = {
-    //wmsLayers: {},
     allLayers: {},
     visibleLayers: [],
     queryableLayers: [],
@@ -86,15 +48,12 @@ UNREDD.Layer = function (layerId, layerDefinition)
       "queryable": true
     }
     */
-
-    this.name = layerId
+	this.name = layerId
     this.configuration = layerDefinition;
-
+    
     // set WMS servers urls
     var baseUrl = layerDefinition.baseUrl;
-    // oscarfonts: pulling 'baseurl' out of 'urls', it will render pinky patchwork if no GeoServer in localhost.
-    // TODO: Move to customizable file and agree on a definite solution for this.
-    var urls = []; /*baseUrl*/
+    var urls = [];
     var urlsLength = UNREDD.wmsServers.length;
     for (var i = 0; i < urlsLength; i++) {
         var server = UNREDD.wmsServers[i];
@@ -150,9 +109,6 @@ UNREDD.Context = function (contextId, contextDefinition)
     }
 
     if (contextDefinition.layers) {
-        // if there's no layer property in the contextDefinition.layers, it's a stub for later use
-        // mapContexts[contextId] = {};
-
         nLayers = contextDefinition.layers.length;
         for (var i = 0; i < nLayers; i++) {
             var layerName = contextDefinition.layers[i];
@@ -231,7 +187,6 @@ $(window).load(function () {
         getClosestPastDate,
         updateActiveLayersPane,
         mapContexts = {},
-        langData,
         setContextVisibility,
         resizeMapDiv;
 
@@ -323,10 +278,6 @@ $(window).load(function () {
                 UNREDD.mapContexts[contextId] = context;
             });
         
-            // set the langData variable (used to localized content dynamically created
-            // in Javascript
-            langData = data_.lang;
-        
             var contextGroups = data_.contextGroups;
 
             setupAllContexts = function () {
@@ -359,13 +310,6 @@ $(window).load(function () {
                             td.append(inlineLegend);
                             tr.append(td);
                             td2 = $('<td></td>');
-                        /*
-                    } else if (data.contexts[contextName].hasOwnProperty('legendUrl')) {
-                        td = $('<td style="width:20px"></td>');
-                        inlineLegend = $('<img class="inline-legend" src="images/legend_off.gif">');
-                        td.append(inlineLegend);
-                        tr.append(td);
-                    */
                         } else {
                             td2 = $('<td colspan="2"></td>');
                         }
@@ -421,8 +365,7 @@ $(window).load(function () {
                             table += '<td class="layer_name">' + layerConf.label + '</td>';
                         
                             if (typeof layerConf.sourceLink !== "undefined") {
-                                // TODO: localize data source link
-                                table += '<td class="data_source_link"><span class="lang" id="data_source">Data source:</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
+                                table += '<td class="data_source_link"><span class="lang" id="data_source">'+messages.data_source+':</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
                             } else {
                                 table += "<td></td>";
                             }
@@ -614,7 +557,6 @@ $(window).load(function () {
 
             loadContextGroups(contextGroups, 0, $("#layers_pane"));
 
-            //$("#layers_pane").accordion({collapsible: true, autoHeight: false, animated: false});
             $("#layers_pane").accordion({
                 collapsible: true, 
                 autoHeight: false, 
@@ -699,10 +641,9 @@ $(window).load(function () {
                         tr2.append(td2);
                         table.append(tr2);
                         
-                        // TODO: localize statistics and zoom to area buttons
-                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">" + 'Statistics' + "</a>");
+                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">" + messages.statistics + "</a>");
                         td3 = $("<td class=\"td_right\"/>");
-                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">" + 'Zoom to area' + "</a>");
+                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">" + messages.zoom_to_area + "</a>");
                         tr2.append(td3);
                         infoPopup.append(table);
 
@@ -1000,36 +941,6 @@ $(window).load(function () {
     });
     UNREDD.map.addControl(infoControl);
     infoControl.activate();
-    
-    /*
-    var navicationControl = new OpenLayers.Control.Navigation({
-        documentDrag: true,
-        zoomWheelEnabled: false
-        //dragPanOptions: {
-        //      enableKinetic: true
-        //}
-    });
-    map.addControl(navicationControl);
-    navicationControl.activate();
-    */
-
-    /*
-    $(".lang_button").bind(
-        'click',
-        function (event) {
-            var lang_code = this.id.substring(7); // button id is button_[lang_code]
-            loadBundles(lang_code);
-
-            $('.lang_button').removeClass('selected');
-
-            $(this).addClass('selected');
-            
-            return false;
-        }
-    );
-
-    loadBundles('es');
-    */
           
     $("#button_statistics").bind(
         'click',
@@ -1196,15 +1107,6 @@ $(window).load(function () {
             		}
             	});
             },
-            
-            /*
-            function validateEmail(email) { 
-                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\
-            ".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA
-            -Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                return re.test(email);
-            }
-            */
             
             close: function (event, ui) {
                 $("#button_feedback").removeClass('selected');
