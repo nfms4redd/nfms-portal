@@ -4,6 +4,13 @@ UNREDD.maxResolution = 4891.969809375;
 UNREDD.mapCenter = new OpenLayers.LonLat(2500000, -400000);
 UNREDD.defaultZoomLevel = 0;
 
+UNREDD.wmsServers = [
+    //"http://demo1.geo-solutions.it"
+    "http://unredd.geo-solutions.it",
+    "http://www.rdc-snsf.org",
+    "http://84.33.1.31"
+];
+
 UNREDD.minTime     = 2000;
 UNREDD.maxTime     = 2005;
 UNREDD.currentTime = 2005;

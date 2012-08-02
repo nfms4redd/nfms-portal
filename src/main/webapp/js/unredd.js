@@ -68,13 +68,6 @@ var UNREDD = {
     fb_toolbar: {}
 };
 
-UNREDD.wmsServers = [
-    //"http://demo1.geo-solutions.it"
-    "http://unredd.geo-solutions.it",
-    "http://www.rdc-snsf.org",
-    "http://84.33.1.31"
-]
-
 UNREDD.Layer = function (layerId, layerDefinition)
 {
     /*
