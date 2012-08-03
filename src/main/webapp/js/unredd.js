@@ -371,7 +371,7 @@ $(window).load(function () {
                             }
                             table += '</tr>';
                             table += '<tr class="legend_image">';
-                            table += '<td colspan="2" style="width:100%;background-color:white"><img src="custom/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
+                            table += '<td colspan="2" style="width:100%;background-color:white"><img src="static/loc/' + languageCode + '/images/' + layerConf.legend + '" /></td>';
                             table += '</tr>';
                             table += '</table>';
                         }
@@ -407,7 +407,7 @@ $(window).load(function () {
                             if (typeof contextGroupDefinition.group.infoFile !== 'undefined') {
                                 accordionHeader = $('<div style="position:relative" class="accordion_header"><a style="width:190px" href="#">' + contextGroupDefinition.group.label
                                     + '</a></div>');
-                                infoButton = $('<a style="position:absolute;top:3px;right:7px;width:16px;height:16px;padding:0;" class="layer_info_button" href="loc/' + languageCode + '/html/' + contextGroupDefinition.group.infoFile + '"></a>')
+                                infoButton = $('<a style="position:absolute;top:3px;right:7px;width:16px;height:16px;padding:0;" class="layer_info_button" href="static/loc/' + languageCode + '/html/' + contextGroupDefinition.group.infoFile + '"></a>')
                                 accordionHeader.append(infoButton);
                             
                                 // prevent accordion item from expanding when clicking on the info button
@@ -501,7 +501,7 @@ $(window).load(function () {
                                 td3.text(contextConf.label);
 
                                 td4        = $('<td style="width:16px;padding:0">');
-                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
                             
                                 if (typeof contextConf.infoFile !== 'undefined') {
                                     td4.append(infoButton);
@@ -534,7 +534,7 @@ $(window).load(function () {
                             
                                 td1.text(contextConf.label);
                             
-                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
 
                                 td2.append(infoButton);
                                 tr.append(td1, td2);

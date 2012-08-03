@@ -94,7 +94,7 @@
     </div>
     
     <div id="info_popup"></div>
-	<div id="feedback-invalid-mail" title="<spring:message code="invalid_email_title"/>">
+	<div id="feedback-invalid-mail"  style="display:none;" title="<spring:message code="invalid_email_title"/>">
 		<p><spring:message code="invalid_email_text"/></p>
 	</div>
     <div id="feedback_popup" style="display:none;">
