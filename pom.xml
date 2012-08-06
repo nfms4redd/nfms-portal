@@ -15,7 +15,8 @@
 		<netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
 
 		<jetty.version>6.1.14</jetty.version>
-		<geostore.version>1.0-SNAPSHOT</geostore.version>
+		<geostore.version>1.0</geostore.version>
+		<geostore.unredd.model.version>1.0-SNAPSHOT</geostore.unredd.model.version>
 
 		<portal_config_dir>portal_config_dirs/drc/</portal_config_dir>
 	</properties>
@@ -144,10 +145,12 @@
 			<artifactId>geostore-rest-api</artifactId>
 			<version>${geostore.version}</version>
 		</dependency>
+		
+		<!-- Geostore: UNREDD model -->
 		<dependency>
 			<groupId>it.geosolutions.unredd</groupId>
 			<artifactId>unredd-geostore-model</artifactId>
-			<version>${geostore.version}</version>
+			<version>${geostore.unredd.model.version}</version>
 		</dependency>
 
 		<!-- UNREDD Admin -->
