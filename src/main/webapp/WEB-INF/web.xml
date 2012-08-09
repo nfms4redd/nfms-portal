@@ -26,6 +26,7 @@
         <url-pattern>*.json</url-pattern>   
         <url-pattern>/proxy</url-pattern>
         <url-pattern>/static/*</url-pattern>
+        <url-pattern>/feedback</url-pattern>
     </servlet-mapping>
 
     <session-config>

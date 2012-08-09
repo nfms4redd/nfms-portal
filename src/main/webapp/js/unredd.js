@@ -1022,8 +1022,41 @@ $(window).load(function () {
     	            buttons: { "Ok": function () { $(this).dialog( "close" ); } }
     			});
     	    } else {
-    	    	// TODO submit!!!
-            	$("#feedback_popup").dialog('close');       	    	
+    	    	// Prepare params for submit
+    	    	var olLayer = UNREDD.allLayers[$("#fb_layers").val()].olLayer;
+    	    	var layerDate = (olLayer.params && olLayer.params.TIME);
+    	    	var params = {
+	    	    	"LayerName": (olLayer.params && olLayer.params.LAYERS) || olLayer.name,
+	    	    	"UserName": $('#name_').val(),
+	    	    	"UserMail": $('#email_').val()
+    	    	};
+    	    	if (layerDate) {
+    	    		params.layerDate = Math.round(new Date(layerDate).getTime() / 1000);
+    	    	};
+
+    	    	// Do submit
+    	    	$.ajax({
+    	    	    type: 'POST',
+    	    	    contentType: 'application/json',
+    	    	    url: 'feedback?' + $.param(params),
+    	    	    data: JSON.stringify({
+    	    	    	"text": $('#feedback_').val(),
+    	    	    	"geo": UNREDD.fb_toolbar.getFeaturesAsGeoJson()
+    	    	    }),
+    	    	    dataType: "json",
+    	    	    success: function(data, textStatus, jqXHR) {
+	    	    		alert(messages[data.message]);
+	    	    		$("#feedback_popup").dialog('close');
+    	    	    },
+    	    	    error: function(jqXHR, textStatus, errorThrown) {
+    	    	    	var response = $.parseJSON(errorThrown);
+    	    	    	if (response) {
+    	    	    		alert(messages[response.message]);
+    	    	    	} else {
+    	    	    		alert(messages.ajax_feedback_error);
+    	    	    	}
+	    	    	}
+    	    	});
     	    }
         });
 

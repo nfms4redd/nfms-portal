@@ -22,6 +22,7 @@ import it.geosolutions.unredd.geostore.model.UNREDDLayer;
 import it.geosolutions.unredd.geostore.model.UNREDDLayerUpdate;
 import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStreamWriter;
@@ -31,14 +32,19 @@ import java.io.UnsupportedEncodingException;
 import java.net.FileNameMap;
 import java.net.URLDecoder;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Enumeration;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
+
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.httpclient.Header;
@@ -69,7 +75,64 @@ public class ApplicationController {
     GeoStoreClient client;
     
     @Autowired
-    org.fao.unredd.portal.Config config;
+	org.fao.unredd.portal.Config config;
+
+    /**
+     * A collection of the possible AJAX responses.
+     * 
+     * Will associate a text message, an id, and an HTTP status
+     * code to each response.
+     * 
+     * Includes method to serialize responses in JSON format
+     * with "success", "id" and "message" properties, so the
+     * client can easily handle them and render messages to the user.
+     * 
+     * @author Oscar Fonts
+     */
+	enum AjaxResponses {
+		/*              ID  HTTP  Message            */
+		FEEDBACK_OK		(1, 200, "ajax_feedback_ok"),
+		READ_ERROR		(2, 500, "ajax_read_error"),
+		SYNTAX_ERROR	(3, 400, "ajax_syntax_error"),
+		STORING_ERROR	(4, 500, "ajax_storing_error");
+		
+		private int id, status;
+		private String message;
+		
+		/**
+		 * Constructor from enum values
+		 * 
+		 * @param id Response id
+		 * @param status HTTP Status Code for the response
+		 * @param message Response message text
+		 */
+		AjaxResponses(int id, int status, String message) {
+			this.id = id;
+			this.status = status;
+			this.message = message;
+		}
+		
+	    /**
+	     * Format AJAX response body in JSON syntax, with a "success" flag,
+	     * a message "id", and a "message" string.
+	     */
+	    String getJson() {
+			Map<String, Object> contents = new HashMap<String, Object>();
+			
+			contents.put("success", status == 200);
+			contents.put("id", id);
+			contents.put("message", message);
+			
+			new Config();
+			JSONObject json = new JSONObject();
+			json.putAll(contents);
+			return json.toString();
+		}
+	    
+	    int getStatus() {
+	    	return this.status;
+	    }
+    }
 
     @RequestMapping(value="/index.do", method=RequestMethod.GET)
     public ModelAndView index(Model model) {
@@ -170,10 +233,52 @@ public class ApplicationController {
 			throw e;
 		}
 	}
+
+	@RequestMapping(value="/feedback", method = RequestMethod.POST)
+	public void feedback(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		// TODO: Check reCAPTCHA
+		
+		// Get posted attributes
+		@SuppressWarnings("unchecked")
+		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
+		
+		// Get posted data (body)
+		StringBuffer body = new StringBuffer();
+		String line = null;
+		BufferedReader reader;
+		try {
+			reader = request.getReader();
+			while ((line = reader.readLine()) != null) {
+				body.append(line);
+			}
+		} catch (IOException e) { // Error reading response body.
+			logger.error(e);
+			response.sendError(AjaxResponses.READ_ERROR.status, AjaxResponses.READ_ERROR.getJson());
+		}
+		
+		// Validate posted JSON data syntax
+		String data = body.toString();		
+		try {
+			 // Test syntax: Convert to JSON and back to String.
+			data = JSONSerializer.toJSON(data).toString(2) ;
+		} catch (JSONException e) { // Couldn't parse response body as JSON.
+			logger.warn(e); 
+			response.sendError(AjaxResponses.SYNTAX_ERROR.status, AjaxResponses.SYNTAX_ERROR.getJson());
+		}
+		
+		// Insert Feedback data into GeoStore
+		UNREDDGeostoreManager geostore = new UNREDDGeostoreManager(client);
+		try {
+			geostore.insertFeedback(attributes, data);
+			response.getWriter().write(AjaxResponses.FEEDBACK_OK.getJson()); // Correct!
+		} catch (Exception e) { // GeoStore error.
+			logger.error(e);
+			response.sendError(AjaxResponses.STORING_ERROR.status, AjaxResponses.STORING_ERROR.getJson());
+		}
+	}
     
-    @RequestMapping("/layers.json")
+	@RequestMapping("/layers.json")
     public void layers(HttpServletResponse response) throws IOException {
-    	
     	
     	response.setContentType("application/json;charset=UTF-8");
     	try {
@@ -238,6 +343,17 @@ public class ApplicationController {
         
         return wmsTimes.toString();
     }
+    
+	private static Map<String, String> flattenParamValues(Map<String, String[]> oldMap) {
+		Map<String, String> newMap = new HashMap<String, String>();
+		for (Map.Entry<String, String[]> entry : oldMap.entrySet()) {
+			String[] value = entry.getValue();
+			if (value !=null && value.length > 0) {
+				newMap.put(entry.getKey(), value[0]);
+			}
+		}
+		return newMap;
+	}
     
     /*
     public static void main(String[] args) {
@@ -308,5 +424,4 @@ public class ApplicationController {
                 
         return jsonObj;
     }
-    
 }

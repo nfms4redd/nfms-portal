@@ -44,7 +44,7 @@ OpenLayers.Control.PortalToolbar = OpenLayers.Class(
                 getfeatureinfo: function (evt) {
                     if (evt.features && evt.features.length) {
                     	for(i in evt.features) {
-                    		evt.features[i].geometry.transform(UNREDD.map.displayProjection,UNREDD.map.projection);
+                    		evt.features[i].geometry.transform(this.layer.map.displayProjection, this.layer.map.projection);
                     	}
                     	this.layer.addFeatures(evt.features);
                     }
@@ -127,6 +127,14 @@ OpenLayers.Control.PortalToolbar = OpenLayers.Class(
    			var d = this.queryControl.panel_div;
    			d.className = d.className.replace(/ItemInactive/, "ItemHidden");
     	}
+    },
+    
+    getFeaturesAsGeoJson: function() {
+    	var geoJsonString = new OpenLayers.Format.GeoJSON({
+            'internalProjection': this.layer.map.projection,
+            'externalProjection': this.layer.map.displayProjection
+        }).write(this.layer.features);
+    	return new OpenLayers.Format.JSON().read(geoJsonString);
     },
 
     CLASS_NAME: "OpenLayers.Control.PortalToolbar"
