@@ -45,6 +45,7 @@ import javax.xml.bind.JAXBException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+import net.tanesha.recaptcha.ReCaptchaImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.httpclient.Header;
@@ -76,6 +77,9 @@ public class ApplicationController {
     
     @Autowired
 	org.fao.unredd.portal.Config config;
+    
+    @Autowired
+    net.tanesha.recaptcha.ReCaptchaImpl reCaptcha;
 
     /**
      * A collection of the possible AJAX responses.
@@ -90,11 +94,12 @@ public class ApplicationController {
      * @author Oscar Fonts
      */
 	enum AjaxResponses {
-		/*              ID  HTTP  Message            */
-		FEEDBACK_OK		(1, 200, "ajax_feedback_ok"),
-		READ_ERROR		(2, 500, "ajax_read_error"),
-		SYNTAX_ERROR	(3, 400, "ajax_syntax_error"),
-		STORING_ERROR	(4, 500, "ajax_storing_error");
+		/*              ID  HTTP  Message               */
+		FEEDBACK_OK    (1, 200, "ajax_feedback_ok"),
+		READ_ERROR     (2, 500, "ajax_read_error"),
+		SYNTAX_ERROR   (3, 400, "ajax_syntax_error"),
+		STORING_ERROR  (4, 500, "ajax_storing_error"),
+		UNAUTHORIZED   (5, 401, "ajax_invalid_recaptcha");
 		
 		private int id, status;
 		private String message;
@@ -137,6 +142,7 @@ public class ApplicationController {
     @RequestMapping(value="/index.do", method=RequestMethod.GET)
     public ModelAndView index(Model model) {
         ModelAndView mv = new ModelAndView();
+        model.addAttribute("captchaHtml", reCaptcha.createRecaptchaHtml(null, null));
         mv.setViewName("index");
         return mv;
     }
@@ -235,12 +241,21 @@ public class ApplicationController {
 	}
 
 	@RequestMapping(value="/feedback", method = RequestMethod.POST)
-	public void feedback(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		// TODO: Check reCAPTCHA
-		
+	public void feedback(HttpServletRequest request, HttpServletResponse response) throws IOException {	
 		// Get posted attributes
 		@SuppressWarnings("unchecked")
 		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
+		
+		// Check reCAPTCHA
+		boolean authorized = this.checkRecaptcha(
+			request.getRemoteAddr(),
+			attributes.get("recaptcha_challenge"),
+			attributes.get("recaptcha_response")
+		);
+		if (!authorized) {
+			response.sendError(AjaxResponses.UNAUTHORIZED.status, AjaxResponses.UNAUTHORIZED.getJson());
+			return;
+		}
 		
 		// Get posted data (body)
 		StringBuffer body = new StringBuffer();
@@ -424,4 +439,9 @@ public class ApplicationController {
                 
         return jsonObj;
     }
+    
+    private boolean checkRecaptcha(String address, String challenge, String response) {
+        return reCaptcha.checkAnswer(address, challenge, response).isValid();
+    }
+
 }

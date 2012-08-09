@@ -74,5 +74,11 @@
 		<property name="password"
 			value="#{portalProperties.getProperty('geostore.password')}" />
 	</bean>
-
+	
+	<!-- ReCaptcha -->
+	<bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaImpl">
+		<property name="privateKey" value="#{portalProperties.getProperty('recaptcha.privatekey')}" />
+		<property name="publicKey" value="#{portalProperties.getProperty('recaptcha.publickey')}" />
+		<property name="includeNoscript" value="false" />
+	</bean>
 </beans>

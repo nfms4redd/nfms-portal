@@ -1011,6 +1011,8 @@ $(window).load(function () {
     // Feedback form
 	function openDialog() {
 
+		Recaptcha.reload();
+		
 		$("#feedback_submit").button();
         $("#feedback_submit").click(function () {
     	    var mailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1026,6 +1028,8 @@ $(window).load(function () {
     	    	var olLayer = UNREDD.allLayers[$("#fb_layers").val()].olLayer;
     	    	var layerDate = (olLayer.params && olLayer.params.TIME);
     	    	var params = {
+    	    		"recaptcha_challenge": $("#recaptcha_challenge_field").val(),
+    	    		"recaptcha_response": $("#recaptcha_response_field").val(),
 	    	    	"LayerName": (olLayer.params && olLayer.params.LAYERS) || olLayer.name,
 	    	    	"UserName": $('#name_').val(),
 	    	    	"UserMail": $('#email_').val()
@@ -1049,7 +1053,10 @@ $(window).load(function () {
 	    	    		$("#feedback_popup").dialog('close');
     	    	    },
     	    	    error: function(jqXHR, textStatus, errorThrown) {
-    	    	    	var response = $.parseJSON(errorThrown);
+    	    			Recaptcha.reload();
+    	    			try {
+    	    				var response = $.parseJSON(errorThrown);
+    	    			} catch(e) {}
     	    	    	if (response) {
     	    	    		alert(messages[response.message]);
     	    	    	} else {

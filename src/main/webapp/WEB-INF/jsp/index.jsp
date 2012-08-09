@@ -1,11 +1,11 @@
 <%@page import="java.util.Enumeration"%>
 <%@page import="java.util.Locale"%>
 <%@page import="java.util.ResourceBundle"%>
+<%@page import="net.tanesha.recaptcha.ReCaptchaImpl"%>
 <%@page session="true"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="net.tanesha.recaptcha.ReCaptcha" %>
-<%@ page import="net.tanesha.recaptcha.ReCaptchaFactory" %>
+
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
@@ -143,10 +143,7 @@
         </tr>
 		<tr>
           <td colspan="2" class="recaptcha">
-		    <%
-		        ReCaptcha c = ReCaptchaFactory.newReCaptcha("6Ld5ydQSAAAAAGtZJG67QkQM7Z13X6MGf72RtmDE", "6Ld5ydQSAAAAAJW3To_tN6czS7C-HCnsBVhENfD9", false);
-		        out.print(c.createRecaptchaHtml(null, null));
-		    %>
+            ${captchaHtml}
           </td>
         </tr>
         <tr>
