@@ -15,7 +15,7 @@
 		<netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
 
 		<jetty.version>6.1.14</jetty.version>
-		<geostore.version>1.0</geostore.version>
+		<geostore.version>1.0.1</geostore.version>
 		<geostore.unredd.model.version>1.0-SNAPSHOT</geostore.unredd.model.version>
 
 		<portal_config_dir>portal_config_dirs/drc/</portal_config_dir>
