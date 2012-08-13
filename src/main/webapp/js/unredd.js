@@ -408,8 +408,7 @@ $(window).load(function () {
                     label,
                     infoButton,
                     inlineLegend,
-                    active,
-                    infoButton;
+                    active;
 
                     if (contextGroupDefinition.hasOwnProperty('group')) {
                         // it's a group
@@ -422,8 +421,19 @@ $(window).load(function () {
                             
                                 // prevent accordion item from expanding when clicking on the info button
                                 infoButton.click(function (event) {
-                                    event.stopPropagation();
+                                	event.stopPropagation();
                                 });
+                                
+                                if (typeof infoButton !== 'undefined') {
+                                    infoButton.fancybox({
+                                        'autoScale' : false,
+                                        'openEffect' : 'elastic',
+                                        'closeEffect' : 'elastic',
+                                        'type': 'ajax',
+                                        'overlayOpacity': 0.5
+                                    });
+                                }
+
                             } else {
                                 accordionHeader = $("<div class=\"accordion_header\"><a href=\"#\">" +  contextGroupDefinition.group.label + "</a></div>");
                             }
