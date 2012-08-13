@@ -54,12 +54,17 @@ UNREDD.Layer = function (layerId, layerDefinition)
     // set WMS servers urls
     var baseUrl = layerDefinition.baseUrl;
     var urls = [];
-    var urlsLength = UNREDD.wmsServers.length;
-    for (var i = 0; i < urlsLength; i++) {
-        var server = UNREDD.wmsServers[i];
-        urls.push(server + baseUrl);
+    if ((/^http:/).test(baseUrl)) {
+    	// If LayerDefinition is an absolute URL, don't use UNREDD.wmsServers
+    	urls = [baseUrl];
+    } else {
+	    var urlsLength = UNREDD.wmsServers.length;
+	    for (var i = 0; i < urlsLength; i++) {
+	        var server = UNREDD.wmsServers[i];
+	        urls.push(server + baseUrl);
+	    }
     }
-
+    
     // Set WMS paramaters that are common to all layers
     var wmsParams = {layers: layerDefinition.wmsName, format: layerDefinition.imageFormat, transparent: true};
 
@@ -131,26 +136,31 @@ Date.prototype.setISO8601 = function (string) {
     var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
             "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\\.([0-9]+))?)?" +
             "(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?",
-        d = string.match(new RegExp(regexp)),
+        d = string.match(new RegExp(regexp));
+    if (d) {
+        var date = new Date(d[1], 0, 1),
         offset = 0,
-        date = new Date(d[1], 0, 1),
         time;
-
-    if (d[3])  {date.setMonth(d[3] - 1);}
-    if (d[5])  {date.setDate(d[5]);}
-    if (d[7])  {date.setHours(d[7]);}
-    if (d[8])  {date.setMinutes(d[8]);}
-    if (d[10]) {date.setSeconds(d[10]);}
-    if (d[12]) {date.setMilliseconds(Number("0." + d[12]) * 1000);}
-    if (d[14]) {
-        offset = (Number(d[16]) * 60) + Number(d[17]);
-        offset *= ((d[15] === '-') ? 1 : -1);
+	
+	    if (d[3])  {date.setMonth(d[3] - 1);}
+	    if (d[5])  {date.setDate(d[5]);}
+	    if (d[7])  {date.setHours(d[7]);}
+	    if (d[8])  {date.setMinutes(d[8]);}
+	    if (d[10]) {date.setSeconds(d[10]);}
+	    if (d[12]) {date.setMilliseconds(Number("0." + d[12]) * 1000);}
+	    if (d[14]) {
+	        offset = (Number(d[16]) * 60) + Number(d[17]);
+	        offset *= ((d[15] === '-') ? 1 : -1);
+	    }
+	
+	    offset -= date.getTimezoneOffset();
+	    time = (Number(date) + (offset * 60 * 1000));
+	
+	    this.setTime(Number(time));
+	    return true;
+    } else {
+    	return false;
     }
-
-    offset -= date.getTimezoneOffset();
-    time = (Number(date) + (offset * 60 * 1000));
-
-    this.setTime(Number(time));
 };
 
 isoDateString = function (d) {
@@ -801,16 +811,19 @@ $(window).load(function () {
             sDates = layerInfo.wmsTime.split(",");
             for (i = 0; i < sDates.length; i++) {
                 d = new Date();
-                d.setISO8601(sDates[i]);
-                dates[i] = d;
+                if (d.setISO8601(sDates[i])) {
+                    dates.push(d);                	
+                }
             }
 
-            newDate = getClosestPastDate(selectedDate, dates);
-            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
-            UNREDD.map.events.triggerEvent("changelayer", {
-            	layer: layer.olLayer,
-            	property: "time"
-            });
+            if (dates.length) {
+	            newDate = getClosestPastDate(selectedDate, dates);
+	            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
+	            UNREDD.map.events.triggerEvent("changelayer", {
+	            	layer: layer.olLayer,
+	            	property: "time"
+	            });
+            }
         });
     };
 

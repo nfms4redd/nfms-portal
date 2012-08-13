@@ -56,10 +56,10 @@
       
       <div id="toolbar">
         <a href="./?lang=en" class="blue_button lang_button <%= "en".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_en" style="right:10px">English</a>
-        <!--<a href="index.htm?lang=es" class="blue_button lang_button <%= "es".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_es" style="right:80px">Français</a>-->
         <a href="./?lang=fr" class="blue_button lang_button <%= "fr".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_fr" style="right:80px">Français</a>
-        <a href="#" class="blue_button" id="button_feedback" style="width:80px"><spring:message code="feedback" /></a>
-        <a href="#" class="blue_button" id="button_statistics" style="width:80px"><spring:message code="statistics" /></a>
+        <a href="./?lang=es" class="blue_button lang_button <%= "es".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_es" style="right:80px">Español</a>
+        <a href="#" class="blue_button" id="button_feedback"><spring:message code="feedback" /></a>
+        <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
         <div id="time_slider_pane">
           <div id="time_slider"></div>
           <div id="time_slider_label">2005</div>
@@ -114,7 +114,7 @@
           </th>
           <td>
              <div id="fb_toolbar" class="olControlPortalToolbar"></div>
-             <div style="margin-left:80px;"><i><spring:message code="feedback_text" /></i></div>
+             <div class="fb_comment"><spring:message code="feedback_text"/></div>
           </td>
         </tr>
         <tr>
