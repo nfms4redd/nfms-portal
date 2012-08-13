@@ -23,11 +23,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +53,7 @@ public class Config implements ServletContextAware {
 	HttpServletResponse response;
 	
 	File dir = null;
+	Properties properties = null;
     
     @Autowired
     BundleMessage messageSource;
@@ -93,6 +97,26 @@ public class Config implements ServletContextAware {
 			logger.info("============================================================================");
 		}
 		return dir;
+	}
+	
+	public Properties getProperties() {
+		if (properties == null) {
+			String location = getDir()+"/portal.properties";
+			logger.debug("Reading portal properties file "+location);
+			properties = new Properties();
+			try {
+			    properties.load(new FileInputStream(location));
+			} catch (IOException e) {
+				logger.error("Error reading portal properties file", e);
+			}
+		}
+		return properties;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Map<String, String> getLanguages() {
+	    String json = getProperties().getProperty("languages", "{\"en\": \"English\"}");
+		return (Map<String, String>)JSONObject.toBean(JSONObject.fromObject(json), java.util.HashMap.class);
 	}
 	
 	public Map<String, String> getMessages() {

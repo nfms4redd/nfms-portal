@@ -45,7 +45,6 @@ import javax.xml.bind.JAXBException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-import net.tanesha.recaptcha.ReCaptchaImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.httpclient.Header;
@@ -77,7 +76,7 @@ public class ApplicationController {
     
     @Autowired
 	org.fao.unredd.portal.Config config;
-    
+        
     @Autowired
     net.tanesha.recaptcha.ReCaptchaImpl reCaptcha;
 
@@ -137,9 +136,9 @@ public class ApplicationController {
 	    int getStatus() {
 	    	return this.status;
 	    }
-    }
-
-    @RequestMapping(value="/index.do", method=RequestMethod.GET)
+    }  
+	
+	@RequestMapping(value="/index.do", method=RequestMethod.GET)
     public ModelAndView index(Model model) {
         ModelAndView mv = new ModelAndView();
         model.addAttribute("captchaHtml", reCaptcha.createRecaptchaHtml(null, null));
@@ -403,7 +402,7 @@ public class ApplicationController {
             JSONObject layersJsonObj = new JSONObject();
             String zonalLayerAttributeId = "no_zonal_attribute_found"; // DEBUG
             for (String layerName : statsDefLayerNames) {
-                Resource layerResource = manager.searchLayer(layerName); // TODO: optimize this
+            	Resource layerResource = manager.searchLayer(layerName); // TODO: optimize this
                 UNREDDLayer unreddLayer = new UNREDDLayer(layerResource);
                 boolean isZonalLayer = zonalLayerName.equals(layerName);
                 JSONObject layerJsonObj = getLayerJsonObj(layerName, isZonalLayer);

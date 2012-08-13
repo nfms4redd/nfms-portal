@@ -3,10 +3,9 @@
 <%@page import="java.util.ResourceBundle"%>
 <%@page import="net.tanesha.recaptcha.ReCaptchaImpl"%>
 <%@page session="true"%>
-<%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
+<%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-
-
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
  nfms4redd Portal Interface - http://nfms4redd.org/
@@ -55,9 +54,9 @@
       ${config.header}
       
       <div id="toolbar">
-        <a href="./?lang=en" class="blue_button lang_button <%= "en".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_en" style="right:10px">English</a>
-        <a href="./?lang=fr" class="blue_button lang_button <%= "fr".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_fr" style="right:80px">Français</a>
-        <a href="./?lang=es" class="blue_button lang_button <%= "es".equals(pageContext.getResponse().getLocale().toString()) ? "selected" : "" %>" id="button_es" style="right:80px">Español</a>
+        <c:forEach items="${config.languages}" var="lang">
+          <a href="?lang=${lang.key}" class="blue_button lang_button <c:if test="${lang.key == pageContext.response.locale}">selected</c:if>" id="button_${lang.key}">${lang.value}</a>
+        </c:forEach>
         <a href="#" class="blue_button" id="button_feedback"><spring:message code="feedback" /></a>
         <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
         <div id="time_slider_pane">
