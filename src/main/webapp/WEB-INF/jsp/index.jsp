@@ -44,9 +44,10 @@
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="js/fancybox-2.0.5/source/jquery.fancybox.pack.js"></script>
     <!--script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
-    <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script>
+    <!-- script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script-->
+    <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.js"></script>
     <script type='text/javascript' src='js/toolbar.js'></script>
-    <script type='text/javascript' src='js/unredd.js?v=2'></script>
+    <script type='text/javascript' src='js/unredd.js'></script>
     <script type='text/javascript' src='static/custom.js'></script>
   </head>
   <body>

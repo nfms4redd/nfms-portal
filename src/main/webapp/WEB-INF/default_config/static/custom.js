@@ -10,7 +10,9 @@ UNREDD.currentTime = 2005;
 UNREDD.timeStep    = 5;
 
 UNREDD.wmsServers = [
-    "http://demo1.geo-solutions.it"
+    "http://demo1.geo-solutions.it",
+    "http://incuweb84-33-51-16.serverclienti.com",
+    "http://84.33.51.16"
 ];
 
 UNREDD.layerInfo = {
