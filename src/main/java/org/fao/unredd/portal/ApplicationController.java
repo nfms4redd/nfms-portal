@@ -163,6 +163,15 @@ public class ApplicationController {
     		return;
     	}
 		
+    	// Manage cache headers: Last-Modified and If-Modified-Since
+    	long ifModifiedSince = request.getDateHeader("If-Modified-Since");
+    	long lastModified = file.lastModified();
+    	if (ifModifiedSince >= (lastModified / 1000 * 1000)) {
+    		response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+    		return;
+    	}
+    	response.setDateHeader("Last-Modified", lastModified);
+    	
     	// Set content type
     	FileNameMap fileNameMap = URLConnection.getFileNameMap();
 		String type = fileNameMap.getContentTypeFor(fileName);
