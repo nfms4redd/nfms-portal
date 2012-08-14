@@ -37,6 +37,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,6 +81,8 @@ public class ApplicationController {
         
     @Autowired
     net.tanesha.recaptcha.ReCaptchaImpl reCaptcha;
+    
+    UNREDDGeostoreManager geostore = null;
 
     /**
      * A collection of the possible AJAX responses.
@@ -290,9 +294,8 @@ public class ApplicationController {
 		}
 		
 		// Insert Feedback data into GeoStore
-		UNREDDGeostoreManager geostore = new UNREDDGeostoreManager(client);
 		try {
-			geostore.insertFeedback(attributes, data);
+			getGeostore().insertFeedback(attributes, data);
 			response.getWriter().write(AjaxResponses.FEEDBACK_OK.getJson()); // Correct!
 		} catch (Exception e) { // GeoStore error.
 			logger.error(e);
@@ -314,34 +317,30 @@ public class ApplicationController {
     }
     
     private String setLayerTimes() {
-        List<Resource> layers = null;
-        UNREDDGeostoreManager manager = null;
     	String jsonLayers = config.getLayers();
-        try {
-            manager = new UNREDDGeostoreManager(client);
-            layers = manager.getLayers();
-        } catch (Exception ex) {
-        	logger.error("Error connecting to GeoStore", ex);
-        }
-        
-        if (layers != null) {
-            for (Resource layer : layers) {
-                String wmsTimes;
-                try {
-                    wmsTimes = getWmsTimeString(manager, layer);
-                    jsonLayers = jsonLayers.replaceAll("\\$\\{time\\."+layer.getName()+"\\}", wmsTimes.toString());
-                } catch (Exception ex) {
-                	logger.error("Error getting time dimension for layer" + layer.getName());
-                }
-            }
-        }
-        
-        return jsonLayers;
+		Pattern patt = Pattern.compile("\\$\\{time\\.([\\w.]*)\\}");
+		Matcher m = patt.matcher(jsonLayers);
+		StringBuffer sb = new StringBuffer(jsonLayers.length());
+		while (m.find()) { // Found time-dependant layer in json file
+			String layerName = m.group(1);
+			try {
+				Resource gsLayer = getGeostore().searchLayer(layerName);
+				if (gsLayer != null) { // Found same layer in geostore
+					m.appendReplacement(sb, getWmsTimeString(gsLayer));				
+				} else {
+					logger.error("Found time-dependant layer definition " + layerName  + ", but no matching layer found in GeoStore.");
+				}
+			} catch (Exception e) {
+				logger.error("Error getting layer times from GeoStore.");
+			}
+		}
+		m.appendTail(sb);
+		return sb.toString();
     }
     
-    private String getWmsTimeString(UNREDDGeostoreManager manager, Resource layer) throws JAXBException, UnsupportedEncodingException {
+    private String getWmsTimeString(Resource layer) throws JAXBException, UnsupportedEncodingException {
         StringBuilder wmsTimes = new StringBuilder();
-        List<Resource> layerUpdates = manager.searchLayerUpdatesByLayerName(layer.getName());
+        List<Resource> layerUpdates = getGeostore().searchLayerUpdatesByLayerName(layer.getName());
         Iterator<Resource> iterator = layerUpdates.iterator();
         while (iterator.hasNext()) {
             UNREDDLayerUpdate unreddLayerUpdate = new UNREDDLayerUpdate(iterator.next());
@@ -378,6 +377,17 @@ public class ApplicationController {
 		return newMap;
 	}
     
+	private UNREDDGeostoreManager getGeostore() {
+		if (geostore == null) {
+			try {
+				geostore = new UNREDDGeostoreManager(client);
+			} catch (Exception ex) {
+	        	logger.error("Error connecting to GeoStore", ex);
+	        }
+		}
+		return geostore;
+	}
+	
     /*
     public static void main(String[] args) {
         LayersController controller = new LayersController();
@@ -387,18 +397,13 @@ public class ApplicationController {
             logger.error(null, ex);
         }
     }
-    
-    protected void test() throws Exception {
-        UNREDDGeostoreManager manager = new UNREDDGeostoreManager("http://localhost:9191/geostore/rest", "admin", "admin");
-        getStatsJson(manager);
-    }
     */
     
-    private String getStatsJson(UNREDDGeostoreManager manager) throws Exception
+    private String getStatsJson() throws Exception
     {
         JSONObject jsonRoot = new JSONObject();
         
-        List<Resource> statsDefResources = manager.getStatsDefs();
+        List<Resource> statsDefResources = getGeostore().getStatsDefs();
         for (Resource statsDefResource : statsDefResources)
         {
             JSONObject statsDefJsonObj = new JSONObject();
@@ -411,7 +416,7 @@ public class ApplicationController {
             JSONObject layersJsonObj = new JSONObject();
             String zonalLayerAttributeId = "no_zonal_attribute_found"; // DEBUG
             for (String layerName : statsDefLayerNames) {
-            	Resource layerResource = manager.searchLayer(layerName); // TODO: optimize this
+            	Resource layerResource = getGeostore().searchLayer(layerName); // TODO: optimize this
                 UNREDDLayer unreddLayer = new UNREDDLayer(layerResource);
                 boolean isZonalLayer = zonalLayerName.equals(layerName);
                 JSONObject layerJsonObj = getLayerJsonObj(layerName, isZonalLayer);

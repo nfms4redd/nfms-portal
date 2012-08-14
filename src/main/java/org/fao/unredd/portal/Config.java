@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
@@ -138,11 +140,17 @@ public class Config implements ServletContextAware {
 	String getLocalizedFileContents(File file) {
 		try {
 			String template = new String(getFileContents(file), "UTF-8");
-			for(Map.Entry<String, String> message : getMessages().entrySet()) {
-				String msg = new String(message.getValue());
-				template = template.replaceAll("\\$\\{"+message.getKey()+"\\}", msg);
+			Pattern patt = Pattern.compile("\\$\\{([\\w.]*)\\}");
+			Matcher m = patt.matcher(template);
+			StringBuffer sb = new StringBuffer(template.length());
+			while (m.find()) {
+				String text = getMessages().get(m.group(1));
+				if (text != null) {
+					m.appendReplacement(sb, text);
+				}
 			}
-			return template;
+			m.appendTail(sb);
+			return sb.toString();
 		} catch (UnsupportedEncodingException e) {
 			logger.error("Unsupported encoding", e);
 			return "";
