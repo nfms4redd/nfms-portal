@@ -1105,7 +1105,9 @@ $(window).load(function () {
         			queryable = layer.olLayer;
         		}
         	});
-			UNREDD.fb_toolbar.setQueryable(queryable);
+        	if (UNREDD.fb_toolbar) {
+        		UNREDD.fb_toolbar.setQueryable(queryable);
+        	}
 			
 			// Determine if layer is time-varying
 			var olLayer = UNREDD.allLayers[layerId].olLayer;
