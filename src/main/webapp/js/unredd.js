@@ -1113,7 +1113,7 @@ $(window).load(function () {
 			var olLayer = UNREDD.allLayers[layerId].olLayer;
 			if (olLayer.params && olLayer.params.TIME) {
 				var date = new Date(olLayer.params.TIME);
-				$("#fb_time").html(messages.feedback_year + date.getFullYear());
+				$("#fb_time").html(messages.feedback_year + " " + date.getFullYear());
 			} else {
 				$("#fb_time").html("");
 			}
@@ -1167,7 +1167,7 @@ $(window).load(function () {
             			}
             			if (evt.property == "time" && evt.layer.name == $("#fb_layers").val()) {
             				var date = new Date(evt.layer.params.TIME);
-            				$("#fb_time").html(messages.feedback_year + date.getFullYear());
+            				$("#fb_time").html(messages.feedback_year + " " + date.getFullYear());
             			}
             		}
             	});

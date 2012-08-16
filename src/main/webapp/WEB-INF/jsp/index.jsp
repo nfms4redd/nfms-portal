@@ -105,7 +105,7 @@
           </th>
           <td>
             <select id="fb_layers"></select>
-            <div id="fb_time"></div>
+            <span id="fb_time"></span>
           </td>
         </tr>
         <tr>

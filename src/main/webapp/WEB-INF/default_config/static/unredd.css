@@ -691,6 +691,10 @@ table.feedback textarea {
 	width: 100%;
 }
 
+#fb_layers {
+	width: 70%;
+}
+
 table.feedback textarea {
 	resize: none;
 	height: 82px;
