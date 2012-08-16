@@ -62,7 +62,7 @@
         <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
         <div id="time_slider_pane">
           <div id="time_slider"></div>
-          <div id="time_slider_label">2005</div>
+          <div id="time_slider_label"></div>
         </div>
       </div>
 

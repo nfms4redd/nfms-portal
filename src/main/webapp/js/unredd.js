@@ -27,7 +27,8 @@ var UNREDD = {
     queryableLayers: [],
     timeDependentLayers: [],
     mapContexts: {},
-    fb_toolbar: {}
+    fb_toolbar: {},
+    times: []
 };
 
 UNREDD.Layer = function (layerId, layerDefinition)
@@ -837,101 +838,52 @@ $(window).load(function () {
         });
     };
 
-    $("#time_slider_label").text(UNREDD.currentTime);
-    $("#time_slider").slider({
-        min: UNREDD.minTime,
-        max: UNREDD.maxTime,
-        value: UNREDD.currentTime,
-        step: UNREDD.timeStep,
-        slide: function (event, ui) {
-            $("#time_slider_label").text(ui.value); //; + '-' + (ui.value + 5));
-        },
-        change: function (event, ui) {
-            var selectedDate = new Date(Date.UTC(ui.value, 0, 1)),
-                year;
-
-            setLayersTime(selectedDate);
-
-            // TODO - need to make this parametric
-            //year = ui.value + 5;
-            //if (year > 2010) {
-            //  year = 2010;
-            //}
-            //deforestation.mergeNewParams({'styles': 'deforestation_temp_' + (year)}); // hack, couldn't do with time dimension in geoserver
-        }
-    });
-
-    /*
-    $("#time_slider_pane").hover(function () {
-        $('#time_slider_pane').animate({"opacity": 0.66}, 0);
-    },function () {
-        $('#time_slider_pane').animate({"opacity": 0.33}, 330);
-    });
-    */
-
-    /*
-    $("#transparency_slider").slider({
-        min: 0,
-        max: 200,
-        value: 100,
-        slide: function (event, ui) {
-            var layers = map.layers, // WARNING - this hides the other layers variable
-                transpValue = ui.value / 100;
-
-            if (ui.value > 80 && ui.value < 120 && ui.value !== 100) {
-                // snap to middle position
-                $("#transparency_slider").slider('value', 100);
-
-                $.map(layers, function (layer) {
-                    if (layer.isBaseLayer && !layer.isVector) {
-                        layer.setOpacity(1);
-                    }
-                });
-                return false;
-            }
-
-            if (transpValue <= 1) {
-                $.map(layers, function (layer) {
-                    if (layer.isBaseLayer && !layer.isVector) {
-                        layer.setOpacity(transpValue);
-                    } else if (!layer.isVector) {
-                        layer.setOpacity(1);
-                    }
-                    / *
-                    else if (layer.isVector)
-                    {
-                        console.log(layer);
-                        if (layer.vectorMode) {
-                            OpenLayers.Layer.Vector.prototype.setOpacity.apply(layer, [ui.value / 100]);
-                        }
-                        else {
-                            OpenLayers.Layer.Markers.prototype.setOpacity.apply(layer, [ui.value / 100]);
-                        }
-                    }
-                    * /
-                });
-            } else {
-                $.map(layers, function (layer) {
-                    if (!layer.isBaseLayer && !layer.isVector) {
-                        layer.setOpacity(2 - transpValue);
-                    } else if (!layer.isVector) {layer.setOpacity(1);}
-                });
-            }
-        }
-        //forestCoverChange.setOpacity(ui.value / 100);
-    });
-    */
-
-    // Init layers time
-    year = $("#time_slider").slider("value");
-    selectedDate = new Date(Date.UTC(year, 0, 1));
-    setLayersTime(selectedDate);
-    // hack - need to re-rasterize deforestation using gdal (instead of GRASS)
-    //if (year > 2010) {
-    //  year = 2010;
-    //}
-    //deforestation.mergeNewParams({'styles': 'deforestation_temp_' + (year)}); // hack, couldn't do with time dimension in geoserver
-   
+    /**************
+    /* Time Slider
+     **************/
+    // Calculate UNREDD.times from layer configuration
+    var timesObj = {};
+    for(layer in UNREDD.allLayers) {
+    	var layerTimes = UNREDD.allLayers[layer].configuration.wmsTime;
+    	if (layerTimes) {
+    		layerTimes = layerTimes.split(",");
+    		for (i in layerTimes) {
+    			var year = new Date(layerTimes[i]).getFullYear();
+    			if (!isNaN(year)) {
+    				timesObj[year]=0; // Put it in an object to avoid duplicate years.
+    			}
+    		}
+    	}
+    }
+    for(time in timesObj) {
+    	UNREDD.times.push(parseInt(time));
+    }
+    UNREDD.times.sort();
+    
+    // Create time slider
+    if (UNREDD.times.length) {
+	    $("#time_slider_label").text(UNREDD.times[UNREDD.times.length-1]);
+	    $("#time_slider").slider({
+	        min: 0,
+	        max: UNREDD.times.length-1,
+	        value: UNREDD.times[UNREDD.times.length-1],
+	        slide: function (event, ui) {
+	            $("#time_slider_label").text(UNREDD.times[ui.value]);
+	        },
+	        change: function (event, ui) {
+	            var selectedDate = new Date(Date.UTC(UNREDD.times[ui.value], 0, 1));
+	            setLayersTime(selectedDate);
+	        }
+	    });
+	
+	    // Init layers time
+	    year = UNREDD.times[$("#time_slider").slider("value")];
+	    selectedDate = new Date(Date.UTC(year, 0, 1));
+	    setLayersTime(selectedDate);
+    } else {
+    	$("#time_slider_pane").hide();
+    }
+  
     // Info click handler
     infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
         url: UNREDD.wmsServers[0],
