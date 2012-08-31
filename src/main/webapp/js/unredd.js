@@ -792,14 +792,12 @@ $(window).load(function () {
     // Time slider management
     getClosestPastDate = function (date, dateArray) {
         var result = null,
-            diff,
-            dateInArray,
-            i;
+        dateInArray,
+        i;
 
         for (i = 0; i < dateArray.length; i++) {
-            //console.log(" - " + dateArray[i]); // DEBUG
             dateInArray = dateArray[i];
-            if (date >= dateInArray && (undefined === diff || date - dateInArray < diff)) {
+            if (date >= dateInArray && (result === null || result < dateInArray)) {
                 result = dateInArray;
             }
         }
