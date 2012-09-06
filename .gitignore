@@ -4,3 +4,5 @@
 target/
 /webResources
 /portal_config_dirs
+.DS_Store
+

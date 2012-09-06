@@ -6,6 +6,11 @@
             <goals>
                 <goal>jetty:run-exploded</goal>
             </goals>
+            <properties>
+                <portal_config_dir>/Volumes/Data/Documents/Work/portal_config_dirs/drc</portal_config_dir>
+                
+                
+            </properties>
         </action>
         <action>
             <actionName>CUSTOM-jetty:run</actionName>
@@ -13,5 +18,10 @@
             <goals>
                 <goal>jetty:run</goal>
             </goals>
+            <properties>
+                <portal_config_dir>/Volumes/Data/Documents/Work/portal_config_dirs/drc</portal_config_dir>
+                
+                
+            </properties>
         </action>
     </actions>

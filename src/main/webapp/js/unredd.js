@@ -406,7 +406,7 @@ $(window).load(function () {
                     //td1,
                     td3,
                     td4,
-                    label,
+                    //label,
                     infoButton,
                     inlineLegend,
                     active;
@@ -538,16 +538,6 @@ $(window).load(function () {
                                 tr.append(td3, td4);
 
                                 element.append(tr);
-                            
-                                // The :hover pseudo-selector on non-anchor elements is known to make IE7 and IE8 slow in some cases
-                                /*
-                                tr.mouseenter(function () {
-                                    tr.addClass('hover');
-                                }).mouseleave(function () {
-                                    tr.removeClass('hover');
-                                });
-                                */
-                                                        
                             } else if (typeof contextConf !== "undefined") {
                                 tr  = $('<tr style="font-size:10px;height:22px">');
                                 td1 = $('<td colspan="3" style="color:#FFF">');
@@ -588,13 +578,14 @@ $(window).load(function () {
         
             setupAllContexts();
 
+
             // create info dialog
             var selectedFeatures = {};
             $("#info_popup").dialog({
                 closeOnEscape: true,
-                height: 170,
-                minHeight: 400,
-                maxHeight: 400,
+                //height: 170,
+                //minHeight: 400,
+                //maxHeight: 800,
                 width: 300,
                 zIndex: 2000,
                 resizable: false,
@@ -609,38 +600,73 @@ $(window).load(function () {
 
             showInfo = function (evt) {
                 var x = evt.xy.x - 100,
-                y = evt.xy.y - 200,
-                i,
-                feature,
-                featureType,
-                infoPopup = $("#info_popup");
+                    y = evt.xy.y - 200,
+                    i,
+                    feature,
+                    featureType,
+                    nSelectedFeatures = 0,
+                    infoPopup = $("#info_popup");
 
                 highlightLayer.destroyFeatures();
-                //$("#piemenu").hide();
-		
+                selectedFeatures = {};
+
                 if (evt.features && evt.features.length) {
+                    var viewportExtent = UNREDD.map.getExtent();
+
                     // re-project to Google projection
                     for (i = 0; i < evt.features.length; i++) {
                         evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+
+                        // don't select it if most of the polygon falls outside of the viewport
+                        if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
+                          continue;
+                        }
+
                         feature = evt.features[i];
                         featureType = feature.gml.featureType;
                         selectedFeatures[featureType] = feature;
+                        nSelectedFeatures += 1;
                     }
 
                     infoPopup.empty();
 
+                    // handle custom popup - info will be taken from json but for now it's in the custom.js. Don't have time
+                    var customPopupLayer = null;
+                    $.each(selectedFeatures, function (layerId, feature) {
+                        console.log(layerId);
+                        console.log(UNREDD.layerInfo[layerId]);
+                        info = UNREDD.layerInfo[layerId](feature);
+                        if (typeof(info.customPopup) != "undefined") {
+                            customPopupLayer = layerId;
+                            
+                            info.customPopup();
+
+                            $.fancybox({
+                                href: '#custom_popup'
+                                //modal: true
+                            });
+                            
+                            return false; // only show the custom info dialog for the first layer that has it
+                        }
+                    });
+
+                    if (customPopupLayer !== null)
+                    {
+                        //infoPopup.dialog('close');
+                        return;
+                    }
+                    
                     $.each(selectedFeatures, function (layerId, feature) {
                         var table = $("<table>"),
-                        info,
-                        tr1,
-                        td1,
-                        tr2,
-                        td2,
-                        tr3,
-                        td3;
-        
+                            info,
+                            tr1,
+                            td1,
+                            tr2,
+                            td2,
+                            tr3,
+                            td3;
+
                         info = UNREDD.layerInfo[layerId](feature);
-        
                         tr1 = $("<tr/>");
                         td1 = $('<td colspan="2" class="area_name" />');
                         tr1.append(td1);
@@ -651,7 +677,6 @@ $(window).load(function () {
                             highlightLayer.redraw();
                         });
                         table.mouseout(function () {
-                            //console.log(feature); // DEBUG
                             highlightLayer.removeAllFeatures();
                             highlightLayer.redraw();
                         });
@@ -661,23 +686,24 @@ $(window).load(function () {
                         td2 = $("<td class=\"td_left\"/>");
                         tr2.append(td2);
                         table.append(tr2);
-                        
-                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">" + messages.statistics + "</a>");
+
+                        // TODO: localize statistics and zoom to area buttons
+                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">Statistics</a>");
                         td3 = $("<td class=\"td_right\"/>");
-                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">" + messages.zoom_to_area + "</a>");
+                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">Zoom to area</a>");
                         tr2.append(td3);
                         infoPopup.append(table);
 
                         $('#stats_link_' + layerId).fancybox({
-                            maxWidth	: 840,
-                            maxHeight	: 600,
-                            fitToView	: false,
-                            width		: 840,
-                            height		: 510,
-                            autoSize	: false,
-                            closeClick	: false,
-                            openEffect	: 'none',
-                            closeEffect	: 'fade'
+                            maxWidth    : 840,
+                            maxHeight : 600,
+                            fitToView : false,
+                            width       : 840,
+                            height      : 590,
+                            autoSize    : false,
+                            closeClick  : false,
+                            openEffect  : 'none',
+                            closeEffect : 'fade'
                         });
 
                         if (info.info && info.info()) {
@@ -688,17 +714,45 @@ $(window).load(function () {
                             td3.append(info.info());
                         }
 
+
+                        $('#drivers_data_link').fancybox({
+                            'autoScale': false,
+                            'transitionIn': 'none',
+                            'transitionOut': 'fade',
+                            'type': 'iframe',
+                            'scrolling': 'no',
+                            'width': 500,
+                            'height': 600
+                        });
+
                         $("#zoom_to_feature_" + layerId).click(function () {
                             UNREDD.map.zoomToExtent(feature.geometry.getBounds().scale(1.2));
                         });
                     });
-                    
+                }
+
+                var totalHeight = 0;
+
+                // If no features selected then close the dialog        
+                if (nSelectedFeatures == 0) {
+                  infoPopup.dialog('close');
+                }
+                else {
+                    // Don't reposition the dialog if already open
                     if (!infoPopup.dialog('isOpen')) {
                         infoPopup.dialog('option', 'position', [x, y]);
+
+                        // Finally open the dialog
+                        infoPopup.dialog('open');
                     }
-                    infoPopup.dialog('open');
+
+                    $.each($('#info_popup table'), function (id, elem) {
+                        totalHeight += $(elem).height() + 12;
+                    });
+
+                    infoPopup.dialog('option', 'height', totalHeight + 35);
                 }
-            }
+            };
         }
     });
 

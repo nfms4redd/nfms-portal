@@ -41,6 +41,7 @@
         var messages = <jsp:include page="messages.jsp"/>;
     </script>
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery.mustache.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="js/fancybox-2.0.5/source/jquery.fancybox.pack.js"></script>
     <!--script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
@@ -159,6 +160,10 @@
     <div id="statistics_info_div" style="z-index:2000;display:none;filter:alpha(opacity=75);opacity: 0.75;padding:6px 10px;position:absolute;top:150px;left:400px;background-color:black;color:#fff;"><spring:message code="statistics_info" /></div>
     
     <div id="map"></div>
+    
+    <div style="display:none">
+    	<div id="custom_popup"></div>
+    </div>
     
   </body>
 </html>
