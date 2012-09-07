@@ -3,7 +3,7 @@
     {
       "id": "forestClassification",
       "label": "${facet_forest_classification}",
-      "baseUrl": "/geoserver_drc/gwc/service/wms",
+      "baseUrl": "/diss_geoserver/gwc/service/wms",
       "wmsName": "unredd:forest_classification",
       "imageFormat": "image/png8",
       "visible": true,
@@ -13,7 +13,7 @@
     },{
       "id": "forest_mask",
       "label": "${forest_mask}",
-      "baseUrl": "/geoserver_drc/wms",
+      "baseUrl": "/stg_geoserver/wms",
       "wmsName": "unredd:forest_mask_mosaic",
       "wmsTime": "${time.forest_mask}",
       "imageFormat": "image/png8",
@@ -23,7 +23,7 @@
       "sourceLabel": "FACET"
     },{
       "id": "countryBoundaries",
-      "baseUrl": "/geoserver_drc/gwc/service/wms",
+      "baseUrl": "/diss_geoserver/gwc/service/wms",
       "wmsName": "unredd:drc_boundaries",
       "imageFormat": "image/png8",
       "visible": true,
@@ -31,22 +31,13 @@
       "sourceLabel": "WRI"
     },{
       "id": "provinces",
-      "baseUrl": "/geoserver_drc/gwc/service/wms",
+      "baseUrl": "/diss_geoserver/gwc/service/wms",
       "wmsName": "unredd:drc_provinces",
       "imageFormat": "image/png8",
       "visible": true,
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
       "sourceLabel": "WRI",
-      "queryable": false
-    }, {
-      "id": "plots",
-      "label": "Parcelles",
-      "baseUrl": "/geoserver_drc/wms",
-      "wmsName": "unredd:plots",
-      "imageFormat": "image/png",
-      "visible": "true",
-      "queryable": "true",
-      "queryDialogType": "custom"
+      "queryable": true
     }
   ],
   
@@ -74,11 +65,6 @@
       "label": "${provinces}",
       "layers": ["provinces"],
       "inlineLegendUrl": "/diss_geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=unredd:drc_provinces&TRANSPARENT=true"
-    }, {
-      "id": "plots",
-      "infoFile": "data_not_available.html",
-      "label": "Parcelles",
-      "layers": ["plots"]
     }
   ],
   
@@ -107,14 +93,6 @@
           "label": "${land_cover_maps}",
           "items": [
             { "context": "forest_mask" }
-          ]
-        }
-      },
-      {
-        "group": {
-          "label": "Autres",
-          "items": [
-            { "context": "plots" }
           ]
         }
       }
