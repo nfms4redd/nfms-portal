@@ -191,7 +191,7 @@ $(window).load(function () {
         showInfo,
         setLayersTime,
         selectedDate,
-        click,
+        //click,
         legendOn = false,
         year,
         //markers,
@@ -406,11 +406,16 @@ $(window).load(function () {
                     header,
                     contextName,
                     tr,
+                    td1,
+                    td2,
                     td3,
                     td4,
                     infoButton,
                     inlineLegend,
-                    active;
+                    active,
+                    context,
+                    contextConf,
+                    checkbox;
 
                     if (contextGroupDefinition.hasOwnProperty('group')) {
                         // it's a group
@@ -428,7 +433,6 @@ $(window).load(function () {
                                 	event.stopPropagation();
                                 });
                                 
-                                //if (typeof infoButton !== 'undefined') {
                                 infoButton.fancybox({
                                     'autoScale' : false,
                                     'openEffect' : 'elastic',
@@ -436,8 +440,6 @@ $(window).load(function () {
                                     'type': 'ajax',
                                     'overlayOpacity': 0.5
                                 });
-                                //}
-
                             } else {
                                 accordionHeader = $("<div class=\"accordion_header\"><a href=\"#\">" +  contextGroupDefinition.group.label + "</a></div>");
                             }
@@ -461,21 +463,17 @@ $(window).load(function () {
                         if (element !== null) {
                             contextName = contextGroupDefinition.context;
                             active = UNREDD.mapContexts[contextName].configuration.active;
+                            
+                            context = UNREDD.mapContexts[contextName];
+                            contextConf = context.configuration;
 
-                            var context = UNREDD.mapContexts[contextName];
-
-                            if (typeof context !== "undefined") {
-                                var contextConf = context.configuration;
+                            if (typeof context !== "undefined" && typeof context.configuration.layers !== "undefined") {
 
                                 tr = $('<tr class="layer_row">');
 
-                                //if (active) {
-                                //  tr.addClass('active');
-                                //}
-                            
                                 if (contextConf.hasOwnProperty('inlineLegendUrl')) {
                                     // context has an inline legend
-                                    var td1 = $('<td style="width:20px">');
+                                    td1 = $('<td style="width:20px">');
                                     inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
                                     td1.append(inlineLegend);
                                 } else if (context.hasLegend) {
@@ -487,61 +485,58 @@ $(window).load(function () {
                                     } else {
                                         td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
                                     }
-                                } else if (typeof contextConf.layers !== "undefined") {
+                                } else {
                                     td1 = $('<td></td>');
                                 }
 
-                                if (typeof contextConf.layers !== "undefined") {
-                                    // context actually contains layers
-                                    var td2 = $('<td style="width:16px"></td>');
-                                    var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
-                                    if (active) {
-                                        checkbox.addClass('checked');
-                                    }
-
-                                    (function (element) {
-                                        // emulate native checkbox behaviour
-                                        element.mousedown(function () {
-                                            element.addClass('mousedown');
-                                        }).mouseup(function () {
-                                            element.removeClass('mousedown');
-                                        }).mouseleave(function () {
-                                            element.removeClass('in');
-                                        }).mouseenter(function () {
-                                            element.addClass('in');
-                                        }).click(function () {
-                                            element.toggleClass('checked');
-                                        
-                                            var active = !contextConf.active;
-                                            setContextVisibility(context, active);
-                                            setLegends(context, active);
-                                            updateActiveLayersPane();
-                                        });
-                                    }(checkbox));
-
-                                    td2.append(checkbox);
+                                checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
+                                if (active) {
+                                    checkbox.addClass('checked');
                                 }
+                                td2 = $('<td style="width:16px"></td>');
+                                td2.append(checkbox);
 
                                 td3 = $('<td style="color:#FFF">');
                                 td3.text(contextConf.label);
+                                td4 = $('<td style="width:16px;padding:0">');
 
-                                td4        = $('<td style="width:16px;padding:0">');
-                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
-                            
-                                if (typeof contextConf.infoFile !== 'undefined') {
+                                if (typeof contextConf.infoFile !== 'undefined') { // TODO: put previous line inside this
+                                    infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
                                     td4.append(infoButton);
                                 }
-
-                                if (td1) {
-                                    tr.append(td1);
-                                }
-                                if (td2) {
-                                    tr.append(td2);
-                                }
-
-                                tr.append(td3, td4);
+                                if (td1) {tr.append(td1);}
+                                tr.append(td2, td3, td4);
 
                                 element.append(tr);
+
+                                // The :hover pseudo-selector on non-anchor elements is known to make IE7 and IE8 slow in some cases
+                                /*
+                                tr.mouseenter(function () {
+                                    tr.addClass('hover');
+                                }).mouseleave(function () {
+                                    tr.removeClass('hover');
+                                });
+                                */
+
+                                (function (element) {
+                                    // emulate native checkbox behaviour
+                                    element.mousedown(function () {
+                                        element.addClass('mousedown');
+                                    }).mouseup(function () {
+                                        element.removeClass('mousedown');
+                                    }).mouseleave(function () {
+                                        element.removeClass('in');
+                                    }).mouseenter(function () {
+                                        element.addClass('in');
+                                    }).click(function () {
+                                        element.toggleClass('checked');
+
+                                        setContextVisibility(context, !active);
+                                        setLegends(context, !active);
+                                        updateActiveLayersPane(mapContexts);
+                                    });
+                                }(checkbox))
+                            
                             } else if (typeof contextConf !== "undefined") {
                                 tr = $('<tr style="font-size:10px;height:22px">');
                                 td1 = $('<td style="color:#FFF" colspan="3">');
@@ -554,12 +549,12 @@ $(window).load(function () {
                                 tr.append(td1, td2);
                                 element.append(tr);
                             }
-
-                            if (typeof infoButton !== 'undefined') {
+                            
+                            if (typeof infoButton !== "undefined") {
                                 infoButton.fancybox({
-                                    'autoScale': false,
-                                    'openEffect': 'elastic',
-                                    'closeEffect': 'elastic',
+                                    'autoScale' : false,
+                                    'openEffect' : 'elastic',
+                                    'closeEffect' : 'elastic',
                                     'type': 'ajax',
                                     'overlayOpacity': 0.5
                                 });
@@ -568,7 +563,8 @@ $(window).load(function () {
                     }
                 });
             };
-           
+            
+            
             loadContextGroups(contextGroups, 0, $("#layers_pane"));
 
             $("#layers_pane").accordion({
