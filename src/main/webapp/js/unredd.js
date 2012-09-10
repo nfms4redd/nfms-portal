@@ -193,9 +193,10 @@ $(window).load(function () {
         click,
         legendOn = false,
         year,
-        markers,
+        //markers,
         infoControl,
         getClosestPastDate,
+        getClosestFutureDate,
         updateActiveLayersPane,
         mapContexts = {},
         setContextVisibility,
@@ -857,6 +858,21 @@ $(window).load(function () {
         return result;
     };
 
+    getClosestFutureDate = function (date, dateArray) {
+        var result = null,
+            dateInArray,
+            i;
+
+        for (i = 0; i < dateArray.length; i++) {
+            dateInArray = dateArray[i];
+            if (date <= dateInArray && (result === null || result > dateInArray)) {
+	            result = dateInArray;
+            }
+        }
+        
+        return result;
+    };
+    
     setLayersTime = function (selectedDate) {
         //console.log(layersJsonData); // DEBUG
         // loop through layers to see if they are time dependent
@@ -879,6 +895,9 @@ $(window).load(function () {
 
             if (dates.length) {
 	            newDate = getClosestPastDate(selectedDate, dates);
+                if (newDate === null) {
+                	newDate = getClosestFutureDate(selectedDate, dates);
+                }
 	            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
 	            UNREDD.map.events.triggerEvent("changelayer", {
 	            	layer: layer.olLayer,
@@ -887,7 +906,7 @@ $(window).load(function () {
             }
         });
     };
-
+    
     /**************
     /* Time Slider
      **************/
