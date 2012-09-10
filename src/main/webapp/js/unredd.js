@@ -793,7 +793,7 @@ $(window).load(function () {
         }
     }
 
-    var closeLegend = function (scrollToId) {
+    var closeLegend = function () {
         $("#legend_pane").dialog('close');
         legendOn = false;
     }
@@ -870,7 +870,6 @@ $(window).load(function () {
     };
     
     setLayersTime = function (selectedDate) {
-        //console.log(layersJsonData); // DEBUG
         // loop through layers to see if they are time dependent
         $.each(UNREDD.timeDependentLayers, function (layerName, layer) {
             var sDates,
@@ -885,7 +884,7 @@ $(window).load(function () {
             for (i = 0; i < sDates.length; i++) {
                 d = new Date();
                 if (d.setISO8601(sDates[i])) {
-                    dates.push(d);                	
+                    dates.push(d);
                 }
             }
 
