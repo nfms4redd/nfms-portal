@@ -15,7 +15,7 @@
  */
 
 OpenLayers.ProxyHost = "proxy?url=";
-OpenLayers.ImgPath = "js/OpenLayers-2.12/img/";
+OpenLayers.ImgPath = "images/openlayers/";
 
 var RecaptchaOptions = {
 	lang: languageCode,

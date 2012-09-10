@@ -37,7 +37,7 @@
     <title><spring:message code="title" /></title>
        
     <pack:style enabled="${config.minifiedJs}">
-    	<src>/js/OpenLayers-2.12/theme/default/style.css</src>
+    	<src>/css/openlayers/style.css</src>
     	<src>/css/jquery-ui-1.8.16.custom.css</src>
     	<src>/css/jquery.fancybox.css</src>
     	<src>/css/toolbar.css</src>
@@ -51,12 +51,13 @@
     </script>
     
     <pack:script enabled="${config.minifiedJs}">
-    	<src>/js/OpenLayers-2.12/OpenLayers.debug.js</src>
+    	<!-- src>/js/OpenLayers-2.12.full.js</src -->
+    	<src>/js/OpenLayers.unredd.js</src>
     	<src>/js/jquery-1.7.1.js</src>
     	<src>/js/jquery.mustache.js</src>
     	<src>/js/jquery-ui-1.8.16.custom.min.js</src>
     	<src>/js/jquery.fancybox.js</src>
-    	<src>/js/toolbar.js</src>
+    	<src>/js/ol-extensions/PortalToolbar.js</src>
     	<src>/js/unredd.js</src>
     	<src>${base}/static/custom.js</src>
     </pack:script>
