@@ -239,6 +239,11 @@ $(window).load(function () {
         }
     };
     
+    // Initialize UNREDD.wmsServers to this same server, in case it is not defined or empty
+    if (!UNREDD.wmsServers || typeof UNREDD.wmsServers === "undefined" || !UNREDD.wmsServers.length) {
+    	UNREDD["wmsServers"] = [""];
+    };
+    
     openLayersOptions = {
         theme:             null,
         projection:        new OpenLayers.Projection("EPSG:900913"),
