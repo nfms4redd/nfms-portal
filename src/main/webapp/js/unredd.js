@@ -194,9 +194,10 @@ $(window).load(function () {
         click,
         legendOn = false,
         year,
-        markers,
+        //markers,
         infoControl,
         getClosestPastDate,
+        getClosestFutureDate,
         updateActiveLayersPane,
         mapContexts = {},
         setContextVisibility,
@@ -405,10 +406,8 @@ $(window).load(function () {
                     header,
                     contextName,
                     tr,
-                    //td1,
                     td3,
                     td4,
-                    //label,
                     infoButton,
                     inlineLegend,
                     active;
@@ -416,7 +415,9 @@ $(window).load(function () {
                     if (contextGroupDefinition.hasOwnProperty('group')) {
                         // it's a group
                         if (level === 0) {
+                            // it's an accordion header
                             if (typeof contextGroupDefinition.group.infoFile !== 'undefined') {
+                                // accordion header has a info file - we add info button
                                 accordionHeader = $('<div style="position:relative" class="accordion_header"><a style="width:190px" href="#">' + contextGroupDefinition.group.label
                                     + '</a></div>');
                                 infoButton = $('<a style="position:absolute;top:3px;right:7px;width:16px;height:16px;padding:0;" class="layer_info_button" href="static/loc/' + languageCode + '/html/' + contextGroupDefinition.group.infoFile + '"></a>')
@@ -427,15 +428,15 @@ $(window).load(function () {
                                 	event.stopPropagation();
                                 });
                                 
-                                if (typeof infoButton !== 'undefined') {
-                                    infoButton.fancybox({
-                                        'autoScale' : false,
-                                        'openEffect' : 'elastic',
-                                        'closeEffect' : 'elastic',
-                                        'type': 'ajax',
-                                        'overlayOpacity': 0.5
-                                    });
-                                }
+                                //if (typeof infoButton !== 'undefined') {
+                                infoButton.fancybox({
+                                    'autoScale' : false,
+                                    'openEffect' : 'elastic',
+                                    'closeEffect' : 'elastic',
+                                    'type': 'ajax',
+                                    'overlayOpacity': 0.5
+                                });
+                                //}
 
                             } else {
                                 accordionHeader = $("<div class=\"accordion_header\"><a href=\"#\">" +  contextGroupDefinition.group.label + "</a></div>");
@@ -447,6 +448,7 @@ $(window).load(function () {
                             contextsDiv.append(innerElement);
                             element.append(contextsDiv);
                         } else {
+                            // we are inside of an accordion element
                             header = $("<div><a href=\"#\">" + contextGroupDefinition.group.label + "</a></div>");
                             element.append(header);
                             innerElement = $('<table class="second_level" style="width:100%"></table>');
@@ -463,7 +465,7 @@ $(window).load(function () {
                             var context = UNREDD.mapContexts[contextName];
 
                             if (typeof context !== "undefined") {
-                                var contextConf = context.configuration
+                                var contextConf = context.configuration;
 
                                 tr = $('<tr class="layer_row">');
 
@@ -477,20 +479,20 @@ $(window).load(function () {
                                     inlineLegend = $('<img class="inline-legend" src="' + UNREDD.wmsServers[0] + contextConf.inlineLegendUrl + '">');
                                     td1.append(inlineLegend);
                                 } else if (context.hasLegend) {
-                                    // context has a legend to be shown on the legend pane
-                                    // add link to show the legend pane
+                                    // context has a legend to be shown on the legend pane - we add a link to show the legend pane
                                     if (active) {
-                                        var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
-                                        // Add the legend to the legend pane (hidden when page loads)
+                                        td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon on"></a></td>');
+                                        // add the legend to the legend pane (hidden when page loads)
                                         setLegends(context, true);
                                     } else {
-                                        var td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
+                                        td1 = $('<td style="font-size:9px;width:20px;height:20px"><a id="' + contextName + '_inline_legend_icon" class="inline_legend_icon"></a></td>');
                                     }
                                 } else if (typeof contextConf.layers !== "undefined") {
-                                    var td1 = $('<td></td>');
+                                    td1 = $('<td></td>');
                                 }
-                            
+
                                 if (typeof contextConf.layers !== "undefined") {
+                                    // context actually contains layers
                                     var td2 = $('<td style="width:16px"></td>');
                                     var checkbox = $('<div class="checkbox" id="' + contextName + "_checkbox" + '"></div>');
                                     if (active) {
@@ -541,24 +543,23 @@ $(window).load(function () {
 
                                 element.append(tr);
                             } else if (typeof contextConf !== "undefined") {
-                                tr  = $('<tr style="font-size:10px;height:22px">');
-                                td1 = $('<td colspan="3" style="color:#FFF">');
-                                td2 = $('<td style="width:16px;padding:0">');
-                            
+                                tr = $('<tr style="font-size:10px;height:22px">');
+                                td1 = $('<td style="color:#FFF" colspan="3">');
                                 td1.text(contextConf.label);
-                            
-                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                td2 = $('<td style="width:16px;padding:0">');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
 
                                 td2.append(infoButton);
+
                                 tr.append(td1, td2);
                                 element.append(tr);
                             }
 
                             if (typeof infoButton !== 'undefined') {
                                 infoButton.fancybox({
-                                    'autoScale' : false,
-                                    'openEffect' : 'elastic',
-                                    'closeEffect' : 'elastic',
+                                    'autoScale': false,
+                                    'openEffect': 'elastic',
+                                    'closeEffect': 'elastic',
                                     'type': 'ajax',
                                     'overlayOpacity': 0.5
                                 });
@@ -567,7 +568,7 @@ $(window).load(function () {
                     }
                 });
             };
-
+           
             loadContextGroups(contextGroups, 0, $("#layers_pane"));
 
             $("#layers_pane").accordion({
@@ -635,8 +636,6 @@ $(window).load(function () {
                     // handle custom popup - info will be taken from json but for now it's in the custom.js. Don't have time
                     var customPopupLayer = null;
                     $.each(selectedFeatures, function (layerId, feature) {
-                        console.log(layerId);
-                        console.log(UNREDD.layerInfo[layerId]);
                         info = UNREDD.layerInfo[layerId](feature);
                         if (typeof(info.customPopup) != "undefined") {
                             customPopupLayer = layerId;
@@ -861,6 +860,21 @@ $(window).load(function () {
         return result;
     };
 
+    getClosestFutureDate = function (date, dateArray) {
+        var result = null,
+            dateInArray,
+            i;
+
+        for (i = 0; i < dateArray.length; i++) {
+            dateInArray = dateArray[i];
+            if (date <= dateInArray && (result === null || result > dateInArray)) {
+	            result = dateInArray;
+            }
+        }
+        
+        return result;
+    };
+    
     setLayersTime = function (selectedDate) {
         //console.log(layersJsonData); // DEBUG
         // loop through layers to see if they are time dependent
@@ -883,6 +897,9 @@ $(window).load(function () {
 
             if (dates.length) {
 	            newDate = getClosestPastDate(selectedDate, dates);
+                if (newDate === null) {
+                	newDate = getClosestFutureDate(selectedDate, dates);
+                }
 	            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
 	            UNREDD.map.events.triggerEvent("changelayer", {
 	            	layer: layer.olLayer,
@@ -891,7 +908,7 @@ $(window).load(function () {
             }
         });
     };
-
+    
     /**************
     /* Time Slider
      **************/
