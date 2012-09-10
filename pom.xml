@@ -19,6 +19,7 @@
 		<geostore.unredd.model.version>1.0-SNAPSHOT</geostore.unredd.model.version>
 
 		<portal_config_dir>portal_config_dirs/drc/</portal_config_dir>
+		<minified_js>false</minified_js>
 	</properties>
 
 	<dependencies>
@@ -120,6 +121,13 @@
 			<artifactId>gson</artifactId>
 			<version>2.2.2</version>
 			<scope>compile</scope>
+		</dependency>
+
+		<!-- pack:tag -->
+		<dependency>
+			<groupId>net.sf.packtag</groupId>
+			<artifactId>packtag-core</artifactId>
+			<version>3.8</version>
 		</dependency>
 
 		<!-- ReCAPTCHA for Java -->
@@ -243,6 +251,10 @@
 						<systemProperty>
 							<name>PORTAL_CONFIG_DIR</name>
 							<value>${portal_config_dir}</value>
+						</systemProperty>
+						<systemProperty>
+							<name>MINIFIED_JS</name>
+							<value>${minified_js}</value>
 						</systemProperty>
 					</systemProperties>
 					<webAppConfig>

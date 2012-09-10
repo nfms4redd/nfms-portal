@@ -11,17 +11,17 @@
 }
 
 .olControlPortalToolbarAddItemActive, .olControlPortalToolbarAddItemInactive {
-    background-image: url("../images/silk/add.png");
+    background-image: url("images/silk/add.png");
     background-color: #555555;
     border-color: #dddddd;
 }
 
 .olControlPortalToolbarEditItemActive, .olControlPortalToolbarEditItemInactive {
-    background-image: url("../images/silk/pencil.png");
+    background-image: url("images/silk/pencil.png");
 }
 
 .olControlPortalToolbarGetItemActive, .olControlPortalToolbarGetItemInactive {
-    background-image: url("../images/silk/down.png");
+    background-image: url("images/silk/down.png");
 }
 
 .olControlPortalToolbarAddItemInactive, .olControlPortalToolbarEditItemInactive, .olControlPortalToolbarGetItemInactive {

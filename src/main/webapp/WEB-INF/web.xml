@@ -28,6 +28,17 @@
         <url-pattern>/static/*</url-pattern>
         <url-pattern>/feedback</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+		<description>Needed for pack:tag. Returns the packed resources.</description>
+		<display-name>PackServlet</display-name>
+		<servlet-name>PackServlet</servlet-name>
+		<servlet-class>net.sf.packtag.servlet.PackServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PackServlet</servlet-name>
+		<url-pattern>*.pack</url-pattern>
+	</servlet-mapping>
 
     <session-config>
         <session-timeout>30</session-timeout>
