@@ -86,7 +86,7 @@ a
   width: 104px;
   height: 69px;
   z-index: 1100;
-  background: url(img/flag.png) no-repeat 0 0;
+  background: url(../static/img/flag.png) no-repeat 0 0;
 }
 
 #logos
@@ -97,12 +97,12 @@ a
   height: 96px;
   width: 128px;
   z-index: 1100;
-  background:url(img/logos.png) no-repeat 0 0;
+  background:url(../static/img/logos.png) no-repeat 0 0;
 }
 
 #infona_logo {
   position: absolute;
-  background: url(../images/logos.png) no-repeat 0 0;
+  background: url(../static/img/logos.png) no-repeat 0 0;
   background-position: 0px 0px;
   width: 78px;
   height: 55px;
@@ -116,7 +116,7 @@ a
 
 #fapi_logo {
   position: absolute;
-  background: url(../images/logos.jpg) no-repeat 0 0;
+  background: url(../static/img/logos.jpg) no-repeat 0 0;
   background-position: -217px 0px;
   width: 95px;
   height: 55px;
@@ -130,7 +130,7 @@ a
 
 #seam_logo {
   position: absolute;
-  background: url(../images/logos.jpg) no-repeat 0 0;
+  background: url(../static/img/logos.jpg) no-repeat 0 0;
   background-position: -80px 0px;
   width: 127px;
   height: 55px;
@@ -154,7 +154,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   height:25px;
   top:148px;
   left:10px;
-  background: url(img/ui-elements.png) no-repeat 0 0;
+  background: url(../static/img/ui-elements.png) no-repeat 0 0;
   background-position: 0px -48px;
   z-index:1000
 }
@@ -169,7 +169,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   height:25px;
   top:148px;
   left:50px;
-  background: url(img/ui-elements.png) no-repeat 0px 0px;
+  background: url(../static/img/ui-elements.png) no-repeat 0px 0px;
   background-position: 0px -16px;
   z-index:1000
 }
@@ -184,7 +184,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   height:25px;
   top:148px;
   left:90px;
-  background: url(img/ui-elements.png) no-repeat 0px 0px;
+  background: url(../static/img/ui-elements.png) no-repeat 0px 0px;
   background-position: 0px -80px;
   z-index:1000
 }
@@ -196,7 +196,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 #banner {
 	height: 92px;
 	width: 100%;
-	background:url(img/banner-background.jpg) no-repeat 0 0;
+	background:url(../static/img/banner-background.jpg) no-repeat 0 0;
 	background-color: #a0b397;
 }
 
@@ -528,7 +528,7 @@ a.layer_info_button
 {
   width: 16px;
   height: 16px;
-  background: url(img/ui-elements.png) no-repeat 0 0;
+  background: url(../static/img/ui-elements.png) no-repeat 0 0;
   background-position: 0px -130px;
   padding: 0;
   display: block;
@@ -626,7 +626,7 @@ a.layer_info_button:hover
 .inline_legend_icon {
   width: 20px;
   height: 20px;
-  background: url(img/ui-elements.png) no-repeat 0 0;
+  background: url(../static/img/ui-elements.png) no-repeat 0 0;
   background-position: 0 -112px;
   display: block;
   cursor: default;
@@ -640,7 +640,7 @@ a.layer_info_button:hover
 div.checkbox {
   width: 16px;
   height: 16px;
-  background: url(img/ui-elements.png) no-repeat 0 0;
+  background: url(../static/img/ui-elements.png) no-repeat 0 0;
   cursor: pointer;
 }
 

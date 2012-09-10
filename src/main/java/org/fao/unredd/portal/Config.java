@@ -101,6 +101,10 @@ public class Config implements ServletContextAware {
 		return dir;
 	}
 	
+	public boolean isMinifiedJs() {
+		return Boolean.parseBoolean(System.getProperty("MINIFIED_JS", "true"));
+	}
+	
 	public Properties getProperties() {
 		if (properties == null) {
 			String location = getDir()+"/portal.properties";

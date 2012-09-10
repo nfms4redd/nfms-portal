@@ -5,7 +5,14 @@
 <%@page session="true"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@taglib prefix="pack" uri="http://packtag.sf.net"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<c:set var="req" value="${pageContext.request}" />
+<c:set var="uri" value="${req.requestURI}" />
+<c:set var="base" value="${fn:replace(req.requestURL, fn:substring(uri, 0, fn:length(uri)), req.contextPath)}" />
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
  nfms4redd Portal Interface - http://nfms4redd.org/
@@ -28,28 +35,32 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     
     <title><spring:message code="title" /></title>
-    
-    <link type="text/css" href="css/custom-theme2/jquery-ui-1.8.16.custom.css" rel="stylesheet">
-    <link rel="stylesheet" href="js/fancybox-2.0.5/source/jquery.fancybox.css" type="text/css" media="screen" />
-    <!--link rel="stylesheet" href="js/OpenLayers-2.11/theme/default/style.css" type="text/css" /-->
-    <link rel="stylesheet" href="js/OpenLayers-2.12/theme/default/style.css" type="text/css" />
-    <link rel="stylesheet" href="css/toolbar.css" type="text/css" />
-    <link rel="stylesheet" href="static/unredd.css" type="text/css">
+       
+    <pack:style enabled="${config.minifiedJs}">
+    	<src>/css/openlayers/style.css</src>
+    	<src>/css/jquery-ui-1.8.16.custom.css</src>
+    	<src>/css/jquery.fancybox.css</src>
+    	<src>/css/toolbar.css</src>
+    	<src>${base}/static/unredd.css</src>
+    </pack:style>
     
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
         var messages = <jsp:include page="messages.jsp"/>;
+        var recaptchaKey = "${recaptchaKey}";
     </script>
-    <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="js/jquery.mustache.min.js"></script>
-    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
-    <script type="text/javascript" src="js/fancybox-2.0.5/source/jquery.fancybox.pack.js"></script>
-    <!--script type="text/javascript" src="js/OpenLayers-2.11/OpenLayers.js"></script-->
-    <!-- script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.debug.js"></script-->
-    <script type="text/javascript" src="js/OpenLayers-2.12/OpenLayers.js"></script>
-    <script type='text/javascript' src='js/toolbar.js'></script>
-    <script type='text/javascript' src='js/unredd.js'></script>
-    <script type='text/javascript' src='static/custom.js'></script>
+    
+    <pack:script enabled="${config.minifiedJs}">
+    	<!-- src>/js/OpenLayers-2.12.full.js</src -->
+    	<src>/js/OpenLayers.unredd.js</src>
+    	<src>/js/jquery-1.7.1.js</src>
+    	<src>/js/jquery.mustache.js</src>
+    	<src>/js/jquery-ui-1.8.16.custom.min.js</src>
+    	<src>/js/jquery.fancybox.js</src>
+    	<src>/js/ol-extensions/PortalToolbar.js</src>
+    	<src>/js/unredd.js</src>
+    	<src>${base}/static/custom.js</src>
+    </pack:script>
   </head>
   <body>
     <div id="header">
@@ -143,9 +154,7 @@
           </td>
         </tr>
 		<tr>
-          <td colspan="2" class="recaptcha">
-            ${captchaHtml}
-          </td>
+          <td colspan="2" class="recaptcha">${captchaHtml}</td>
         </tr>
         <tr>
           <td></td>

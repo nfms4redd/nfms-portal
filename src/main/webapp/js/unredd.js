@@ -15,6 +15,7 @@
  */
 
 OpenLayers.ProxyHost = "proxy?url=";
+OpenLayers.ImgPath = "images/openlayers/";
 
 var RecaptchaOptions = {
 	lang: languageCode,
@@ -239,6 +240,7 @@ $(window).load(function () {
     };
     
     openLayersOptions = {
+        theme:             null,
         projection:        new OpenLayers.Projection("EPSG:900913"),
         displayProjection: new OpenLayers.Projection("EPSG:4326"),
         units:             "m",
@@ -1049,9 +1051,8 @@ $(window).load(function () {
     
     // Feedback form
 	function openDialog() {
-
-		Recaptcha.reload();
-		
+		Recaptcha.reload();			
+	
 		$("#feedback_submit").button();
         $("#feedback_submit").click(function () {
     	    var mailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
