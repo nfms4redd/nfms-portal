@@ -324,12 +324,8 @@ public class ApplicationController {
 		while (m.find()) { // Found time-dependant layer in json file
 			String layerName = m.group(1);
 			try {
-				Resource gsLayer = getGeostore().searchLayer(layerName);
-				if (gsLayer != null) { // Found same layer in geostore
-					m.appendReplacement(sb, getWmsTimeString(gsLayer));				
-				} else {
-					logger.error("Found time-dependant layer definition " + layerName  + ", but no matching layer found in GeoStore.");
-				}
+				m.appendReplacement(sb, getLayerTimesFromGeostore(layerName));				
+				//logger.error("Found time-dependant layer definition " + layerName  + ", but no matching layer found in GeoStore.");
 			} catch (Exception e) {
 				logger.error("Error getting layer times from GeoStore.");
 			}
@@ -338,32 +334,37 @@ public class ApplicationController {
 		return sb.toString();
     }
     
-    private String getWmsTimeString(Resource layer) throws JAXBException, UnsupportedEncodingException {
-        StringBuilder wmsTimes = new StringBuilder();
-        List<Resource> layerUpdates = getGeostore().searchLayerUpdatesByLayerName(layer.getName());
+    private String getLayerTimesFromGeostore(String layerName) throws JAXBException, UnsupportedEncodingException {
+        StringBuilder timeString = new StringBuilder();
+        List<Resource> layerUpdates = getGeostore().searchLayerUpdatesByLayerName(layerName);
+        if (layerUpdates.size() == 0) {
+        	logger.warn("Requested times for \"" + layerName  + "\", but no corresponding LayerUpdates found in GeoStore.");
+        }
         Iterator<Resource> iterator = layerUpdates.iterator();
         while (iterator.hasNext()) {
             UNREDDLayerUpdate unreddLayerUpdate = new UNREDDLayerUpdate(iterator.next());
             String year  = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.YEAR);
             String month = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.MONTH);
+            String day = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.DAY);
             
-            // build wms time string manually
-            wmsTimes.append(year).append("-");
+            // build time string
+            timeString.append(year);
             
             if (month != null) {
-                if (month.length() == 1) wmsTimes.append("0");
-                wmsTimes.append(month);
-            }
-            else wmsTimes.append("01"); // Assign january if data is updated yearly and month is not there
-
-            wmsTimes.append("-01T00:00:00.000Z"); // period is year or month, so the rest of the time string is always the same
-            
+            	timeString.append("-");
+                if (month.length() == 1) timeString.append("0");
+                timeString.append(month);
+                if (day != null) {
+                	timeString.append("-");
+                    if (day.length() == 1) timeString.append("0");
+                    timeString.append(day);
+                }                
+            }           
             if (iterator.hasNext()) {
-                wmsTimes.append(",");
+                timeString.append(",");
             }
         }
-        
-        return wmsTimes.toString();
+        return timeString.toString();
     }
     
 	private static Map<String, String> flattenParamValues(Map<String, String[]> oldMap) {
