@@ -198,6 +198,7 @@ $(window).load(function () {
         infoControl,
         getClosestPastDate,
         getClosestFutureDate,
+        getLocalizedDate,
         updateActiveLayersPane,
         mapContexts = {},
         setContextVisibility,
@@ -897,6 +898,13 @@ $(window).load(function () {
         return result;
     };
     
+    getLocalizedDate = function(date) {
+    	var months = messages.months ? eval(messages.months) : ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sep.", "Oct.", "Nov.", "Des."];
+    	var arr = date.split("-");
+    	if (arr[1]) arr[1] = months[arr[1]-1];
+    	return arr.reverse().join(" ");
+    };
+    
     setLayersTime = function (selectedDate) {
         // loop through layers to see if they are time dependent
         $.each(UNREDD.timeDependentLayers, function (layerName, layer) {
@@ -922,7 +930,7 @@ $(window).load(function () {
                 	newDate = getClosestFutureDate(selectedDate, dates, layer);
                 }
 	            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
-            	$("#"+layer.name+"_date").text(" ("+layer.selectedDate+")");
+            	$("#"+layer.name+"_date").text(" ("+getLocalizedDate(layer.selectedDate)+")");
 	            UNREDD.map.events.triggerEvent("changelayer", {
 	            	layer: layer.olLayer,
 	            	selectedDate: layer.selectedDate,
@@ -954,13 +962,13 @@ $(window).load(function () {
     
     // Create time slider
     if (UNREDD.times.length) {
-	    $("#time_slider_label").text(UNREDD.times[UNREDD.times.length-1]);
+	    $("#time_slider_label").text(getLocalizedDate(UNREDD.times[UNREDD.times.length-1]));
 	    $("#time_slider").slider({
 	        min: 0,
 	        max: UNREDD.times.length-1,
 	        value: UNREDD.times[UNREDD.times.length-1].replace("-",""),
 	        slide: function (event, ui) {
-	            $("#time_slider_label").text(UNREDD.times[ui.value]);
+	            $("#time_slider_label").text(getLocalizedDate(UNREDD.times[ui.value]));
 	        },
 	        change: function (event, ui) {
 	            var datestr = new Date(UNREDD.times[ui.value]);
@@ -1155,7 +1163,7 @@ $(window).load(function () {
 			// Render active date for time-varying layer
         	var layer = UNREDD.allLayers[layerId];
         	if (layer.selectedDate) {
-        		$("#fb_time").html(layer.selectedDate);
+        		$("#fb_time").html(getLocalizedDate(layer.selectedDate));
         	} else {
 				$("#fb_time").html("");
 			}
@@ -1207,7 +1215,7 @@ $(window).load(function () {
             				$("#fb_layers").change();
             			}
             			if (evt.property == "time" && evt.layer.name == $("#fb_layers").val()) {
-            	        	$("#fb_time").html(evt.selectedDate);
+            	        	$("#fb_time").html(getLocalizedDate(evt.selectedDate));
             			}
             		}
             	});
