@@ -966,7 +966,7 @@ $(window).load(function () {
 	    $("#time_slider").slider({
 	        min: 0,
 	        max: UNREDD.times.length-1,
-	        value: UNREDD.times[UNREDD.times.length-1].replace("-",""),
+	        value: UNREDD.times[UNREDD.times.length-1].replace(/\-/g,""),
 	        slide: function (event, ui) {
 	            $("#time_slider_label").text(getLocalizedDate(UNREDD.times[ui.value]));
 	        },
