@@ -198,6 +198,7 @@ $(window).load(function () {
         infoControl,
         getClosestPastDate,
         getClosestFutureDate,
+        getLocalizedDate,
         updateActiveLayersPane,
         mapContexts = {},
         setContextVisibility,
@@ -239,6 +240,11 @@ $(window).load(function () {
         }
     };
     
+    // Initialize UNREDD.wmsServers to this same server, in case it is not defined or empty
+    if (!UNREDD.wmsServers || typeof UNREDD.wmsServers === "undefined" || !UNREDD.wmsServers.length) {
+    	UNREDD["wmsServers"] = [""];
+    };
+    
     openLayersOptions = {
         theme:             null,
         projection:        new OpenLayers.Projection("EPSG:900913"),
@@ -271,6 +277,7 @@ $(window).load(function () {
             jQuery.each(data_.layers, function (i, layerDefinition) {
                 var layerId = layerDefinition.id;
                 var layer = new UNREDD.Layer(layerId, layerDefinition);
+                var oldIsoTimeRegexp = new RegExp("([0-9]{4})-01-01T00:00:00\\.000Z"); /** See wmsTime hack **/
 
                 if (layerDefinition.visible) {
                     UNREDD.visibleLayers.push(layer.olLayer);
@@ -281,7 +288,17 @@ $(window).load(function () {
                     UNREDD.queryableLayers.push(layer.olLayer);
                 }
                 if (typeof layer.configuration.wmsTime !== 'undefined') {
-                    UNREDD.timeDependentLayers.push(layer)
+                	/** Backwards-compatibility hack: convert former ISO times to simple years **/
+                	times = layer.configuration.wmsTime.split(",");
+                    for(i=0; i < times.length; i++) {
+                        var match = times[i].match(oldIsoTimeRegexp);
+                        if (match) {
+                        	times[i] = match[1];
+                        }
+                    }
+                    layer.configuration.wmsTime = times.join(",");
+                    /** end-of-hack **/
+                    UNREDD.timeDependentLayers.push(layer);
                 }
             });
 
@@ -498,6 +515,14 @@ $(window).load(function () {
 
                                 td3 = $('<td style="color:#FFF">');
                                 td3.text(contextConf.label);
+                                
+                                // Add date for label if time dependant layer
+                                var layerName = context.configuration.layers[0];
+                                if (UNREDD.allLayers[layerName].configuration.wmsTime) {
+                                	datespan = $('<span id="' + layerName + '_date"></span>"');
+                                	td3.append(datespan);
+                                }
+                                
                                 td4 = $('<td style="width:16px;padding:0">');
 
                                 if (typeof contextConf.infoFile !== 'undefined') { // TODO: put previous line inside this
@@ -849,34 +874,43 @@ $(window).load(function () {
     });
 
     // Time slider management
-    getClosestPastDate = function (date, dateArray) {
+    getClosestPastDate = function (date, dateArray, layer) {
         var result = null,
         dateInArray,
-        i;
+        i, d;
 
         for (i = 0; i < dateArray.length; i++) {
             dateInArray = dateArray[i];
             if (date >= dateInArray && (result === null || result < dateInArray)) {
                 result = dateInArray;
+                d = i;
             }
         }
-
+        layer.selectedDate = layer.configuration.wmsTime.split(",")[d];
         return result;
     };
 
-    getClosestFutureDate = function (date, dateArray) {
+    getClosestFutureDate = function (date, dateArray, layer) {
         var result = null,
             dateInArray,
-            i;
+            i, d;
 
         for (i = 0; i < dateArray.length; i++) {
             dateInArray = dateArray[i];
             if (date <= dateInArray && (result === null || result > dateInArray)) {
 	            result = dateInArray;
+	            d = i;
             }
         }
-        
+        layer.selectedDate = layer.configuration.wmsTime.split(",")[d];
         return result;
+    };
+    
+    getLocalizedDate = function(date) {
+    	var months = messages.months ? eval(messages.months) : ["Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sep.", "Oct.", "Nov.", "Des."];
+    	var arr = date.split("-");
+    	if (arr[1]) arr[1] = months[arr[1]-1];
+    	return arr.reverse().join(" ");
     };
     
     setLayersTime = function (selectedDate) {
@@ -899,13 +933,15 @@ $(window).load(function () {
             }
 
             if (dates.length) {
-	            newDate = getClosestPastDate(selectedDate, dates);
+	            newDate = getClosestPastDate(selectedDate, dates, layer);
                 if (newDate === null) {
-                	newDate = getClosestFutureDate(selectedDate, dates);
+                	newDate = getClosestFutureDate(selectedDate, dates, layer);
                 }
 	            layer.olLayer.mergeNewParams({'time': isoDateString(newDate)});
+            	$("#"+layer.name+"_date").text(" ("+getLocalizedDate(layer.selectedDate)+")");
 	            UNREDD.map.events.triggerEvent("changelayer", {
 	            	layer: layer.olLayer,
+	            	selectedDate: layer.selectedDate,
 	            	property: "time"
 	            });
             }
@@ -922,37 +958,35 @@ $(window).load(function () {
     	if (layerTimes) {
     		layerTimes = layerTimes.split(",");
     		for (i in layerTimes) {
-    			var year = new Date(layerTimes[i]).getFullYear();
-    			if (!isNaN(year)) {
-    				timesObj[year]=0; // Put it in an object to avoid duplicate years.
-    			}
+    			var datetime = new Date(layerTimes[i]);
+  				timesObj[layerTimes[i]]=0; // Put it in an object to avoid duplicate dates.
     		}
     	}
     }
     for(time in timesObj) {
-    	UNREDD.times.push(parseInt(time));
+    	UNREDD.times.push(time);
     }
     UNREDD.times.sort();
     
     // Create time slider
     if (UNREDD.times.length) {
-	    $("#time_slider_label").text(UNREDD.times[UNREDD.times.length-1]);
+	    $("#time_slider_label").text(getLocalizedDate(UNREDD.times[UNREDD.times.length-1]));
 	    $("#time_slider").slider({
 	        min: 0,
 	        max: UNREDD.times.length-1,
-	        value: UNREDD.times[UNREDD.times.length-1],
+	        value: UNREDD.times[UNREDD.times.length-1].replace("-",""),
 	        slide: function (event, ui) {
-	            $("#time_slider_label").text(UNREDD.times[ui.value]);
+	            $("#time_slider_label").text(getLocalizedDate(UNREDD.times[ui.value]));
 	        },
 	        change: function (event, ui) {
-	            var selectedDate = new Date(Date.UTC(UNREDD.times[ui.value], 0, 1));
-	            setLayersTime(selectedDate);
+	            var datestr = new Date(UNREDD.times[ui.value]);
+	            setLayersTime(datestr);
 	        }
 	    });
 	
 	    // Init layers time
-	    year = UNREDD.times[$("#time_slider").slider("value")];
-	    selectedDate = new Date(Date.UTC(year, 0, 1));
+	    datestr = UNREDD.times[$("#time_slider").slider("value")];
+	    selectedDate = new Date(datestr);
 	    setLayersTime(selectedDate);
     } else {
     	$("#time_slider_pane").hide();
@@ -1134,15 +1168,13 @@ $(window).load(function () {
         		UNREDD.fb_toolbar.setQueryable(queryable);
         	}
 			
-			// Determine if layer is time-varying
-			var olLayer = UNREDD.allLayers[layerId].olLayer;
-			if (olLayer.params && olLayer.params.TIME) {
-				var date = new Date(olLayer.params.TIME);
-				$("#fb_time").html(messages.feedback_year + " " + date.getFullYear());
-			} else {
+			// Render active date for time-varying layer
+        	var layer = UNREDD.allLayers[layerId];
+        	if (layer.selectedDate) {
+        		$("#fb_time").html(getLocalizedDate(layer.selectedDate));
+        	} else {
 				$("#fb_time").html("");
 			}
-			
         });
 
         $("#feedback_popup").dialog({
@@ -1191,8 +1223,7 @@ $(window).load(function () {
             				$("#fb_layers").change();
             			}
             			if (evt.property == "time" && evt.layer.name == $("#fb_layers").val()) {
-            				var date = new Date(evt.layer.params.TIME);
-            				$("#fb_time").html(messages.feedback_year + " " + date.getFullYear());
+            	        	$("#fb_time").html(getLocalizedDate(evt.selectedDate));
             			}
             		}
             	});

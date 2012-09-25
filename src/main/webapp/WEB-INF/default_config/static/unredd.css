@@ -269,8 +269,8 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 	z-index: 2000;
 	position: absolute;
 	top: 8px;
-	left: 240px;
-	width: 150px;
+	left: 220px;
+	width: 180px;
 	font-size: 60%;
 	font-size: 11px;
 	border: 1px solid #333;
@@ -287,11 +287,13 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   margin: 0;
   left: 10px;
   top:8px;
+  width: 70px;
+  text-align: center;
 }
 
 #time_slider{
   position: absolute;
-  left: 70px;
+  left: 90px;
   top: 10px;
   width: 60px;
   padding: 0;
@@ -692,7 +694,7 @@ table.feedback textarea {
 }
 
 #fb_layers {
-	width: 70%;
+	width: 60%;
 }
 
 table.feedback textarea {
