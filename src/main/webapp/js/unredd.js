@@ -526,7 +526,7 @@ $(window).load(function () {
                                 td4 = $('<td style="width:16px;padding:0">');
 
                                 if (typeof contextConf.infoFile !== 'undefined') { // TODO: put previous line inside this
-                                    infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                    infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
                                     td4.append(infoButton);
                                 }
                                 if (td1) {tr.append(td1);}
@@ -568,7 +568,7 @@ $(window).load(function () {
                                 td1 = $('<td style="color:#FFF" colspan="3">');
                                 td1.text(contextConf.label);
                                 td2 = $('<td style="width:16px;padding:0">');
-                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
+                                infoButton = $('<a class="layer_info_button" id="' + contextName + '_info_button" href="static/loc/' + languageCode + '/html/' + contextConf.infoFile + '"></a>');
 
                                 td2.append(infoButton);
 
