@@ -530,9 +530,10 @@ $(window).load(function () {
                                         element.addClass('in');
                                     }).click(function () {
                                         element.toggleClass('checked');
-
-                                        setContextVisibility(context, !active);
-                                        setLegends(context, !active);
+                                        
+                                        active = !active;
+                                        setContextVisibility(context, active);
+                                        setLegends(context, active);
                                         updateActiveLayersPane(mapContexts);
                                     });
                                 }(checkbox))
@@ -654,16 +655,14 @@ $(window).load(function () {
                     }
                     
                     $.each(selectedFeatures, function (layerId, feature) {
-                        var table = $("<table>"),
+                        var table,
                             info,
-                            tr1,
-                            td1,
-                            tr2,
-                            td2,
-                            tr3,
-                            td3;
-
+                            td1, td2, td3,
+                            tr1, tr2, tr3;
+                        
                         info = UNREDD.layerInfo[layerId](feature);
+                        
+                        table = $("<table>");
                         tr1 = $("<tr/>");
                         td1 = $('<td colspan="2" class="area_name" />');
                         tr1.append(td1);
@@ -754,18 +753,27 @@ $(window).load(function () {
     });
 
 
+/*
     var statsPolygonLayer = new OpenLayers.Layer.Vector("Statistics Polygon Layer");
+    var modifyFeature = new OpenLayers.Control.ModifyFeature(statsPolygonLayer);
     UNREDD.map.addLayer(statsPolygonLayer);
+    UNREDD.map.addControl(modifyFeature);
+    
     var drawStatsPolygonControl = new OpenLayers.Control.DrawFeature(statsPolygonLayer,
         OpenLayers.Handler.Polygon,
         {
             featureAdded: function (feature) {
-                feature.destroy(); // TODO
+                modifyFeature.selectFeature(feature);
+                this.deactivate();
             }
         }
     );
     UNREDD.map.addControl(drawStatsPolygonControl);
-    
+    */
+   
+    //var drawStatsPolygonControl = new OpenLayers.Control.StatsControl(statsPolygonLayer);
+    //UNREDD.map.addControl(drawStatsPolygonControl);
+   
     // setup various UI elements
     //$("#toggle_legend").button();
     $("#legend_pane").dialog({
