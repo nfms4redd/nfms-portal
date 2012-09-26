@@ -4,7 +4,7 @@
 
 	<groupId>org.fao</groupId>
 	<artifactId>UNREDDPortal</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>0.9</version>
 	<packaging>war</packaging>
 
 	<name>UNREDD Portal</name>
@@ -165,7 +165,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>UNREDDAdmin</artifactId>
-			<version>${project.version}</version>
+			<version>1.0-SNAPSHOT</version>
 			<classifier>classes</classifier>
 		</dependency>
 	</dependencies>
