@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.fao</groupId>
-	<artifactId>UNREDDPortal</artifactId>
+	<artifactId>unredd-portal</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 
@@ -137,6 +137,13 @@
 			<version>0.0.7</version>
 		</dependency>
 
+		<!-- GeoSolution's HTTP Proxy -->
+		<dependency>
+			<groupId>proxy</groupId>
+			<artifactId>http_proxy</artifactId>
+			<version>1.0.x-SNAPSHOT</version>
+		</dependency>
+
 		<!-- Geostore -->
 		<dependency>
 			<groupId>it.geosolutions.geostore</groupId>
@@ -164,7 +171,7 @@
 		<!-- UNREDD Admin -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>UNREDDAdmin</artifactId>
+			<artifactId>unredd-admin</artifactId>
 			<version>1.0-SNAPSHOT</version>
 			<classifier>classes</classifier>
 		</dependency>

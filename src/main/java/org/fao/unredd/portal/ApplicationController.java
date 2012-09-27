@@ -25,17 +25,14 @@ import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.FileNameMap;
-import java.net.URLDecoder;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,13 +46,6 @@ import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.lang.NotImplementedException;
 
 import org.apache.log4j.Logger;
 
@@ -66,7 +56,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class ApplicationController {
@@ -191,66 +180,6 @@ public class ApplicationController {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
     }
-
-	@RequestMapping(value = "/proxy")
-	public final void proxyAjaxCall(
-			@RequestParam(required = true, value = "url") String url,
-			HttpServletRequest request, HttpServletResponse response)
-			throws IOException {
-
-		// URL needs to be url decoded
-		url = URLDecoder.decode(url, "utf-8");
-
-		OutputStreamWriter writer = new OutputStreamWriter(
-				response.getOutputStream());
-		HttpClient client = new HttpClient();
-		try {
-			HttpMethod method = null;
-
-			// Split this according to the type of request
-			if (request.getMethod().equals("GET")) {
-				method = new GetMethod(url);
-			} else if (request.getMethod().equals("POST")) {
-				method = new PostMethod(url);
-
-				// Set any eventual parameters that came with our original
-				// request (POST params, for instance)
-				@SuppressWarnings("rawtypes")
-				Enumeration paramNames = request.getParameterNames();
-				while (paramNames.hasMoreElements()) {
-					String paramName = paramNames.nextElement().toString();
-					((PostMethod) method).setParameter(paramName,
-							request.getParameter(paramName));
-				}
-			} else {
-				throw new NotImplementedException(
-						"This proxy only supports GET and POST methods.");
-			}
-
-			// Execute the method
-			client.executeMethod(method);
-
-			// Set the content type, as it comes from the server
-			Header[] headers = method.getResponseHeaders();
-			for (Header header : headers) {
-				if ("Content-Type".equalsIgnoreCase(header.getName())) {
-					response.setContentType(header.getValue());
-				}
-			}
-
-			// Write the body, flush and close
-			writer.write(method.getResponseBodyAsString());
-			writer.flush();
-			writer.close();
-		} catch (HttpException e) {
-			writer.write(e.toString());
-			throw e;
-		} catch (IOException e) {
-			e.printStackTrace();
-			writer.write(e.toString());
-			throw e;
-		}
-	}
 
 	@RequestMapping(value="/feedback", method = RequestMethod.POST)
 	public void feedback(HttpServletRequest request, HttpServletResponse response) throws IOException {	
