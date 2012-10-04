@@ -268,6 +268,7 @@ $(window).load(function () {
         url: 'layers.json', 
         dataType: 'json', 
         async: false, 
+        cache: false,
         success: function (data_) {
             var setupAllContexts,
             setLegends,
@@ -468,7 +469,7 @@ $(window).load(function () {
                             element.append(contextsDiv);
                         } else {
                             // we are inside of an accordion element
-                            header = $("<div><a href=\"#\">" + contextGroupDefinition.group.label + "</a></div>");
+                            header = $("<div><a style=\"color:white;\" href=\"#\">" + contextGroupDefinition.group.label + "</a></div>");
                             element.append(header);
                             innerElement = $('<table class="second_level" style="width:100%"></table>');
                             element.append(innerElement);
@@ -661,16 +662,16 @@ $(window).load(function () {
                         info = UNREDD.layerInfo[layerId](feature);
                         if (typeof(info.customPopup) != "undefined") {
                             customPopupLayer = layerId;
-                            
                             info.customPopup();
 
                             $.fancybox({
                                 href: '#custom_popup'
-                                //modal: true
                             });
                             
                             return false; // only show the custom info dialog for the first layer that has it
                         }
+                        
+                        return true;
                     });
 
                     if (customPopupLayer !== null)
@@ -1049,15 +1050,6 @@ $(window).load(function () {
         }
     );
 
-    $("#disclaimer_popup").fancybox({
-        'width': 600,
-        'height': 400,
-        'autoScale': true,
-        'transitionIn': 'fade',
-        'transitionOut': 'fade',
-        'type': 'ajax'
-    });
-    
     UNREDD.map.addLayers(UNREDD.visibleLayers);
     //var wikimapia = new OpenLayers.Layer.Wikimapia( "Wikimapia",
     //  {sphericalMercator: true, isBaseLayer: false, 'buffer': 0 } );
@@ -1250,5 +1242,19 @@ $(window).load(function () {
     
     if (!UNREDD.map.getCenter()) {
         UNREDD.map.zoomToMaxExtent();
+    }
+    
+    $("#disclaimer_popup").fancybox({
+        'width': 600,
+        'height': 400,
+        'autoScale': true,
+        'transitionIn': 'fade',
+        'transitionOut': 'fade',
+        'type': 'ajax'
+    });
+    
+    if (UNREDD.customInit != undefined)
+    {
+        UNREDD.customInit();
     }
 });

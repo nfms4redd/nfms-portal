@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
-import org.fao.unredd.Util;
+//import org.fao.unredd.Util;
 
 /**
  *
@@ -54,6 +54,7 @@ public class Layers extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+    /*
         UNREDDGeostoreManager manager = new UNREDDGeostoreManager(Util.getGeostoreClient(getServletContext()));
         
         try {
@@ -89,6 +90,7 @@ public class Layers extends HttpServlet {
         } catch (JAXBException ex) {
         	logger.error(null, ex);
         }
+        * */
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
