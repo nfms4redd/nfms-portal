@@ -959,8 +959,8 @@ $(window).load(function () {
     	if (layerTimes) {
     		layerTimes = layerTimes.split(",");
     		for (i in layerTimes) {
-    			datearr = layerTimes[i].split("-");
-    			var datetime = new Date(datearr[0], datearr[1]-1 | 0,  datearr[2] | 1);
+    			var datetime = new Date();
+    			datetime.setISO8601(layerTimes[i]);
   				timesObj[layerTimes[i]]=0; // Put it in an object to avoid duplicate dates.
     		}
     	}
@@ -981,16 +981,16 @@ $(window).load(function () {
 	            $("#time_slider_label").text(getLocalizedDate(UNREDD.times[ui.value]));
 	        },
 	        change: function (event, ui) {
-	        	datearr = UNREDD.times[ui.value].split("-");
-	            var datestr = new Date(datearr[0], datearr[1]-1 | 0,  datearr[2] | 1);
-	            setLayersTime(datestr);
+	            var d = new Date();
+	            d.setISO8601(UNREDD.times[ui.value]);
+	            setLayersTime(d);
 	        }
 	    });
 	
 	    // Init layers time
 	    datestr = UNREDD.times[$("#time_slider").slider("value")];
-	    datearr = datestr.split("-");
-	    selectedDate = new Date(datearr[0], datearr[1]-1 | 0,  datearr[2] | 1);
+	    var selectedDate = new Date();
+	    selectedDate.setISO8601(datestr);
 	    setLayersTime(selectedDate);
     } else {
     	$("#time_slider_pane").hide();

@@ -253,9 +253,9 @@ public class ApplicationController {
 		while (m.find()) { // Found time-dependant layer in json file
 			String layerName = m.group(1);
 			try {
-				m.appendReplacement(sb, getLayerTimesFromGeostore(layerName));				
-				//logger.error("Found time-dependant layer definition " + layerName  + ", but no matching layer found in GeoStore.");
+				m.appendReplacement(sb, getLayerTimesFromGeostore(layerName));
 			} catch (Exception e) {
+				m.appendReplacement(sb, "");
 				logger.error("Error getting layer times from GeoStore.");
 			}
 		}
