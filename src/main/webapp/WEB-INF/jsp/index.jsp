@@ -92,7 +92,7 @@
       <div id="layers_pane" style="position:relative;top:0;left:0;display:none"></div>   
     </div>
     
-    <a class="blue_button" style="z-index:1000;top:150px;right:20px;margin-right:0px;position:absolute;width:60px" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
+    <a class="blue_button" style="z-index:1000;top:150px;right:20px;margin-right:0px;position:absolute;width:60px;margin-top:0" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
     
     ${config.footer}
     

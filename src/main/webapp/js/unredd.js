@@ -739,12 +739,12 @@ $(window).load(function () {
 
                         $('#drivers_data_link').fancybox({
                             'autoScale': false,
-                            'transitionIn': 'none',
-                            'transitionOut': 'fade',
                             'type': 'iframe',
                             'scrolling': 'no',
                             'width': 500,
-                            'height': 600
+                            'height': 600,
+                            'openEffect': 'none',
+                            'closeEffect': 'fade'
                         });
 
                         $("#zoom_to_feature_" + layerId).click(function () {
@@ -809,7 +809,7 @@ $(window).load(function () {
         //height: 100,
         minHeight: 400,
         maxHeight: 400,
-        width: 400,
+        width: 430,
         zIndex: 2000,
         resizable: false,
         close: function (event, ui) {
@@ -1248,8 +1248,8 @@ $(window).load(function () {
         'width': 600,
         'height': 400,
         'autoScale': true,
-        'transitionIn': 'fade',
-        'transitionOut': 'fade',
+        'openEffect': 'fade',
+        'closeEffect': 'none',
         'type': 'ajax'
     });
     
