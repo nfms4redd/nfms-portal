@@ -397,7 +397,7 @@ $(window).load(function () {
                             table += '<td class="layer_name">' + layerConf.label + '</td>';
                         
                             if (typeof layerConf.sourceLink !== "undefined") {
-                                table += '<td class="data_source_link"><span class="lang" id="data_source">'+messages.data_source+':</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
+                                table += '<td class="data_source_link"><span class="lang" id="data_source">' + messages.data_source + ':</span> <a target="_blank" href="' + layerConf.sourceLink + '">' + layerConf.sourceLabel + '</a></td>';
                             } else {
                                 table += "<td></td>";
                             }
@@ -710,9 +710,9 @@ $(window).load(function () {
                         table.append(tr2);
 
                         // TODO: localize statistics and zoom to area buttons
-                        td2.append("<a class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">Statistics</a>");
+                        td2.append("<a style=\"color:white\" class=\"feature_link fancybox.iframe\" id=\"stats_link_" + layerId + "\" href=\"" + info.statsLink() + "\">Statistics</a>");
                         td3 = $("<td class=\"td_right\"/>");
-                        td3.append("<a class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">Zoom to area</a>");
+                        td3.append("<a style=\"color:white\" class=\"feature_link\" href=\"#\" id=\"zoom_to_feature_" + layerId + "\">Zoom to area</a>");
                         tr2.append(td3);
                         infoPopup.append(table);
 
@@ -739,12 +739,12 @@ $(window).load(function () {
 
                         $('#drivers_data_link').fancybox({
                             'autoScale': false,
-                            'transitionIn': 'none',
-                            'transitionOut': 'fade',
                             'type': 'iframe',
                             'scrolling': 'no',
                             'width': 500,
-                            'height': 600
+                            'height': 600,
+                            'openEffect': 'none',
+                            'closeEffect': 'fade'
                         });
 
                         $("#zoom_to_feature_" + layerId).click(function () {
@@ -809,7 +809,7 @@ $(window).load(function () {
         //height: 100,
         minHeight: 400,
         maxHeight: 400,
-        width: 400,
+        width: 430,
         zIndex: 2000,
         resizable: false,
         close: function (event, ui) {
@@ -1248,8 +1248,8 @@ $(window).load(function () {
         'width': 600,
         'height': 400,
         'autoScale': true,
-        'transitionIn': 'fade',
-        'transitionOut': 'fade',
+        'openEffect': 'fade',
+        'closeEffect': 'none',
         'type': 'ajax'
     });
     
