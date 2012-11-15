@@ -229,6 +229,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 	top:10px
 	font-size: 10px;
 	position:relative;
+	padding-right:10px;
 }
 
 #transparency_slider_pane {
@@ -314,6 +315,10 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 	text-decoration: none;
 }
 
+a.blue_button {
+	color: #ccc;
+}
+
 .blue_button
 {
 	background-color: #38c;
@@ -331,6 +336,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 .lang_button
 {
 	float: right;
+	margin-left: 20px;
 }
 
 #button_statistics
@@ -552,10 +558,9 @@ a.layer_info_button:hover
   color: #fff;
   padding: 8px;
   background-color: #000;
-	filter: alpha(opacity=65);
-	opacity: 0.65;
-	width: 290px;
-	z-index: 1100;
+  filter: alpha(opacity=65);
+  opacity: 0.65;
+  z-index: 1100;
 }
 
 #footer_links a
@@ -563,7 +568,8 @@ a.layer_info_button:hover
   font-size: 12px;
   font-weight: bold;
   color: white;
-  margin-left: 15px;
+  margin-left: 8px;
+  margin-right: 8px;
 }
 
 .olControlScale

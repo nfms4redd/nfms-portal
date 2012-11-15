@@ -1174,8 +1174,8 @@ $(window).load(function () {
 
         $("#feedback_popup").dialog({
             closeOnEscape: false,
-            width: 340,
-            height: 415,
+            width: 342,
+            height: 422,
             zIndex: 2000,
             resizable: false,
             position: [270, 150],
