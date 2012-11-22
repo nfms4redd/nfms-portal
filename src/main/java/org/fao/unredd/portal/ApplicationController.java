@@ -18,6 +18,8 @@ package org.fao.unredd.portal;
 import it.geosolutions.geostore.core.model.Resource;
 import it.geosolutions.geostore.services.rest.GeoStoreClient;
 import it.geosolutions.unredd.geostore.UNREDDGeostoreManager;
+import it.geosolutions.unredd.geostore.model.UNREDDCategories;
+import it.geosolutions.unredd.geostore.model.UNREDDChartScript;
 import it.geosolutions.unredd.geostore.model.UNREDDLayer;
 import it.geosolutions.unredd.geostore.model.UNREDDLayerUpdate;
 import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
@@ -231,6 +233,33 @@ public class ApplicationController {
 			response.sendError(AjaxResponses.STORING_ERROR.status, AjaxResponses.STORING_ERROR.getJson());
 		}
 	}
+	
+	@RequestMapping("/charts.json")
+	public void charts(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	response.setContentType("application/json;charset=UTF-8");
+    	try {
+			response.getWriter().print(getCharts());
+            response.flushBuffer();
+		} catch (Exception e) {
+			logger.error(e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}		
+	}
+	
+	@RequestMapping(value="/stats.json", method = RequestMethod.POST)
+	public void stats(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	response.setContentType("application/json;charset=UTF-8");
+    	String chartURL = "http://demo1.geo-solutions.it/diss_geostore/rest/misc/category/name/ChartData/resource/name/drc_forest_area_charts_7_en/data?name=Demo%20Custom%20Stats";
+		response.getWriter().print("{ \n"+
+		  "   \"success\": true, \n"+
+		  "   \"response_type\": \"result_embedded\", \n"+
+		  "   \"link\": { \n"+
+		  "      \"type\": \"text/html\", \n"+
+		  "      \"href\": \""+ chartURL +"\" \n"+
+		  "   } \n"+
+		  "}");
+        response.flushBuffer();
+	}
     
 	@RequestMapping("/layers.json")
     public void layers(HttpServletResponse response) throws IOException {
@@ -244,6 +273,17 @@ public class ApplicationController {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
     }
+	
+	private String getCharts() throws UnsupportedEncodingException, JAXBException {
+		Map<Long, String> resp = new HashMap<Long, String>();
+		List<Resource> charts = getGeostore().getUNREDDResources(UNREDDCategories.CHARTSCRIPT);
+		for(Resource chart : charts) {
+			resp.put(chart.getId(), chart.getName());
+		}
+		JSONObject json = new JSONObject();
+		json.putAll(resp);
+		return json.toString();		
+	}
     
     private String setLayerTimes() {
     	String jsonLayers = config.getLayers();
@@ -287,7 +327,7 @@ public class ApplicationController {
                 	timeString.append("-");
                     if (day.length() == 1) timeString.append("0");
                     timeString.append(day);
-                }                
+                }
             }           
             if (iterator.hasNext()) {
                 timeString.append(",");

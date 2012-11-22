@@ -29,6 +29,7 @@ var UNREDD = {
     timeDependentLayers: [],
     mapContexts: {},
     fb_toolbar: {},
+    stats_toolbar: {},
     times: []
 };
 
@@ -191,10 +192,8 @@ $(window).load(function () {
         showInfo,
         setLayersTime,
         selectedDate,
-        //click,
         legendOn = false,
         year,
-        //markers,
         infoControl,
         getClosestPastDate,
         getClosestFutureDate,
@@ -258,7 +257,6 @@ $(window).load(function () {
                                new OpenLayers.Control.Navigation({ documentDrag: true, zoomWheelEnabled: false }),
                                new OpenLayers.Control.Scale()
                            ]
-        //numZoomLevels:   18
     };
 
     UNREDD.map = new OpenLayers.Map('map', openLayersOptions);
@@ -778,35 +776,11 @@ $(window).load(function () {
         }
     });
 
-
-/*
-    var statsPolygonLayer = new OpenLayers.Layer.Vector("Statistics Polygon Layer");
-    var modifyFeature = new OpenLayers.Control.ModifyFeature(statsPolygonLayer);
-    UNREDD.map.addLayer(statsPolygonLayer);
-    UNREDD.map.addControl(modifyFeature);
-    
-    var drawStatsPolygonControl = new OpenLayers.Control.DrawFeature(statsPolygonLayer,
-        OpenLayers.Handler.Polygon,
-        {
-            featureAdded: function (feature) {
-                modifyFeature.selectFeature(feature);
-                this.deactivate();
-            }
-        }
-    );
-    UNREDD.map.addControl(drawStatsPolygonControl);
-    */
-   
-    //var drawStatsPolygonControl = new OpenLayers.Control.StatsControl(statsPolygonLayer);
-    //UNREDD.map.addControl(drawStatsPolygonControl);
-   
     // setup various UI elements
-    //$("#toggle_legend").button();
     $("#legend_pane").dialog({
         position: ['right', 'bottom'],
         closeOnEscape: false,
         height: 300,
-        //height: 100,
         minHeight: 400,
         maxHeight: 400,
         width: 430,
@@ -855,13 +829,7 @@ $(window).load(function () {
 
     $("#active_layers").click(function () {
         $("#layers_pane").hide();
-        /*
-        $("#active_layers_pane").dialog({
-            closeOnEscape: false,
-            resizable: false,
-            open: function(event, ui) { $("#layer_list_selector_pane .ui-dialog-titlebar-close", ui.dialog).hide(); }
-        });
-        */
+
         $("#active_layers_pane").accordion({
             collapsible: false,
             autoHeight: false,
@@ -915,7 +883,7 @@ $(window).load(function () {
     };
     
     setLayersTime = function (selectedDate) {
-        // loop through layers to see if they are time dependent
+        // loop through layers to see if they are time dependent'type': 'iframe',
         $.each(UNREDD.timeDependentLayers, function (layerName, layer) {
             var sDates,
                 dates = [],
@@ -1013,9 +981,7 @@ $(window).load(function () {
             }
         },
         eventListeners: {
-            // nogetfeatureinfo: function (e) {
-            //     console.log(e); // DEBUG
-            // },
+
             getfeatureinfo: function (evt) {
                 if (evt.features && evt.features.length) {
                     showInfo(evt);
@@ -1028,27 +994,6 @@ $(window).load(function () {
     });
     UNREDD.map.addControl(infoControl);
     infoControl.activate();
-          
-    $("#button_statistics").bind(
-        'click',
-        function () {
-        	if (!$("#button_feedback").hasClass('selected')) { // Prevent activation if feedback is active
-	            if (drawStatsPolygonControl.active) {
-	                $(this).removeClass('selected');
-	                drawStatsPolygonControl.deactivate();
-	                infoControl.activate();
-	                $("#statistics_info_div").fadeOut(200);
-	            } else {
-	                $("#button_feedback").removeClass('selected');
-	                $(this).addClass('selected');
-	                infoControl.deactivate();
-	                drawStatsPolygonControl.activate();
-	                $("#statistics_info_div").show();
-	            }
-        	}
-            return false;
-        }
-    );
 
     UNREDD.map.addLayers(UNREDD.visibleLayers);
     //var wikimapia = new OpenLayers.Layer.Wikimapia( "Wikimapia",
@@ -1060,56 +1005,198 @@ $(window).load(function () {
     highlightLayer = new OpenLayers.Layer.Vector("Highlighted Features", {styleMap: styleMap});
     UNREDD.map.addLayer(highlightLayer);
 
+
+    /****************/
+    /** Statistics **/
+    /****************/    
+
+    // Statistics vector layer
+    statisticsLayer = new OpenLayers.Layer.Vector("Statistics");  
+    UNREDD.map.addLayer(statisticsLayer);
+
+    // Statistics button
+    $("#button_statistics").bind('click', function () {
+    	if (!$("#button_feedback").hasClass('selected') && !$("#button_statistics").hasClass('selected')) {
+            activateStatistics();
+    	}
+        return false;
+    });
+
+    // Statistics form
+	function activateStatistics() {
+		$("#button_statistics").addClass('selected');
+		//Recaptcha.reload();
+		
+        $("#stats_popup").dialog({
+            closeOnEscape: false,
+            width: 342,
+            height: 187,
+            zIndex: 2000,
+            resizable: false,
+            position: [270, 150],
+            title: messages.custom_statistics,
+
+            open: function (event, ui) {
+            	// Empty form
+            	$('#stats_charts').empty();
+            	
+            	// Add draw toolbar
+                infoControl.deactivate();
+                UNREDD.stats_toolbar = new OpenLayers.Control.PortalToolbar(statisticsLayer, {div: document.getElementById("stats_toolbar")});
+                UNREDD.stats_toolbar.setQueryable(false);
+                UNREDD.map.addControl(UNREDD.stats_toolbar);
+                           	
+                // Inform charts combo
+    	    	$.ajax({
+    	    	    url: 'charts.json',
+    	    	    success: function(data, textStatus, jqXHR) {
+    	    	    	combo = $('#stats_charts');
+	    	    		for(var id in data) {
+	    	    			name = data[id];
+	    	    			combo.append('<option value="'+id+'">'+messages[name]+'</option>');
+	    	    		}
+    	    	    },
+    	    	    error: function(jqXHR, textStatus, errorThrown) {
+    	    			try {
+    	    				var response = $.parseJSON(errorThrown);
+    	    			} catch(e) {}
+    	    	    	if (response) {
+    	    	    		alert(messages[response.message]);
+    	    	    	}
+	    	    	}
+    	    	});
+            },
+            
+            close: function (event, ui) {
+                // Remove edit toolbar control
+            	UNREDD.map.removeControl(UNREDD.stats_toolbar);
+                UNREDD.stats_toolbar.deactivate();
+                infoControl.activate();
+                statisticsLayer.removeAllFeatures();
+
+                // Unregister events
+                $('#stats_submit').off('click');
+            	$('#stats_cancel').off('click');
+                
+            	// Copy name & mail to the other form
+                $('#fb_name_').val($('#stats_name_').val());
+                $('#fb_email_').val($('#stats_email_').val());
+
+                // Deactivate button           	
+            	$("#button_statistics").removeClass('selected');
+            }
+        });
+               
+        $("#stats_submit").button();
+
+        $("#stats_submit").click(function () {
+        	var mailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        	if(!mailRegex.test($("#stats_email_").val())) {
+				$("#invalid-mail").dialog({
+					height: 140,
+					modal: true,
+		            resizable: false,
+		            buttons: { "Ok": function () { $(this).dialog( "close" ); } }
+				});
+		    } else {
+		    	// Prepare params for submit
+		    	var params = {
+	    	    	"ChartScriptId": $("#stats_charts").val(),
+	    	    	"UserName": $('#stats_name_').val(),
+	    	    	"UserMail": $('#stats_email_').val()
+		    	};
+	
+		    	// Do submit
+		    	$.ajax({
+		    	    type: 'POST',
+		    	    contentType: 'application/json',
+		    	    url: 'stats.json?' + $.param(params),
+		    	    data: JSON.stringify({
+		    	    	"geo": UNREDD.stats_toolbar.getFeaturesAsGeoJson()
+		    	    }),
+		    	    dataType: "json",
+		    	    success: function(data, textStatus, jqXHR) {
+		    	    	if (data.link) {
+		    	    		$.fancybox({
+		    	    			href:        data.link.href,
+		    	    			type:        'iframe',
+	                            maxWidth:    840,
+	                            maxHeight:   600,
+	                            fitToView:   false,
+	                            width:       840,
+	                            height:      590,
+	                            autoSize:    false,
+	                            closeClick:  false,
+	                            openEffect:  'none',
+	                            closeEffect: 'fade'
+	                        });
+		    	    	}
+	    	    		$("#stats_popup").dialog('close');
+		    	    },
+		    	    error: function(jqXHR, textStatus, errorThrown) {
+		    			try {
+		    				var response = $.parseJSON(errorThrown);
+		    			} catch(e) {}
+		    	    	if (response) {
+		    	    		alert(messages[response.message]);
+		    	    	} else {
+		    	    		alert(messages.ajax_feedback_error);
+		    	    	}
+	    	    	}
+		    	});
+		    }
+	    });
+        
+        $("#stats_cancel").button();
+        $("#stats_cancel").click(function () {
+        	$("#stats_popup").dialog('close');
+        });
+	}
+	
     
     /**************/
     /** Feedback **/
     /**************/
 
-    // Feedback button
-    $("#button_feedback").bind(
-        'click',
-        function () {
-        	if (!$("#button_statistics").hasClass('selected')) { // Prevent activation if statistics is active
-	            if ($(this).hasClass('selected')) {
-	                $(this).removeClass('selected');
-	            } else {
-	                $(this).addClass('selected');
-	            	$("#button_statistics").removeClass('selected');
-	                openDialog();
-	            }
-        	}
-            return false;
-        }
-    );
-    
-    // Feedback vector layer
+	// Feedback vector layer
     feedbackLayer = new OpenLayers.Layer.Vector("Feedback");  
     UNREDD.map.addLayer(feedbackLayer);
+	
+	
+    // Feedback button
+    $("#button_feedback").bind('click', function () {
+    	if (!$("#button_feedback").hasClass('selected') && !$("#button_statistics").hasClass('selected')) {
+            activateFeedback();
+    	}
+        return false;
+    });
     
     // Feedback form
-	function openDialog() {
+	function activateFeedback() {
+
+		$("#button_feedback").addClass('selected');
 		Recaptcha.reload();			
 	
 		$("#feedback_submit").button();
         $("#feedback_submit").click(function () {
     	    var mailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    	    if(!mailRegex.test($("#email_").val())) {
-    			$("#feedback-invalid-mail").dialog({
+    	    if(!mailRegex.test($("#fb_email_").val())) {
+    			$("#invalid-mail").dialog({
     				height: 140,
     				modal: true,
     	            resizable: false,
     	            buttons: { "Ok": function () { $(this).dialog( "close" ); } }
     			});
     	    } else {
-    	    	// Prepare params for submit
+                // Prepare params for submit
     	    	var olLayer = UNREDD.allLayers[$("#fb_layers").val()].olLayer;
     	    	var layerDate = (olLayer.params && olLayer.params.TIME);
     	    	var params = {
     	    		"recaptcha_challenge": $("#recaptcha_challenge_field").val(),
     	    		"recaptcha_response": $("#recaptcha_response_field").val(),
 	    	    	"LayerName": (olLayer.params && olLayer.params.LAYERS) || olLayer.name,
-	    	    	"UserName": $('#name_').val(),
-	    	    	"UserMail": $('#email_').val()
+	    	    	"UserName": $('#fb_name_').val(),
+	    	    	"UserMail": $('#fb_email_').val()
     	    	};
     	    	if (layerDate) {
     	    		params.layerDate = Math.round(new Date(layerDate).getTime() / 1000);
@@ -1183,8 +1270,6 @@ $(window).load(function () {
             
             open: function (event, ui) {
             	// Empty form
-                $('#name_').val('');
-                $('#email_').val('');
                 $('#feedback_').val('');
             	$('#fb_layers').empty();
             	
@@ -1225,13 +1310,22 @@ $(window).load(function () {
             },
             
             close: function (event, ui) {
-                $("#button_feedback").removeClass('selected');
+                // Remove edit toolbar control
                 UNREDD.map.removeControl(UNREDD.fb_toolbar);
                 UNREDD.fb_toolbar.deactivate();
-                UNREDD.fb_toolbar.destroy();
-                UNREDD.fb_toolbar=null;
                 infoControl.activate();
                 feedbackLayer.removeAllFeatures();
+
+                // Unregister events
+            	$('#feedback_submit').off('click');
+            	$('#feedback_cancel').off('click');
+
+            	// Copy name & mail to the other form
+                $('#stats_name_').val($('#fb_name_').val());
+                $('#stats_email_').val($('#fb_email_').val());
+
+                // Deactivate button
+                $("#button_feedback").removeClass('selected');
             }
         });
 	};

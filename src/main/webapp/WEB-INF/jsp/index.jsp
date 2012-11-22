@@ -106,68 +106,87 @@
     </div>
     
     <div id="info_popup"></div>
-	<div id="feedback-invalid-mail"  style="display:none;" title="<spring:message code="invalid_email_title"/>">
+
+	<div id="invalid-mail"  style="display:none;" title="<spring:message code="invalid_email_title"/>">
 		<p><spring:message code="invalid_email_text"/></p>
 	</div>
+
     <div id="feedback_popup" style="display:none;">
       <table class="feedback">
         <tr>
-          <th>
-            <spring:message code="layer" />:
-          </th>
+          <th><spring:message code="layer" />:</th>
           <td>
             <select id="fb_layers"></select>
             <span id="fb_time"></span>
           </td>
         </tr>
         <tr>
-          <th>
-            <spring:message code="feedback_drawing_tools" />:
-          </th>
+          <th><spring:message code="feedback_drawing_tools" />:</th>
           <td>
              <div id="fb_toolbar" class="olControlPortalToolbar"></div>
              <div class="fb_comment"><spring:message code="feedback_text"/></div>
           </td>
         </tr>
         <tr>
-          <th>
-            <spring:message code="name" />:
-          </th>
-          <td>
-            <input name="name_" id="name_" type="text">
-          </td>
+          <th><spring:message code="name" />:</th>
+          <td><input name="name_" id="fb_name_" type="text"></td>
         </tr>
         <tr>
-          <th>
-            <spring:message code="email" />:
-          </th>
-          <td>
-            <input name="email_" id="email_" type="text">
-          </td>
+          <th><spring:message code="email" />:</th>
+          <td><input name="email_" id="fb_email_" type="text"></td>
         </tr>
         <tr>
-          <th>
-            <spring:message code="feedback" />:
-          </th>
-          <td>
-            <textarea id="feedback_" name="feedback_text_"></textarea>
-          </td>
+          <th><spring:message code="feedback" />:</th>
+          <td><textarea id="feedback_" name="feedback_text_"></textarea></td>
         </tr>
 		<tr>
-          <td colspan="2" class="recaptcha">${captchaHtml}</td>
-        </tr>
+		  <td colspan="2" class="recaptcha">${captchaHtml}</td>
+		</tr>
         <tr>
           <td></td>
-          <td colspan="2">
+          <td>
             <input id="feedback_submit" type="submit" value="<spring:message code="submit" />" />
             <input type="button" id="feedback_cancel" value="<spring:message code="cancel" />" />
           </td>
         </tr>
       </table>
     </div>
-    <div id="feedback_info_div" style="z-index:2000;display:none;filter:alpha(opacity=75);opacity: 0.75;padding:6px 10px;position:absolute;top:150px;left:400px;background-color:black;color:#fff;"><spring:message code="feedback_info" /></div>
-    <div id="statistics_info_div" style="z-index:2000;display:none;filter:alpha(opacity=75);opacity: 0.75;padding:6px 10px;position:absolute;top:150px;left:400px;background-color:black;color:#fff;"><spring:message code="statistics_info" /></div>
-    
+
+    <div id="stats_popup" style="display:none;">
+      <table class="feedback">
+        <tr>
+          <th><spring:message code="chart" />:</th>
+          <td><select id="stats_charts"></select></td>
+        </tr>
+        <tr>
+          <th><spring:message code="feedback_drawing_tools" />:</th>
+          <td>
+             <div id="stats_toolbar" class="olControlPortalToolbar"></div>
+             <div class="fb_comment"><spring:message code="feedback_text"/></div>
+          </td>
+        </tr>
+        <tr>
+          <th><spring:message code="name" />:</th>
+          <td><input name="name_" id="stats_name_" type="text"></td>
+        </tr>
+        <tr>
+          <th><spring:message code="email" />:</th>
+          <td><input name="email_" id="stats_email_" type="text"></td>
+        </tr>
+ 		<tr>
+ 		  <td>&nbsp;</td>
+          <!--td colspan="2" class="recaptcha">${captchaHtml}</td-->
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            <input id="stats_submit" type="submit" value="<spring:message code="submit" />" />
+            <input type="button" id="stats_cancel" value="<spring:message code="cancel" />" />
+          </td>
+        </tr>
+      </table>
+    </div>
+   
     <div id="map"></div>
     
     <div style="display:none">
@@ -176,4 +195,3 @@
     
   </body>
 </html>
-
