@@ -19,10 +19,7 @@ import it.geosolutions.geostore.core.model.Resource;
 import it.geosolutions.geostore.services.rest.GeoStoreClient;
 import it.geosolutions.unredd.geostore.UNREDDGeostoreManager;
 import it.geosolutions.unredd.geostore.model.UNREDDCategories;
-import it.geosolutions.unredd.geostore.model.UNREDDChartScript;
-import it.geosolutions.unredd.geostore.model.UNREDDLayer;
 import it.geosolutions.unredd.geostore.model.UNREDDLayerUpdate;
-import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,6 +47,8 @@ import net.sf.json.JSONSerializer;
 import org.apache.commons.io.IOUtils;
 
 import org.apache.log4j.Logger;
+import org.fao.unredd.portal.stats.RealTimeStats;
+import org.fao.unredd.portal.stats.RealTimeStatsException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -88,12 +87,14 @@ public class ApplicationController {
      * @author Oscar Fonts
      */
 	enum AjaxResponses {
-		/*              ID  HTTP  Message               */
-		FEEDBACK_OK    (1, 200, "ajax_feedback_ok"),
-		READ_ERROR     (2, 500, "ajax_read_error"),
-		SYNTAX_ERROR   (3, 400, "ajax_syntax_error"),
-		STORING_ERROR  (4, 500, "ajax_storing_error"),
-		UNAUTHORIZED   (5, 401, "ajax_invalid_recaptcha");
+		/*                    ID  HTTP  Message               */
+		FEEDBACK_OK           (1, 200, "ajax_feedback_ok"),
+		READ_ERROR            (2, 500, "ajax_read_error"),
+		SYNTAX_ERROR          (3, 400, "ajax_syntax_error"),
+		STORING_ERROR         (4, 500, "ajax_storing_error"),
+		UNAUTHORIZED          (5, 401, "ajax_invalid_recaptcha"),
+		MANY_TIME_LAYER_STATS (6, 500, "ajax_many_time_layer_stats");
+		
 		
 		private int id, status;
 		private String message;
@@ -247,17 +248,45 @@ public class ApplicationController {
 	}
 	
 	@RequestMapping(value="/stats.json", method = RequestMethod.POST)
-	public void stats(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    	response.setContentType("application/json;charset=UTF-8");
-    	String chartURL = "http://demo1.geo-solutions.it/diss_geostore/rest/misc/category/name/ChartData/resource/name/drc_forest_area_charts_7_en/data?name=Demo%20Custom%20Stats";
-		response.getWriter().print("{ \n"+
-		  "   \"success\": true, \n"+
-		  "   \"response_type\": \"result_embedded\", \n"+
-		  "   \"link\": { \n"+
-		  "      \"type\": \"text/html\", \n"+
-		  "      \"href\": \""+ chartURL +"\" \n"+
-		  "   } \n"+
-		  "}");
+	public void stats(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException {
+		// Get posted attributes
+		@SuppressWarnings("unchecked")
+		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
+		
+		// Get Chart Script Resource from ChartScriptId parameter
+		long chartScriptId = Long.getLong(attributes.get("ChartScriptId"));
+		
+		// Get posted data (body)
+		StringBuffer body = new StringBuffer();
+		String line = null;
+		BufferedReader reader;
+		try {
+			reader = request.getReader();
+			while ((line = reader.readLine()) != null) {
+				body.append(line);
+			}
+		} catch (IOException e) { // Error reading response body.
+			logger.error(e);
+			response.sendError(AjaxResponses.READ_ERROR.status, AjaxResponses.READ_ERROR.getJson());
+		}
+		String wktROI = body.toString();
+		
+		// Calculate Statistics
+    	RealTimeStats stats = new RealTimeStats(client, getGeostore());
+    	
+		String result;
+		try {
+			result = stats.run(wktROI, chartScriptId);
+		} catch (RealTimeStatsException e) {
+			// TODO Return a HTTP 500 response, plus localized message failure wrapped in a json syntax structure.
+			result = e.getMessage();
+			e.printStackTrace();
+			response.sendError(AjaxResponses.UNAUTHORIZED.status, AjaxResponses.UNAUTHORIZED.getJson());
+		}
+		
+		// Flush response
+		response.setContentType("application/json;charset=UTF-8");
+		response.getWriter().print(result);
         response.flushBuffer();
 	}
     
@@ -357,71 +386,6 @@ public class ApplicationController {
 		}
 		return geostore;
 	}
-	
-    /*
-    public static void main(String[] args) {
-        LayersController controller = new LayersController();
-        try {
-            controller.test();
-        } catch (Exception ex) {
-            logger.error(null, ex);
-        }
-    }
-    */
-    
-    private String getStatsJson() throws Exception
-    {
-        JSONObject jsonRoot = new JSONObject();
-        
-        List<Resource> statsDefResources = getGeostore().getStatsDefs();
-        for (Resource statsDefResource : statsDefResources)
-        {
-            JSONObject statsDefJsonObj = new JSONObject();
-            
-            UNREDDStatsDef unreddStatsDef = new UNREDDStatsDef(statsDefResource);
-            List<String> statsDefLayerNames = unreddStatsDef.getReverseAttributes(UNREDDStatsDef.ReverseAttributes.LAYER.getName());
-            
-            String zonalLayerName = unreddStatsDef.getAttribute(UNREDDStatsDef.Attributes.ZONALLAYER);
-            
-            JSONObject layersJsonObj = new JSONObject();
-            String zonalLayerAttributeId = "no_zonal_attribute_found"; // DEBUG
-            for (String layerName : statsDefLayerNames) {
-            	Resource layerResource = getGeostore().searchLayer(layerName); // TODO: optimize this
-                UNREDDLayer unreddLayer = new UNREDDLayer(layerResource);
-                boolean isZonalLayer = zonalLayerName.equals(layerName);
-                JSONObject layerJsonObj = getLayerJsonObj(layerName, isZonalLayer);
-                if (isZonalLayer) zonalLayerAttributeId = unreddLayer.getAttribute(UNREDDLayer.Attributes.RASTERATTRIBNAME);
-                layersJsonObj.element(layerName, layerJsonObj);
-            }
-            
-            statsDefJsonObj.element("label", "this is the statsDef label");
-            statsDefJsonObj.element("layers", layersJsonObj);
-            
-            // build stats url
-            StringBuilder urlStringBuilder = new StringBuilder("/misc/category/ChartData/resource/");
-            urlStringBuilder.append(statsDefResource.getName());
-            urlStringBuilder.append("_%");
-            urlStringBuilder.append(zonalLayerAttributeId);
-            urlStringBuilder.append("%");
-            
-            statsDefJsonObj.element("url", urlStringBuilder.toString());
-           
-            jsonRoot.element(statsDefResource.getName(), statsDefJsonObj);
-      }
-        
-        System.out.println(jsonRoot.toString()); // DEBUG
-        return jsonRoot.toString();
-    }
-
-    private JSONObject getLayerJsonObj(String layerName, boolean isZonalLayer) throws Exception {
-        JSONObject jsonObj = new JSONObject();
-        jsonObj.element("wmsName", layerName);
-        if (isZonalLayer) {
-            jsonObj.element("zonal", isZonalLayer);
-        }
-                
-        return jsonObj;
-    }
     
     private boolean checkRecaptcha(String address, String challenge, String response) {
         return reCaptcha.checkAnswer(address, challenge, response).isValid();
