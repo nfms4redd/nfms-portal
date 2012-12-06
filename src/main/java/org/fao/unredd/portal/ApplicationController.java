@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.FileNameMap;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,8 +48,8 @@ import net.sf.json.JSONSerializer;
 import org.apache.commons.io.IOUtils;
 
 import org.apache.log4j.Logger;
-import org.fao.unredd.portal.stats.RealTimeStats;
-import org.fao.unredd.portal.stats.RealTimeStatsException;
+import org.fao.unredd.report.ReportException;
+import org.fao.unredd.report.ReportManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -75,28 +76,39 @@ public class ApplicationController {
     UNREDDGeostoreManager geostore = null;
 
     /**
-     * A collection of the possible AJAX responses.
+     * A collection of the possible error causes.
      * 
      * Will associate a text message, an id, and an HTTP status
      * code to each response.
      * 
-     * Includes method to serialize responses in JSON format
-     * with "success", "id" and "message" properties, so the
-     * client can easily handle them and render messages to the user.
+     * Includes method to serialize error responses in JSON format
+     * with "success" flag, error "id" and a "message", so the
+     * client can easily display localized messages to the user.
      * 
      * @author Oscar Fonts
      */
-	enum AjaxResponses {
-		/*                    ID  HTTP  Message               */
-		FEEDBACK_OK           (1, 200, "ajax_feedback_ok"),
-		READ_ERROR            (2, 500, "ajax_read_error"),
-		SYNTAX_ERROR          (3, 400, "ajax_syntax_error"),
-		STORING_ERROR         (4, 500, "ajax_storing_error"),
-		UNAUTHORIZED          (5, 401, "ajax_invalid_recaptcha"),
-		MANY_TIME_LAYER_STATS (6, 500, "ajax_many_time_layer_stats");
-		
+	enum ErrorCause {
+		/* ERROR CODE             ID   HTTP  MessageId                      */
+		/* feedback errors */
+		FEEDBACK_OK               (1,  200, "ajax_feedback_ok"),
+		READ_ERROR                (2,  500, "ajax_read_error"),
+		SYNTAX_ERROR              (3,  400, "ajax_syntax_error"),
+		STORING_ERROR             (4,  500, "ajax_storing_error"),
+		UNAUTHORIZED              (5,  401, "ajax_invalid_recaptcha"),
+		/* reporting errors */
+		MANY_TIME_LAYER_STATS     (6,  500, "stats_many_time_layer"),
+		WPS_SERVICE_NO_ACCESS     (8,  500, "stats_wps_process_not_accessible"),
+		WPS_PROCESS_INTERRUPTED   (8,  500, "stats_wps_process_interrupted"),
+		WPS_EXECUTION_EXCEPTION   (9,  500, "stats_wps_execution_exception"),
+		NO_STATS_TO_RUN           (10, 500, "stats_no_stats_to_run"),
+		INVALID_WKT_ROI           (11, 400, "stats_invalid_wkt_roi"),
+		GROOVY_SCRIPT_NOT_FOUND   (12, 500, "stats_groovy_script_not_found"),
+		GROOVY_SCRIPT_RUN_ERROR   (13, 500, "stats_groovy_script_run_error"),
+		GROOVY_SCRIPT_NO_FUNCTION (14, 500, "stats_groovy_script_no_function"),
+		GEOSTORE_ERROR            (15, 500, "stats_geostore_error");
 		
 		private int id, status;
+		
 		private String message;
 		
 		/**
@@ -106,14 +118,14 @@ public class ApplicationController {
 		 * @param status HTTP Status Code for the response
 		 * @param message Response message text
 		 */
-		AjaxResponses(int id, int status, String message) {
+		ErrorCause(int id, int status, String message) {
 			this.id = id;
 			this.status = status;
 			this.message = message;
 		}
 		
 	    /**
-	     * Format AJAX response body in JSON syntax, with a "success" flag,
+	     * Format error response body in JSON syntax, with a "success" flag,
 	     * a message "id", and a "message" string.
 	     */
 	    String getJson() {
@@ -122,7 +134,7 @@ public class ApplicationController {
 			contents.put("success", status == 200);
 			contents.put("id", id);
 			contents.put("message", message);
-			
+
 			new Config();
 			JSONObject json = new JSONObject();
 			json.putAll(contents);
@@ -143,12 +155,12 @@ public class ApplicationController {
     }
     
     @RequestMapping("/messages.json")
-    public ModelAndView locale() {
+    public ModelAndView getLocalizedMessages() {
     	return new ModelAndView("messages", "messages", config.getMessages());
     }
        
     @RequestMapping("/static/**")
-    public void getFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void getCustomStaticFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	// Get path to file
     	String fileName = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         
@@ -183,9 +195,72 @@ public class ApplicationController {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
     }
-
+    
+	@RequestMapping("/layers.json")
+    public void getLayers(HttpServletResponse response) throws IOException {
+    	
+    	response.setContentType("application/json;charset=UTF-8");
+    	try {
+			response.getWriter().print(setLayerTimes());
+            response.flushBuffer();
+		} catch (IOException e) {
+			logger.error("Error reading file", e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+    }
+	@RequestMapping("/charts.json")
+	public void getCharts(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	response.setContentType("application/json;charset=UTF-8");
+    	try {
+			response.getWriter().print(getCharts());
+            response.flushBuffer();
+		} catch (Exception e) {
+			logger.error(e);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}		
+	}
+	
+	@RequestMapping(value="/report.json", method = RequestMethod.POST)
+	public void buildCustomReport(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException {
+		response.setContentType("application/json;charset=UTF-8");
+		
+		// Get posted attributes
+		@SuppressWarnings("unchecked")
+		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
+		
+		// Get Chart Script Resource from ChartScriptId parameter
+		long chartScriptId = Long.valueOf(attributes.get("ChartScriptId"));
+		
+		// POSTed body, should be a WKT geometry
+		String wktROI = getRequestBodyAsString(request, response);
+		
+		try {
+			// Generate Report
+	    	ReportManager report = new ReportManager(getGeostore(), config.getProperties());
+			URL reportURL = report.get(wktROI, chartScriptId);
+			
+			// Build JSON response
+	    	String responseBody = "{ \n"+
+			  "   \"success\": true, \n"+
+			  "   \"response_type\": \"result_embedded\", \n"+
+			  "   \"link\": { \n"+
+			  "      \"type\": \"text/html\", \n"+
+			  "      \"href\": \""+ reportURL.toString() +"\" \n"+
+			  "   } \n"+
+			  "}";
+			response.getWriter().print(responseBody);
+			
+		} catch (ReportException e) {
+			// Will send the errorCause whose name equals the RealTimeStatsException.Code name
+			ErrorCause cause = ErrorCause.valueOf(e.getCode().name());
+			response.sendError(cause.status, cause.getJson());
+		}
+		
+		response.flushBuffer();
+	}
+	
 	@RequestMapping(value="/feedback", method = RequestMethod.POST)
-	public void feedback(HttpServletRequest request, HttpServletResponse response) throws IOException {	
+	public void postFeedback(HttpServletRequest request, HttpServletResponse response) throws IOException {	
 		// Get posted attributes
 		@SuppressWarnings("unchecked")
 		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
@@ -197,111 +272,41 @@ public class ApplicationController {
 			attributes.get("recaptcha_response")
 		);
 		if (!authorized) {
-			response.sendError(AjaxResponses.UNAUTHORIZED.status, AjaxResponses.UNAUTHORIZED.getJson());
+			response.sendError(ErrorCause.UNAUTHORIZED.status, ErrorCause.UNAUTHORIZED.getJson());
 			return;
 		}
 		
 		// Get posted data (body)
-		StringBuffer body = new StringBuffer();
-		String line = null;
-		BufferedReader reader;
-		try {
-			reader = request.getReader();
-			while ((line = reader.readLine()) != null) {
-				body.append(line);
-			}
-		} catch (IOException e) { // Error reading response body.
-			logger.error(e);
-			response.sendError(AjaxResponses.READ_ERROR.status, AjaxResponses.READ_ERROR.getJson());
-		}
-		
-		// Validate posted JSON data syntax
-		String data = body.toString();		
+		String data = getRequestBodyAsString(request, response);
+			
 		try {
 			 // Test syntax: Convert to JSON and back to String.
 			data = JSONSerializer.toJSON(data).toString(2) ;
 		} catch (JSONException e) { // Couldn't parse response body as JSON.
 			logger.warn(e); 
-			response.sendError(AjaxResponses.SYNTAX_ERROR.status, AjaxResponses.SYNTAX_ERROR.getJson());
+			response.sendError(ErrorCause.SYNTAX_ERROR.status, ErrorCause.SYNTAX_ERROR.getJson());
 		}
 		
 		// Insert Feedback data into GeoStore
 		try {
 			getGeostore().insertFeedback(attributes, data);
-			response.getWriter().write(AjaxResponses.FEEDBACK_OK.getJson()); // Correct!
+			response.getWriter().write(ErrorCause.FEEDBACK_OK.getJson()); // Correct!
 		} catch (Exception e) { // GeoStore error.
 			logger.error(e);
-			response.sendError(AjaxResponses.STORING_ERROR.status, AjaxResponses.STORING_ERROR.getJson());
+			response.sendError(ErrorCause.STORING_ERROR.status, ErrorCause.STORING_ERROR.getJson());
 		}
 	}
-	
-	@RequestMapping("/charts.json")
-	public void charts(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    	response.setContentType("application/json;charset=UTF-8");
-    	try {
-			response.getWriter().print(getCharts());
-            response.flushBuffer();
-		} catch (Exception e) {
-			logger.error(e);
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		}		
+
+	private UNREDDGeostoreManager getGeostore() {
+		if (geostore == null) {
+			try {
+				geostore = new UNREDDGeostoreManager(client);
+			} catch (Exception ex) {
+	        	logger.error("Error connecting to GeoStore", ex);
+	        }
+		}
+		return geostore;
 	}
-	
-	@RequestMapping(value="/stats.json", method = RequestMethod.POST)
-	public void stats(HttpServletRequest request, HttpServletResponse response) throws IOException, JAXBException {
-		// Get posted attributes
-		@SuppressWarnings("unchecked")
-		Map<String, String> attributes = flattenParamValues(request.getParameterMap());
-		
-		// Get Chart Script Resource from ChartScriptId parameter
-		long chartScriptId = Long.getLong(attributes.get("ChartScriptId"));
-		
-		// Get posted data (body)
-		StringBuffer body = new StringBuffer();
-		String line = null;
-		BufferedReader reader;
-		try {
-			reader = request.getReader();
-			while ((line = reader.readLine()) != null) {
-				body.append(line);
-			}
-		} catch (IOException e) { // Error reading response body.
-			logger.error(e);
-			response.sendError(AjaxResponses.READ_ERROR.status, AjaxResponses.READ_ERROR.getJson());
-		}
-		String wktROI = body.toString();
-		
-		// Calculate Statistics
-    	RealTimeStats stats = new RealTimeStats(client, getGeostore());
-    	
-		String result;
-		try {
-			result = stats.run(wktROI, chartScriptId);
-		} catch (RealTimeStatsException e) {
-			// TODO Return a HTTP 500 response, plus localized message failure wrapped in a json syntax structure.
-			result = e.getMessage();
-			e.printStackTrace();
-			response.sendError(AjaxResponses.UNAUTHORIZED.status, AjaxResponses.UNAUTHORIZED.getJson());
-		}
-		
-		// Flush response
-		response.setContentType("application/json;charset=UTF-8");
-		response.getWriter().print(result);
-        response.flushBuffer();
-	}
-    
-	@RequestMapping("/layers.json")
-    public void layers(HttpServletResponse response) throws IOException {
-    	
-    	response.setContentType("application/json;charset=UTF-8");
-    	try {
-			response.getWriter().print(setLayerTimes());
-            response.flushBuffer();
-		} catch (IOException e) {
-			logger.error("Error reading file", e);
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		}
-    }
 	
 	private String getCharts() throws UnsupportedEncodingException, JAXBException {
 		Map<Long, String> resp = new HashMap<Long, String>();
@@ -313,6 +318,26 @@ public class ApplicationController {
 		json.putAll(resp);
 		return json.toString();		
 	}
+	   
+    private String getLayerTimesFromGeostore(String layerName) throws JAXBException, UnsupportedEncodingException {
+    	List<Resource> layerUpdates = getGeostore().searchLayerUpdatesByLayerName(layerName);
+        if (layerUpdates.size() == 0) {
+        	logger.warn("Requested times for \"" + layerName  + "\", but no corresponding LayerUpdates found in GeoStore.");
+        }
+
+    	String times = "";
+    	Iterator<Resource> iterator = layerUpdates.iterator();
+        while (iterator.hasNext()) {
+            UNREDDLayerUpdate unreddLayerUpdate = new UNREDDLayerUpdate(iterator.next());
+
+            times += unreddLayerUpdate.getDateAsString();
+            
+            if (iterator.hasNext()) {
+            	times += ",";
+            }
+        }
+        return times += toString();
+    }
     
     private String setLayerTimes() {
     	String jsonLayers = config.getLayers();
@@ -332,37 +357,8 @@ public class ApplicationController {
 		return sb.toString();
     }
     
-    private String getLayerTimesFromGeostore(String layerName) throws JAXBException, UnsupportedEncodingException {
-        StringBuilder timeString = new StringBuilder();
-        List<Resource> layerUpdates = getGeostore().searchLayerUpdatesByLayerName(layerName);
-        if (layerUpdates.size() == 0) {
-        	logger.warn("Requested times for \"" + layerName  + "\", but no corresponding LayerUpdates found in GeoStore.");
-        }
-        Iterator<Resource> iterator = layerUpdates.iterator();
-        while (iterator.hasNext()) {
-            UNREDDLayerUpdate unreddLayerUpdate = new UNREDDLayerUpdate(iterator.next());
-            String year  = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.YEAR);
-            String month = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.MONTH);
-            String day = unreddLayerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.DAY);
-            
-            // build time string
-            timeString.append(year);
-            
-            if (month != null) {
-            	timeString.append("-");
-                if (month.length() == 1) timeString.append("0");
-                timeString.append(month);
-                if (day != null) {
-                	timeString.append("-");
-                    if (day.length() == 1) timeString.append("0");
-                    timeString.append(day);
-                }
-            }           
-            if (iterator.hasNext()) {
-                timeString.append(",");
-            }
-        }
-        return timeString.toString();
+    private boolean checkRecaptcha(String address, String challenge, String response) {
+        return reCaptcha.checkAnswer(address, challenge, response).isValid();
     }
     
 	private static Map<String, String> flattenParamValues(Map<String, String[]> oldMap) {
@@ -375,20 +371,22 @@ public class ApplicationController {
 		}
 		return newMap;
 	}
-    
-	private UNREDDGeostoreManager getGeostore() {
-		if (geostore == null) {
-			try {
-				geostore = new UNREDDGeostoreManager(client);
-			} catch (Exception ex) {
-	        	logger.error("Error connecting to GeoStore", ex);
-	        }
+	
+	private String getRequestBodyAsString(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		StringBuffer body = new StringBuffer();
+		String line = null;
+		BufferedReader reader;
+		try {
+			reader = request.getReader();
+			while ((line = reader.readLine()) != null) {
+				body.append(line);
+			}
+		} catch (IOException e) { // Error reading response body.
+			logger.error(e);
+			response.sendError(ErrorCause.READ_ERROR.status, ErrorCause.READ_ERROR.getJson());
 		}
-		return geostore;
+		
+		// Validate posted JSON data syntax
+		return body.toString();	
 	}
-    
-    private boolean checkRecaptcha(String address, String challenge, String response) {
-        return reCaptcha.checkAnswer(address, challenge, response).isValid();
-    }
-
 }

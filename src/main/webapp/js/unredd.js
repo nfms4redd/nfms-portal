@@ -1140,7 +1140,7 @@ $(window).load(function () {
 		    	    	if (response) {
 		    	    		alert(messages[response.message]);
 		    	    	} else {
-		    	    		alert(messages.ajax_feedback_error);
+		    	    		alert(messages.ajax_stats_error);
 		    	    	}
 	    	    	}
 		    	});
