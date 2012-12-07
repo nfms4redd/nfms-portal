@@ -42,7 +42,11 @@ public class ReportException extends Exception {
 		/**
 		 * Error in geostore access.
 		 */	
-		GEOSTORE_ERROR
+		GEOSTORE_ERROR,
+		/**
+		 * The statistics definition in GeoStore is not valid.
+		 */			
+		INVALID_STATSDEF_XML
 	}
 
 	private static final long serialVersionUID = 1L;

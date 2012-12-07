@@ -105,8 +105,8 @@ public class ApplicationController {
 		GROOVY_SCRIPT_NOT_FOUND   (12, 500, "stats_groovy_script_not_found"),
 		GROOVY_SCRIPT_RUN_ERROR   (13, 500, "stats_groovy_script_run_error"),
 		GROOVY_SCRIPT_NO_FUNCTION (14, 500, "stats_groovy_script_no_function"),
-		GEOSTORE_ERROR            (15, 500, "stats_geostore_error");
-		
+		GEOSTORE_ERROR            (15, 500, "stats_geostore_error"),
+		INVALID_STATSDEF_XML      (16, 500, "stats_xml_def_invalid");
 		private int id, status;
 		
 		private String message;
@@ -253,7 +253,8 @@ public class ApplicationController {
 		} catch (ReportException e) {
 			// Will send the errorCause whose name equals the RealTimeStatsException.Code name
 			ErrorCause cause = ErrorCause.valueOf(e.getCode().name());
-			response.sendError(cause.status, cause.getJson());
+			response.setStatus(cause.status);
+			response.getWriter().write(cause.getJson());
 		}
 		
 		response.flushBuffer();
@@ -272,7 +273,8 @@ public class ApplicationController {
 			attributes.get("recaptcha_response")
 		);
 		if (!authorized) {
-			response.sendError(ErrorCause.UNAUTHORIZED.status, ErrorCause.UNAUTHORIZED.getJson());
+			response.setStatus(ErrorCause.UNAUTHORIZED.status);
+			response.getWriter().write(ErrorCause.UNAUTHORIZED.getJson());
 			return;
 		}
 		
@@ -284,7 +286,8 @@ public class ApplicationController {
 			data = JSONSerializer.toJSON(data).toString(2) ;
 		} catch (JSONException e) { // Couldn't parse response body as JSON.
 			logger.warn(e); 
-			response.sendError(ErrorCause.SYNTAX_ERROR.status, ErrorCause.SYNTAX_ERROR.getJson());
+			response.setStatus(ErrorCause.SYNTAX_ERROR.status);
+			response.getWriter().write(ErrorCause.SYNTAX_ERROR.getJson());
 		}
 		
 		// Insert Feedback data into GeoStore
@@ -293,7 +296,8 @@ public class ApplicationController {
 			response.getWriter().write(ErrorCause.FEEDBACK_OK.getJson()); // Correct!
 		} catch (Exception e) { // GeoStore error.
 			logger.error(e);
-			response.sendError(ErrorCause.STORING_ERROR.status, ErrorCause.STORING_ERROR.getJson());
+			response.setStatus(ErrorCause.STORING_ERROR.status);
+			response.getWriter().write(ErrorCause.STORING_ERROR.getJson());
 		}
 	}
 
@@ -383,7 +387,8 @@ public class ApplicationController {
 			}
 		} catch (IOException e) { // Error reading response body.
 			logger.error(e);
-			response.sendError(ErrorCause.READ_ERROR.status, ErrorCause.READ_ERROR.getJson());
+			response.setStatus(ErrorCause.READ_ERROR.status);
+			response.getWriter().write(ErrorCause.READ_ERROR.getJson());
 		}
 		
 		// Validate posted JSON data syntax

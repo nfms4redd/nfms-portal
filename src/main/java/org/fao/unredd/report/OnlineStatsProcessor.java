@@ -12,9 +12,12 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import net.opengis.ows11.impl.DomainMetadataTypeImpl;
+import net.opengis.wps10.OutputDescriptionType;
 import net.opengis.wps10.ProcessDescriptionType;
 import net.opengis.wps10.ProcessDescriptionsType;
 
@@ -28,12 +31,10 @@ import org.geotools.data.wps.WebProcessingService;
 import org.geotools.data.wps.request.DescribeProcessRequest;
 import org.geotools.data.wps.response.DescribeProcessResponse;
 import org.geotools.ows.ServiceException;
-import org.geotools.process.ThreadPoolProcessExecutor;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 public class OnlineStatsProcessor {
-	
 	private static Logger logger = Logger.getLogger(OnlineStatsProcessor.class);
 
 	private final String capabilitiesURL;
@@ -50,8 +51,8 @@ public class OnlineStatsProcessor {
 		if (config == null) {
 			config = new Properties();
 		}
-		
-		capabilitiesURL = config.getProperty("stats.capabilities", "http://localhost:8080/geoserver/ows?service=WPS&request=GetCapabilities");
+	
+		capabilitiesURL = config.getProperty("stats.capabilities", "http://localhost/stg_geoserver/ows?service=WPS&request=GetCapabilities");
 		ProcessName = config.getProperty("stats.process.name", "gs:OnlineStatsWPS");
 		ROIInputName = config.getProperty("stats.process.input.name.roi", "geometry");
 		statConfInputName = config.getProperty("stats.process.input.name.statconf", "statConf");
@@ -104,6 +105,9 @@ public class OnlineStatsProcessor {
 			} catch (NumberFormatException e) {
 				logger.error("Error parsing WPS content. Make sure it is a numeric matrix in CSV format", e);
 				throw new ReportException(ReportException.Code.WPS_EXECUTION_EXCEPTION, e);
+			} catch (NullPointerException e) {
+				logger.error("Error parsing WPS output. Make sure it is a numeric matrix in CSV format");
+				throw new ReportException(ReportException.Code.WPS_EXECUTION_EXCEPTION);				
 			}
 		}
 		
@@ -112,6 +116,7 @@ public class OnlineStatsProcessor {
 	
 	// Connect to WPS service, check process description
 	private WPSFactory createWPSFactory() throws ReportException {
+		
 		try {
 			URL capabilitiesUrl = new URL(capabilitiesURL);
 			WebProcessingService wps = new WebProcessingService(capabilitiesUrl);
@@ -126,7 +131,18 @@ public class OnlineStatsProcessor {
 			ProcessDescriptionsType processDesc = descResponse.getProcessDesc();
 			ProcessDescriptionType pdt = (ProcessDescriptionType) processDesc.getProcessDescription().get(0);
 			
-			return new WPSFactory(pdt, capabilitiesUrl);
+			// Workaround for literals with no explicit data type -- should default to String
+			// TODO document better and patch Geotools code
+			OutputDescriptionType odt = (OutputDescriptionType)pdt.getProcessOutputs().getOutput().get(0);
+			if (odt.getLiteralOutput().getDataType() == null) {
+				class X extends DomainMetadataTypeImpl {
+					X() { reference = "String"; }
+				}
+				odt.getLiteralOutput().setDataType(new X());				
+			}
+			
+			WPSFactory factory = new WPSFactory(pdt, capabilitiesUrl);
+			return factory;
 		} catch (MalformedURLException e) {
 			logger.error("Malformed WPS Capabilities URL '" + capabilitiesURL + "'", e);
 			throw new ReportException(ReportException.Code.WPS_SERVICE_NO_ACCESS, e);
@@ -134,7 +150,7 @@ public class OnlineStatsProcessor {
 			logger.error("WPS error while accessing service description", e);
 			throw new ReportException(ReportException.Code.WPS_EXECUTION_EXCEPTION, e);
 		} catch (IOException e) {
-			logger.error("Network access error while accessing WPS service description", e);
+			logger.error("Network access error while accessing WPS service description at " + capabilitiesURL, e);
 			throw new ReportException(ReportException.Code.WPS_SERVICE_NO_ACCESS, e);
 		}
 	}	
@@ -142,12 +158,12 @@ public class OnlineStatsProcessor {
 	private List<WPSResult> callWPSProcesses(List<WPSCall> wpsCalls) throws ReportException {
 		List<WPSResult> wpsResults = new ArrayList<WPSResult>();
 		
-		ThreadPoolProcessExecutor svc = new ThreadPoolProcessExecutor(maxConcurrency, Executors.defaultThreadFactory());
+		ExecutorService svc = Executors.newFixedThreadPool(maxConcurrency);
 		ExecutorCompletionService<WPSResult> compSvc = new ExecutorCompletionService<WPSResult>(svc);
 			
 		List<Future<WPSResult>> pendingResults = new ArrayList<Future<WPSResult>>();
 		for(WPSCall wpsCall : wpsCalls) {
-			Future<WPSResult> future = svc.submit(wpsCall);
+			Future<WPSResult> future = compSvc.submit(wpsCall);
 			pendingResults.add(future);
 		}
 		logger.debug("Submitted all " + pendingResults.size() + " WPS requests.");

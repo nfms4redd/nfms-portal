@@ -21,7 +21,6 @@ public class WPSCall implements Callable<WPSResult> {
 	org.geotools.process.Process process;
 	Map<String, Object> inputs;
 	
-	
 	public WPSCall(String id, org.geotools.process.Process process, Map<String, Object> inputs) {
 		this.id = id;
 		this.process = process;
@@ -43,7 +42,6 @@ public class WPSCall implements Callable<WPSResult> {
 
 		// TODO handle process status
 		Map<String, Object> outputs = process.execute(inputs, null);
-		
 		logger.debug(curThread.getName() + " End WPS process " + id);
 		return new WPSResult(this, outputs);
 	}

@@ -18,7 +18,7 @@
 		<geostore.version>1.0.1</geostore.version>
 		<geostore.unredd.model.version>1.1-SNAPSHOT</geostore.unredd.model.version>
 		<stats.version>1.1-SNAPSHOT</stats.version>
-		<geotools.version>8.3</geotools.version>
+		<geotools.version>8.0</geotools.version>
 
 		<portal_config_dir>portal_config_dirs/drc/</portal_config_dir>
 		<minified_js>false</minified_js>

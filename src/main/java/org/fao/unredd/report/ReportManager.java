@@ -1,13 +1,16 @@
 package org.fao.unredd.report;
 
 import java.io.File;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 
@@ -53,6 +56,11 @@ public class ReportManager {
 			throw new ReportException(ReportException.Code.INVALID_WKT_ROI, e.getCause());
 		}
 		
+		if (ROI == null) {
+			logger.warn("ROI is missing" + wktROI);
+			throw new ReportException(ReportException.Code.INVALID_WKT_ROI);			
+		}
+		
 		// Get the stats 
 		Map<String, double[][]> statsData = runStats(ROI, chartScriptId);
 		
@@ -86,12 +94,12 @@ public class ReportManager {
 	}
 
 	Map<String, double[][]> runStats(Geometry ROI, long chartScriptId) throws ReportException {
-		OnlineStatsProcessor stats = new OnlineStatsProcessor(ROI);
+		OnlineStatsProcessor stats = new OnlineStatsProcessor(ROI, config);
 		
 		// Log input params
 		logger.debug("Starting RealTimeStats");
 		logger.debug("  ChartScriptID: " + String.valueOf(chartScriptId));
-		logger.debug("  WKT ROI: " + ROI.toText());
+		logger.debug("  WKT ROI: " + ROI);
 		
 		// Get ChartScript
 		UNREDDChartScript chartScript = new UNREDDChartScript(geostore.getClient().getResource(chartScriptId));
@@ -142,29 +150,29 @@ public class ReportManager {
 		return stats.processAll();
 	}
 	
-	StatisticConfiguration buildStatisticConfiguration(UNREDDStatsDef statsDef, UNREDDLayer layer, UNREDDLayerUpdate layerUpdate) {
+	StatisticConfiguration buildStatisticConfiguration(UNREDDStatsDef statsDef, UNREDDLayer layer, UNREDDLayerUpdate layerUpdate) throws ReportException {
 		// Get info from GeoStore objects
 		String layerName = layer.getName();
 		String year = layerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.YEAR);
 		String month = layerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.MONTH);
 		String day = layerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.DAY);
         String rasterPath = layer.getAttribute(Attributes.MOSAICPATH);
-		String statDefXML = statsDef.getData();
+		String statDefXML = geostore.getClient().getData(statsDef.getId());
 		
         // Build the location to layerUpdate file, and replace token in stats XML
         String rasterFile = NameUtils.buildTifFileName(layerName, year, month, day);
         String rasterFullPath = new File(rasterPath, rasterFile).getAbsolutePath();
         statDefXML.replace("{FILEPATH}", rasterFullPath);
 		
-        // TODO switch to the long way, and handle the marshalling exceptions
-        // Unmarshal to StatisticConfiguration object
-		StatisticConfiguration statConf = JAXB.unmarshal(statDefXML, StatisticConfiguration.class);
-		// Unmarshall, the long way (to avoid eating PermGen)
-		//JAXBContext context = JAXBContext.newInstance(StatisticConfiguration.class);
-		//Unmarshaller unmarshaller = context.createUnmarshaller();
-		//StatisticConfiguration statConf = (StatisticConfiguration) unmarshaller.unmarshal(new StringReader(statDefXML));
-		
-		return statConf;
+		try {
+			JAXBContext context = JAXBContext.newInstance(StatisticConfiguration.class);
+			Unmarshaller unmarshaller = context.createUnmarshaller();
+			StatisticConfiguration statConf = (StatisticConfiguration) unmarshaller.unmarshal(new StringReader(statDefXML));
+			return statConf;
+		} catch (JAXBException e) {
+			logger.error("StatsConf invalid XML contents", e);
+			throw new ReportException(ReportException.Code.INVALID_STATSDEF_XML, e);
+		}
 	}
 
 	public static void main(String[] args) {
@@ -176,7 +184,7 @@ public class ReportManager {
 		
 		ReportManager report = new ReportManager(geostore);
 		try {
-			System.out.println(report.get("", 26));
+			System.out.println(report.get("POLYGON((21.073607809505024 -2.6035981542402555, 24.105834371884185 -1.4617579288653582, 24.765014059357643 -3.3496552215281192, 21.996459371968403 -4.3580986905562, 21.073607809505024 -2.6035981542402555))", 26));
 		} catch (ReportException e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();

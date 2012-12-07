@@ -1110,7 +1110,7 @@ $(window).load(function () {
 		    	$.ajax({
 		    	    type: 'POST',
 		    	    contentType: 'application/json',
-		    	    url: 'stats.json?' + $.param(params),
+		    	    url: 'report.json?' + $.param(params),
 		    	    data: JSON.stringify({
 		    	    	"geo": UNREDD.stats_toolbar.getFeaturesAsGeoJson()
 		    	    }),
