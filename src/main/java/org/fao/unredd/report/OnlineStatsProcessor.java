@@ -1,10 +1,22 @@
+/*
+ * nfms4redd Portal Interface - http://nfms4redd.org/
+ *
+ * (C) 2012, FAO Forestry Department (http://www.fao.org/forestry/)
+ *
+ * This application is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ */
 package org.fao.unredd.report;
 
 import it.geosolutions.unredd.stats.model.config.StatisticConfiguration;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,35 +28,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import net.opengis.ows11.impl.DomainMetadataTypeImpl;
-import net.opengis.wps10.OutputDescriptionType;
-import net.opengis.wps10.ProcessDescriptionType;
-import net.opengis.wps10.ProcessDescriptionsType;
-
 import org.apache.log4j.Logger;
 
 import org.fao.unredd.wps.WPSCall;
+import org.fao.unredd.wps.WPSProcess;
 import org.fao.unredd.wps.WPSResult;
-
-import org.geotools.data.wps.WPSFactory;
-import org.geotools.data.wps.WebProcessingService;
-import org.geotools.data.wps.request.DescribeProcessRequest;
-import org.geotools.data.wps.response.DescribeProcessResponse;
-import org.geotools.ows.ServiceException;
+import org.n52.wps.client.WPSClientException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 public class OnlineStatsProcessor {
 	private static Logger logger = Logger.getLogger(OnlineStatsProcessor.class);
 
-	private final String capabilitiesURL;
-	private final String ProcessName;
+	private final String baseURL;
+	private final String processName;
 	private final String ROIInputName;
 	private final String statConfInputName;
 	private final String outputName;
 	private final int maxConcurrency;
-	
-	private WPSFactory processFactory; 
+
+	private WPSProcess process;
 	private List<WPSCall> wpsCalls;
 	
 	public OnlineStatsProcessor(Geometry ROI, Properties config) throws ReportException {
@@ -52,15 +55,20 @@ public class OnlineStatsProcessor {
 			config = new Properties();
 		}
 	
-		capabilitiesURL = config.getProperty("stats.capabilities", "http://localhost/stg_geoserver/ows?service=WPS&request=GetCapabilities");
-		ProcessName = config.getProperty("stats.process.name", "gs:OnlineStatsWPS");
-		ROIInputName = config.getProperty("stats.process.input.name.roi", "geometry");
-		statConfInputName = config.getProperty("stats.process.input.name.statconf", "statConf");
-		outputName = config.getProperty("stats.output.name", "result");
+		baseURL = config.getProperty("stats.url", "http://localhost/stg_geoserver/ows");
+		processName = config.getProperty("stats.processname", "gs:OnlineStatsWPS");
+		ROIInputName = config.getProperty("stats.inputname.roi", "geometry");
+		statConfInputName = config.getProperty("stats.inputname.statconf", "statConf");
+		outputName = config.getProperty("stats.outputname", "result");
 		maxConcurrency = Integer.parseInt(config.getProperty("stats.concurrency", "2"));
 		
-		processFactory = createWPSFactory();
-		wpsCalls = new ArrayList<WPSCall>();
+		try {
+			process = new WPSProcess(baseURL, processName);
+			wpsCalls = new ArrayList<WPSCall>();
+		} catch (WPSClientException e) {
+			logger.error(e.getMessage(), e);
+			throw new ReportException(ReportException.Code.WPS_SERVICE_NO_ACCESS, e);
+		}
 	}
 
 	public OnlineStatsProcessor(Geometry ROI) throws ReportException {
@@ -69,13 +77,12 @@ public class OnlineStatsProcessor {
 	
 	public void addJob(String date, Geometry ROI, StatisticConfiguration statconf) {
 		// TODO Eventually add restrictions to ROI geometries
-		org.geotools.process.Process process = processFactory.create();
 		
 		Map<String, Object> inputs = new TreeMap<String, Object>();
 		inputs.put(ROIInputName,      ROI);
 		inputs.put(statConfInputName, statconf);
 		
-		wpsCalls.add(new WPSCall(date, process, inputs));
+		wpsCalls.add(new WPSCall(date, process, inputs, String.class));
 	}
 	
 	// Run calls, parse outputs
@@ -93,7 +100,7 @@ public class OnlineStatsProcessor {
 		for(WPSResult wpsResult : wpsResults) {
 			try {
 				String date = wpsResult.getId();
-				double[][] data = csv2array((String)wpsResult.getOutputs().get(outputName));
+				double[][] data = csv2array((String)wpsResult.getOutput());
 				if (data == null) {
 					logger.error("Error parsing WPS output. Make sure it is a numeric matrix in CSV format");
 					throw new ReportException(ReportException.Code.WPS_EXECUTION_EXCEPTION);
@@ -113,47 +120,6 @@ public class OnlineStatsProcessor {
 		
 		return statsData;
 	}
-	
-	// Connect to WPS service, check process description
-	private WPSFactory createWPSFactory() throws ReportException {
-		
-		try {
-			URL capabilitiesUrl = new URL(capabilitiesURL);
-			WebProcessingService wps = new WebProcessingService(capabilitiesUrl);
-			
-			// WPSCapabilitiesType capabilities = wps.getCapabilities();
-			// ProcessOfferingsType processOfferings = capabilities.getProcessOfferings();
-			// EList processes = processOfferings.getProcess();
-			
-			DescribeProcessRequest descRequest = wps.createDescribeProcessRequest();
-			descRequest.setIdentifier(ProcessName);
-			DescribeProcessResponse descResponse = wps.issueRequest(descRequest);
-			ProcessDescriptionsType processDesc = descResponse.getProcessDesc();
-			ProcessDescriptionType pdt = (ProcessDescriptionType) processDesc.getProcessDescription().get(0);
-			
-			// Workaround for literals with no explicit data type -- should default to String
-			// TODO document better and patch Geotools code
-			OutputDescriptionType odt = (OutputDescriptionType)pdt.getProcessOutputs().getOutput().get(0);
-			if (odt.getLiteralOutput().getDataType() == null) {
-				class X extends DomainMetadataTypeImpl {
-					X() { reference = "String"; }
-				}
-				odt.getLiteralOutput().setDataType(new X());				
-			}
-			
-			WPSFactory factory = new WPSFactory(pdt, capabilitiesUrl);
-			return factory;
-		} catch (MalformedURLException e) {
-			logger.error("Malformed WPS Capabilities URL '" + capabilitiesURL + "'", e);
-			throw new ReportException(ReportException.Code.WPS_SERVICE_NO_ACCESS, e);
-		} catch (ServiceException e) {
-			logger.error("WPS error while accessing service description", e);
-			throw new ReportException(ReportException.Code.WPS_EXECUTION_EXCEPTION, e);
-		} catch (IOException e) {
-			logger.error("Network access error while accessing WPS service description at " + capabilitiesURL, e);
-			throw new ReportException(ReportException.Code.WPS_SERVICE_NO_ACCESS, e);
-		}
-	}	
 	
 	private List<WPSResult> callWPSProcesses(List<WPSCall> wpsCalls) throws ReportException {
 		List<WPSResult> wpsResults = new ArrayList<WPSResult>();

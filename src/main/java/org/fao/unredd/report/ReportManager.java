@@ -1,3 +1,18 @@
+/*
+ * nfms4redd Portal Interface - http://nfms4redd.org/
+ *
+ * (C) 2012, FAO Forestry Department (http://www.fao.org/forestry/)
+ *
+ * This application is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ */
 package org.fao.unredd.report;
 
 import java.io.File;
@@ -187,7 +202,6 @@ public class ReportManager {
 			System.out.println(report.get("POLYGON((21.073607809505024 -2.6035981542402555, 24.105834371884185 -1.4617579288653582, 24.765014059357643 -3.3496552215281192, 21.996459371968403 -4.3580986905562, 21.073607809505024 -2.6035981542402555))", 26));
 		} catch (ReportException e) {
 			System.out.println(e.getMessage());
-			e.printStackTrace();
 		}
 	}
 }
