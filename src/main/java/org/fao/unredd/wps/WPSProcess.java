@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.geotools.feature.FeatureCollection;
 
+import org.n52.wps.client.CustomExecuteRequestBuilder;
 import org.n52.wps.client.ExecuteRequestBuilder;
 import org.n52.wps.client.ExecuteResponseAnalyser;
 import org.n52.wps.client.WPSClientException;
@@ -101,7 +102,7 @@ public class WPSProcess {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T execute(Map<String, Object> inputs, Class<T> responseType) throws WPSClientException {
-		ExecuteRequestBuilder executeBuilder = new ExecuteRequestBuilder(process);
+		ExecuteRequestBuilder executeBuilder = new CustomExecuteRequestBuilder(process);
 
 		for (InputDescriptionType input : process.getDataInputs().getInputArray()) {
 			String inputName = input.getIdentifier().getStringValue();
@@ -123,7 +124,7 @@ public class WPSProcess {
 					// StatisticConfiguration
 					IData data = new StatisticConfigurationDataBinding((StatisticConfiguration) inputValue);
 					executeBuilder.addComplexData(inputName, data,
-							null, UTF8_ENCODING, XML_MIME_TYPE);
+							null, "CDATA", XML_MIME_TYPE);
 				} else if (inputValue instanceof Geometry) {
 					// Geometry
 					IData data = new GeometryDataBinding((Geometry) inputValue);

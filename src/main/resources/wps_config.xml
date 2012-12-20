@@ -300,7 +300,7 @@
 				<Format mimetype="text/xml; subtype=gml/2.1.2" schema="http://schemas.opengis.net/gml/2.1.2/geometry.xsd"/>
 			</Generator>
 			<Generator name="StatisticConfigurationGenerator" className="org.fao.unredd.wps.StatisticConfigurationGenerator" active="true">
-				<Format mimetype="text/xml"/>
+				<Format mimetype="text/xml" encoding="CDATA"/>
 			</Generator>
 		</GeneratorList>
 	</Datahandlers>
