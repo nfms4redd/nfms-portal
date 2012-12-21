@@ -35,9 +35,6 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Oscar Fonts
  */
 public class GMLGeometryGenerator extends AbstractGenerator {
-
-	Encoder enc2 = null;
-	Encoder enc3 = null;
 	
 	public GMLGeometryGenerator() {
 		super();
@@ -56,28 +53,12 @@ public class GMLGeometryGenerator extends AbstractGenerator {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
 		if ((mimeType != null && mimeType.contains("gml/2")) || (schema != null && schema.contains("gml/2"))) {
-			getGML2Encoder().encode((Geometry)data.getPayload(), org.geotools.gml2.GML._Geometry, out);
+			Encoder enc = new Encoder(new org.geotools.gml2.GMLConfiguration());
+			enc.encode((Geometry)data.getPayload(), org.geotools.gml2.GML._Geometry, out);
 		} else {
-			getGML3Encoder().encode((Geometry)data.getPayload(), org.geotools.gml3.GML._Geometry, out);
+			Encoder enc = new Encoder(new org.geotools.gml3.GMLConfiguration());
+			enc.encode((Geometry)data.getPayload(), org.geotools.gml3.GML._Geometry, out);
 		}
 		return new ByteArrayInputStream(out.toByteArray());
 	}
-
-	Encoder getGML2Encoder() {
-		if (enc2 == null) {
-			enc2 = new Encoder(new org.geotools.gml2.GMLConfiguration());
-		}
-		return enc2;
-	}
-	
-	/**
-	 * @return
-	 */
-	Encoder getGML3Encoder() {
-		if (enc3 == null) {
-			enc3 = new Encoder(new org.geotools.gml3.GMLConfiguration());
-		}
-		return enc3;
-	}
-	
 }

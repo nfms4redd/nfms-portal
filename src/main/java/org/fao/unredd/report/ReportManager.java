@@ -42,8 +42,18 @@ import it.geosolutions.unredd.geostore.model.UNREDDLayerUpdate;
 import it.geosolutions.unredd.geostore.model.UNREDDStatsDef;
 import it.geosolutions.unredd.geostore.model.UNREDDLayer.Attributes;
 import it.geosolutions.unredd.geostore.utils.NameUtils;
+import it.geosolutions.unredd.stats.model.config.ClassificationLayer;
 import it.geosolutions.unredd.stats.model.config.StatisticConfiguration;
 
+/**
+ * Renders a custom statistics result document.
+ * Only needed external parameter is the chartScript ID to run.
+ * The rest of the data needed (statsConf, layers, dates,...) will be extracted from the indicated GeoStore instance.
+ * 
+ * Results will also be stored in the same GeoStore instance.
+ * 
+ * @author Oscar Fonts
+ */
 public class ReportManager {
 	
 	private static Logger logger = Logger.getLogger(ReportManager.class);
@@ -51,15 +61,34 @@ public class ReportManager {
     UNREDDGeostoreManager geostore = null;
     Properties config;
        
+	/**
+	 * Report Manager constructor.
+	 * 
+	 * @param geostore The UNREDD Geostore Manager, initialized to a particular instance.
+	 * @param config Configuration parameters for the report generation. Used to customize the underlying WPS processor.
+	 */
 	public ReportManager(UNREDDGeostoreManager geostore, Properties config) {
 		this.geostore = geostore;
 		this.config = config;
 	}
 
-    public ReportManager(UNREDDGeostoreManager geostore) {
+    /**
+     * Constructor using the default config.
+     * For testing purposes.
+     * Use the public constructor to indicate a remote WPS service.
+     */
+    ReportManager(UNREDDGeostoreManager geostore) {
 		this(geostore, null);
 	}
 	
+	/**
+	 * Generates a Statistics Report based on a Region of Interest and a chart definition.
+	 * 
+	 * @param wktROI The Region Of Interest, expressed as a Well-Known Text Geometry.
+	 * @param chartScriptId The chart definition, its id in GeoStore.
+	 * @return The URL where the report can be accessed.
+	 * @throws ReportException Something went wrong. Check the {@link ReportException#Code} for further detail.
+	 */
 	public URL get(String wktROI, long chartScriptId) throws ReportException {
 		// Get ROI Geometry
 		Geometry ROI;
@@ -81,12 +110,12 @@ public class ReportManager {
 		
 		// Get the report (chart)
 		String report = runChartScript(chartScriptId, statsData);
-		logger.info("============ REPORT =============");
-		logger.info(report);
-		logger.info("============ END REPORT =============");
+		logger.debug("============== REPORT ===============");
+		logger.debug(report);
+		logger.debug("============ END REPORT =============");
 		
 		// TODO Put report contents into a new CustomReport category in GeoStore. Think about needed attributes.
-		String resourceURL = "http://demo1.geo-solutions.it/diss_geostore/rest/misc/category/name/ChartData/resource/name/drc_forest_area_charts_7_en/data?name=Demo%20Custom%20Stats";
+		String resourceURL = "http://demo1.geo-solutions.it/diss_geostore/rest/misc/category/name/ChartData/resource/name/drc_forest_area_charts_7_en/data?name=Custom Stats Demo";
 
     	logger.debug("Report finished. Result URL: " + resourceURL);
 		
@@ -104,12 +133,11 @@ public class ReportManager {
 		ScriptRunner script = new ScriptRunner(new File(scriptPath));
 		String result = script.callFunction("htmlChart", statsDataMap).toString();
 
-		logger.debug("Chart script returned " + result);
 		return result;
 	}
 
 	Map<String, double[][]> runStats(Geometry ROI, long chartScriptId) throws ReportException {
-		OnlineStatsProcessor stats = new OnlineStatsProcessor(ROI, config);
+		OnlineStatsProcessor stats = new OnlineStatsProcessor(config);
 		
 		// Log input params
 		logger.debug("Starting RealTimeStats");
@@ -177,12 +205,22 @@ public class ReportManager {
         // Build the location to layerUpdate file, and replace token in stats XML
         String rasterFile = NameUtils.buildTifFileName(layerName, year, month, day);
         String rasterFullPath = new File(rasterPath, rasterFile).getAbsolutePath();
-        statDefXML.replace("{FILEPATH}", rasterFullPath);
+        statDefXML = statDefXML.replace("{FILEPATH}", rasterFullPath);
 		
 		try {
 			JAXBContext context = JAXBContext.newInstance(StatisticConfiguration.class);
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			StatisticConfiguration statConf = (StatisticConfiguration) unmarshaller.unmarshal(new StringReader(statDefXML));
+			
+			// WARNING!! STATDEF MANIPULATION - Removing the first zonal classification layer (v.gr. provinces), so we operate over a single zone (ROI)
+			List<ClassificationLayer> classifications = statConf.getClassifications();
+			for (ClassificationLayer cLayer : classifications) {
+				if(cLayer.getZonal()) {
+					classifications.remove(cLayer);
+					break;
+				}
+			}
+			
 			return statConf;
 		} catch (JAXBException e) {
 			logger.error("StatsConf invalid XML contents", e);
@@ -190,11 +228,16 @@ public class ReportManager {
 		}
 	}
 
+	/**
+	 * Test function.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		GeoStoreClient client = new GeoStoreClient();
 		client.setGeostoreRestUrl("http://demo1.geo-solutions.it/stg_geostore/rest");
 		client.setUsername("admin");
-		client.setPassword("Unr3dd");
+		client.setPassword("XXXXX");
 		UNREDDGeostoreManager geostore = new UNREDDGeostoreManager(client);
 		
 		ReportManager report = new ReportManager(geostore);

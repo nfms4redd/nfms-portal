@@ -15,8 +15,18 @@
  */
 package org.fao.unredd.report;
 
+/**
+ * Handles possible errors during a Report construction.
+ * 
+ * Error causes are classified using the embedded {@link #Code} list. 
+ * 
+ * @author Oscar Fonts
+ */
 public class ReportException extends Exception {
 
+	/**
+	 * List of possible Report error causes.
+	 */
 	public enum Code {
 		/**
 		 * StatsDef depend on many layers, and we haven't implemented this case.

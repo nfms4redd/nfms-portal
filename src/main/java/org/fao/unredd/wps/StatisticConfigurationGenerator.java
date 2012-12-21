@@ -38,14 +38,14 @@ import org.n52.wps.io.datahandler.generator.AbstractGenerator;
  * @author Oscar Fonts
  */
 public class StatisticConfigurationGenerator extends AbstractGenerator {
-	final Marshaller marshaller;
+	final JAXBContext context;
 	
 	public StatisticConfigurationGenerator() throws IOException {
 		super();
 		supportedIDataTypes.add(StatisticConfigurationDataBinding.class);
 		try {
-			JAXBContext context = JAXBContext.newInstance(StatisticConfiguration.class);
-			marshaller = context.createMarshaller();
+			context = JAXBContext.newInstance(StatisticConfiguration.class);
+			
 		} catch (JAXBException e) {
 			throw new IOException("Couldn't create a JAXB context for the StatisticConfiguration class", e);
 		}
@@ -63,6 +63,7 @@ public class StatisticConfigurationGenerator extends AbstractGenerator {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
 		try {
+			Marshaller marshaller = context.createMarshaller();
 			marshaller.marshal(statConf, out);
 		} catch (JAXBException e) {
 			throw new IOException("StatsConf invalid XML contents", e);

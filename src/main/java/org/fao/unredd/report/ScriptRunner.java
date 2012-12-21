@@ -27,8 +27,11 @@ import javax.script.ScriptException;
 import org.apache.log4j.Logger;
 
 /**
- * @author oscar
- *
+ * Runs a Groovy script.
+ * 
+ * Wraps exceptions into application specific {@link ReportException}s.
+ * 
+ * @author Oscar Fonts
  */
 public class ScriptRunner {
 
@@ -38,17 +41,22 @@ public class ScriptRunner {
 	String fileName = null;
 	
 	/**
+	 * Loads a groovy script and checks its validity.
 	 * 
-	 * @throws ReportException 
+	 * @param location local path to the Groovy script file to be run.
+	 * @throws ReportException Location doesn't exist or is not recognized as a valid Groovy script.
 	 */
 	public ScriptRunner(File location) throws ReportException {
 		try {
+			if(!location.exists()) {
+				throw new FileNotFoundException();
+			}
 			fileName = location.getName();
 			ScriptEngineManager mgr = new ScriptEngineManager();
 	        engine = mgr.getEngineByName("groovy");
 			engine.eval(new FileReader(location));
 		} catch (FileNotFoundException e) {
-			logger.error("Script file not found '" + fileName + "': " + e.getMessage());
+			logger.error("Script file not found '" + location.toString() + "': " + e.getMessage());
 			throw new ReportException(ReportException.Code.GROOVY_SCRIPT_NOT_FOUND);
 		} catch (ScriptException e) {
 			logger.error("Script '" + fileName + "' loading failed: " + e.getMessage());
@@ -58,8 +66,13 @@ public class ScriptRunner {
 	}
 	
 	/**
+	 * Call a specific function in the groovy script.
 	 * 
-	 * @throws ReportException 
+	 * @param name The function name.
+	 * @param arguments As many arguments as the function needs.
+	 * @return the script function return.
+	 * 
+	 * @throws ReportException The function does not exist, or the script run failed.
 	 */
 	public Object callFunction(String name, Object... arguments) throws ReportException {
 		try {

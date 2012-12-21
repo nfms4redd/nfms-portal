@@ -35,9 +35,6 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Oscar Fonts
  */
 public class GMLGeometryParser extends AbstractParser {
-
-	Parser par2 = null;
-	Parser par3 = null;
 	
 	public GMLGeometryParser() {
 		super();
@@ -55,9 +52,11 @@ public class GMLGeometryParser extends AbstractParser {
 		Geometry geom = null;
 		try {
 			if ((mimeType != null && mimeType.contains("gml/2")) || (schema != null && schema.contains("gml/2"))) {
-				geom = (Geometry)getGML2Parser().parse(input);
+				Parser par = new Parser(new org.geotools.gml2.GMLConfiguration());
+				geom = (Geometry)par.parse(input);
 			} else {
-				geom = (Geometry)getGML3Parser().parse(input);
+				Parser par = new Parser(new org.geotools.gml3.GMLConfiguration());
+				geom = (Geometry)par.parse(input);
 			}
 			return new GeometryDataBinding(geom);
 		} catch (ClassCastException e) {
@@ -70,19 +69,4 @@ public class GMLGeometryParser extends AbstractParser {
 			throw new IllegalArgumentException("Error transfering GML", e);
 		}
 	}
-
-	Parser getGML2Parser() {
-		if (par2 == null) {
-			par2 = new Parser(new org.geotools.gml2.GMLConfiguration());
-		}
-		return par2;
-	}
-	
-	Parser getGML3Parser() {
-		if (par3 == null) {
-			par3 = new Parser(new org.geotools.gml3.GMLConfiguration());
-		}
-		return par3;
-	}
-	
 }

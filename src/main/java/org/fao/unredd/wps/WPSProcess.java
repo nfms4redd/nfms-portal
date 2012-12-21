@@ -18,6 +18,7 @@ package org.fao.unredd.wps;
 import it.geosolutions.unredd.stats.model.config.StatisticConfiguration;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import net.opengis.ows.x11.ExceptionReportDocument;
@@ -26,6 +27,7 @@ import net.opengis.wps.x100.ExecuteResponseDocument;
 import net.opengis.wps.x100.InputDescriptionType;
 import net.opengis.wps.x100.ProcessDescriptionType;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.geotools.feature.FeatureCollection;
@@ -97,6 +99,7 @@ public class WPSProcess {
 	 * @param responseType The class for the output. {@link AbstractParser Parsers} for the output class has to be registered in <i>wps_config.xml</i> file.
 	 * @return The output. An instance of the former class.
 	 * @throws WPSClientException Something went wrong during the WPS execution, either locally or remotely.
+	 * @throws IOException 
 	 * 
 	 * @see <a href="http://52north.org/communities/geoprocessing/wps/architecture.html">52N WPS Architecture</a>
 	 */
@@ -177,13 +180,17 @@ public class WPSProcess {
 			}
 			ExecuteResponseAnalyser analyser = new ExecuteResponseAnalyser(execute, response, process);
 			data = analyser.getComplexDataByIndex(0, responseBinding);
+			return (T)data.getPayload();
 		} else {
 			// Parse raw data response
-			String outputId = process.getProcessOutputs().getOutputArray(0).getIdentifier().getStringValue();
-			ExecuteResponseAnalyser analyser = new ExecuteResponseAnalyser(execute, responseObject, process);
-			data = analyser.getComplexData(outputId, responseBinding);
+			if(responseObject instanceof InputStream) {
+				try {
+					return (T)IOUtils.toString((InputStream)responseObject, "UTF-8");
+				} catch (Exception e) {
+					throw new WPSClientException("Couldn't parse WPS response.");
+				}
+			}
+			return (T)responseObject;
 		}
-		
-		return (T)data.getPayload();
 	}
 }

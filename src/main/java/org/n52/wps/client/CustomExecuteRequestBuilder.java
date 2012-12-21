@@ -3,7 +3,6 @@ package org.n52.wps.client;
 import java.io.IOException;
 import java.io.InputStream;
 
-import net.opengis.wps.x100.ComplexDataDescriptionType;
 import net.opengis.wps.x100.ComplexDataType;
 import net.opengis.wps.x100.InputDescriptionType;
 import net.opengis.wps.x100.InputType;

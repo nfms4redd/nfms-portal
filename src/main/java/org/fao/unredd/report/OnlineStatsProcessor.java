@@ -37,6 +37,21 @@ import org.n52.wps.client.WPSClientException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+/**
+ * Processes a collection of statistics jobs, launching them as concurrent WPS processes.
+ * 
+ * Accepts some configuration properties, default values being:
+ * <ul>
+ * <li>stats.concurrency=3
+ * <li>stats.url=http://localhost/stg_geoserver/ows
+ * <li>stats.processname=gs:OnlineStatsWPS
+ * <li>stats.inputname.roi=geometry
+ * <li>stats.inputname.statconf=statConf
+ * <li>stats.outputname=result
+ * </ul>
+ * 
+ * @author Oscar Fonts
+ */
 public class OnlineStatsProcessor {
 	private static Logger logger = Logger.getLogger(OnlineStatsProcessor.class);
 
@@ -50,7 +65,13 @@ public class OnlineStatsProcessor {
 	private WPSProcess process;
 	private List<WPSCall> wpsCalls;
 	
-	public OnlineStatsProcessor(Geometry ROI, Properties config) throws ReportException {
+	/**
+	 * Initializes the Online Stats processor. Checks the WPS service and process existence.
+	 * 
+	 * @param config Properties to override defaults. Will be used to point to the WPS service URL.
+	 * @throws ReportException The indicated WPS service or process is not accessible.
+	 */
+	public OnlineStatsProcessor(Properties config) throws ReportException {
 		if (config == null) {
 			config = new Properties();
 		}
@@ -60,7 +81,7 @@ public class OnlineStatsProcessor {
 		ROIInputName = config.getProperty("stats.inputname.roi", "geometry");
 		statConfInputName = config.getProperty("stats.inputname.statconf", "statConf");
 		outputName = config.getProperty("stats.outputname", "result");
-		maxConcurrency = Integer.parseInt(config.getProperty("stats.concurrency", "2"));
+		maxConcurrency = Integer.parseInt(config.getProperty("stats.concurrency", "3"));
 		
 		try {
 			process = new WPSProcess(baseURL, processName);
@@ -71,21 +92,34 @@ public class OnlineStatsProcessor {
 		}
 	}
 
-	public OnlineStatsProcessor(Geometry ROI) throws ReportException {
-		this(ROI, null);
-	}
-	
-	public void addJob(String date, Geometry ROI, StatisticConfiguration statconf) {
+	/**
+	 * Add a job to the batch of statistics process to run.
+	 * Adding a job doesn't trigger its immediate execution.
+	 * To run the jobs in parallel, call the {@link #processAll} method.
+	 * 
+	 * @param id  A string use to distinguish this particular job (and its result) from the others in the queue.
+	 * @param ROI The Region of Interest, accepts any geometry type. Note: No geometry validation performed.
+	 * @param statconf The statistics definition.
+	 */
+	public void addJob(String id, Geometry ROI, StatisticConfiguration statconf) {
 		// TODO Eventually add restrictions to ROI geometries
 		
 		Map<String, Object> inputs = new TreeMap<String, Object>();
 		inputs.put(ROIInputName,      ROI);
 		inputs.put(statConfInputName, statconf);
 		
-		wpsCalls.add(new WPSCall(date, process, inputs, String.class));
+		wpsCalls.add(new WPSCall(id, process, inputs, String.class));
 	}
 	
-	// Run calls, parse outputs
+	// 
+	
+	
+	/**
+	 * Run the WPS jobs, parse the results.
+	 * 
+	 * @return A collection of statistics data tables, indexed by the job IDs.
+	 * @throws ReportException Something went wrong during the remote execution, result cannot be parsed.
+	 */
 	public Map<String, double[][]> processAll() throws ReportException {
 		// Check if there's something to run
 		if (wpsCalls.size() == 0) {
@@ -140,6 +174,7 @@ public class OnlineStatsProcessor {
 				WPSResult wpsResult = future.get();
 				pendingResults.remove(future);
 				wpsResults.add(wpsResult);
+				logger.debug("Process output:" + wpsResult.getOutput().toString());
 				logger.debug(wpsResults.size() + " processes finished, " + pendingResults.size() + " still pending.");
 			} catch (InterruptedException e) {
 				logger.warn("One WPS process execution was cancelled.", e);
