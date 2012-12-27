@@ -1057,7 +1057,7 @@ $(window).load(function () {
 	    	    		}
     	    	    },
     	    	    error: function(jqXHR, textStatus, errorThrown) {
-    	    			try {
+       	    			try {
     	    				var response = $.parseJSON(errorThrown);
     	    			} catch(e) {}
     	    	    	if (response) {
@@ -1111,11 +1111,11 @@ $(window).load(function () {
 		    	    type: 'POST',
 		    	    contentType: 'application/json',
 		    	    url: 'report.json?' + $.param(params),
-		    	    data: JSON.stringify({
-		    	    	"geo": UNREDD.stats_toolbar.getFeaturesAsGeoJson()
-		    	    }),
-		    	    dataType: "json",
+		    	    data: UNREDD.stats_toolbar.getFeaturesAsWKT(),
 		    	    success: function(data, textStatus, jqXHR) {
+		    	    	if (UNREDD.waitDialog) {
+		    	    		UNREDD.waitDialog.dialog('close');
+		    	    	}
 		    	    	if (data.link) {
 		    	    		$.fancybox({
 		    	    			href:        data.link.href,
@@ -1133,9 +1133,12 @@ $(window).load(function () {
 		    	    	}
 	    	    		$("#stats_popup").dialog('close');
 		    	    },
-		    	    error: function(jqXHR, textStatus, errorThrown) {
+		    	    error: function(jqXHR) {
+		    	    	if (UNREDD.waitDialog) {
+		    	    		UNREDD.waitDialog.dialog('close');
+		    	    	}
 		    			try {
-		    				var response = $.parseJSON(errorThrown);
+		    				var response = $.parseJSON(jqXHR.responseText);
 		    			} catch(e) {}
 		    	    	if (response) {
 		    	    		alert(messages[response.message]);
@@ -1144,6 +1147,22 @@ $(window).load(function () {
 		    	    	}
 	    	    	}
 		    	});
+    	    	
+    	        // Add a modal "please wait" dialog
+    	    	if (!UNREDD.waitDialog) {
+	    	        UNREDD.waitDialog = $('<div></div>')
+	    	            .html('<div style="width:100%;align:center;"><img style="display:block;margin:auto;padding:14px;" src="css/images/fancybox_loading.gif"></div>' + messages.stats_wait_message)
+	    	            .dialog({
+	    	            	width: 210,
+	    	            	height: 120,
+	    	                autoOpen: false,
+	    	                closeOnEscape: false,
+	    	                resizable: false,
+	    	                title: messages.stats_wait_title,
+	    	                modal: true
+	    	            });
+    	    	}
+    	    	UNREDD.waitDialog.dialog('open');
 		    }
 	    });
         
@@ -1216,11 +1235,11 @@ $(window).load(function () {
 	    	    		alert(messages[data.message]);
 	    	    		$("#feedback_popup").dialog('close');
     	    	    },
-    	    	    error: function(jqXHR, textStatus, errorThrown) {
+    	    	    error: function(jqXHR) {
     	    			Recaptcha.reload();
-    	    			try {
-    	    				var response = $.parseJSON(errorThrown);
-    	    			} catch(e) {}
+		    			try {
+		    				var response = $.parseJSON(jqXHR.responseText);
+		    			} catch(e) {}
     	    	    	if (response) {
     	    	    		alert(messages[response.message]);
     	    	    	} else {
