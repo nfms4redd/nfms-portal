@@ -15,13 +15,20 @@
  */
 package org.fao.unredd.wps;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import junit.framework.TestCase;
 
+import org.geotools.xml.Parser;
 import org.junit.Test;
 import org.n52.wps.client.WPSClientException;
+import org.xml.sax.SAXException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -52,7 +59,7 @@ public class TestWPSProcess extends TestCase {
 	 * @throws WPSClientException if process execution failed.
 	 */
 	@Test
-	public void testBuffer() throws ParseException, WPSClientException {
+	public void testBuffer() throws Exception {
 		WKTReader wktReader = new WKTReader();
 
 		// Instantiate process; implies sending a describeProcess to the WPS service
@@ -71,10 +78,15 @@ public class TestWPSProcess extends TestCase {
 		inputs.put(BUFFER_INPUT_DISTANCE_NAME, BUFFER_INPUT_DISTANCE_VALUE);
 
 		// Execute
-		Geometry response = process.execute(inputs, Geometry.class);
-		System.out.print(response);		
+		String response = process.execute(inputs, String.class);
+		System.out.print(response);
+		
+		// Parse
+		Parser par = new Parser(new org.geotools.gml3.GMLConfiguration());
+		InputStream is = new ByteArrayInputStream(response.getBytes());
+		Geometry geom = (Geometry)par.parse(is);
 
 		// Compare results
-		assertEquals(BUFFER_EXPECTED_RESPONSE_VALUE, response.toString());
+		assertEquals(BUFFER_EXPECTED_RESPONSE_VALUE, geom.toString());
 	}
 }
