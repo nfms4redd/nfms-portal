@@ -17,8 +17,6 @@ package org.fao.unredd.report;
 
 import java.io.File;
 import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -86,10 +84,10 @@ public class ReportManager {
 	 * 
 	 * @param wktROI The Region Of Interest, expressed as a Well-Known Text Geometry.
 	 * @param chartScriptId The chart definition, its id in GeoStore.
-	 * @return The URL where the report can be accessed.
+	 * @return The report contents.
 	 * @throws ReportException Something went wrong. Check the {@link ReportException#Code} for further detail.
 	 */
-	public URL get(String wktROI, long chartScriptId) throws ReportException {
+	public String get(String wktROI, long chartScriptId) throws ReportException {
 		// Get ROI Geometry
 		Geometry ROI;
 		try {
@@ -114,16 +112,7 @@ public class ReportManager {
 		logger.debug(report);
 		logger.debug("============ END REPORT =============");
 		
-		// TODO Put report contents into a new CustomReport category in GeoStore. Think about needed attributes.
-		String resourceURL = "http://demo1.geo-solutions.it/diss_geostore/rest/misc/category/name/ChartData/resource/name/drc_forest_area_charts_7_en/data?name=Custom Stats Demo";
-
-    	logger.debug("Report finished. Result URL: " + resourceURL);
-		
-		try {
-			return new URL(resourceURL);
-		} catch (MalformedURLException e) {
-			throw new ReportException(ReportException.Code.GEOSTORE_ERROR, e);
-		}
+		return report;
 	}
 	
 	String runChartScript(long chartScriptId, Map<String, double[][]> statsDataMap) throws ReportException {

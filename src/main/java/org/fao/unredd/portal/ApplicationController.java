@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.FileNameMap;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -237,7 +236,12 @@ public class ApplicationController {
 		try {
 			// Generate Report
 	    	ReportManager report = new ReportManager(getGeostore(), config.getProperties());
-			URL reportURL = report.get(wktROI, chartScriptId);
+			String reportContents = report.get(wktROI, chartScriptId);
+			
+			// Persist report in GeoStore, get the URL
+			Long reportId = getGeostore().insertReport(attributes, reportContents);
+			String resourceName = getGeostore().getClient().getResource(reportId).getName();
+			String reportURL = getGeostore().getClient().getGeostoreRestUrl() + "/misc/category/name/Report/resource/name/" + resourceName + "/data?name=" + attributes.get("UserName") + " Stats";
 			
 			// Build JSON response
 	    	String responseBody = "{ \n"+
@@ -245,7 +249,7 @@ public class ApplicationController {
 			  "   \"response_type\": \"result_embedded\", \n"+
 			  "   \"link\": { \n"+
 			  "      \"type\": \"text/html\", \n"+
-			  "      \"href\": \""+ reportURL.toString() +"\" \n"+
+			  "      \"href\": \""+ reportURL +"\" \n"+
 			  "   } \n"+
 			  "}";
 			response.getWriter().print(responseBody);
