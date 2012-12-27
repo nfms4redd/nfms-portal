@@ -711,7 +711,9 @@ table.feedback textarea {
 }
 
 #feedback_cancel,
-#feedback_submit {
+#feedback_submit,
+#stats_cancel,
+#stats_submit {
 	width: 45%;
 	float: right;
 	margin-left: 5px;

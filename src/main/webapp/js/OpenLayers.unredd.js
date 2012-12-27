@@ -12196,189 +12196,6 @@ OpenLayers.Events = OpenLayers.Class({
     CLASS_NAME: "OpenLayers.Events"
 });
 /* ======================================================================
-    OpenLayers/Events/buttonclick.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Events.js
- */
-
-/**
- * Class: OpenLayers.Events.buttonclick
- * Extension event type for handling buttons on top of a dom element. This
- *     event type fires "buttonclick" on its <target> when a button was
- *     clicked. Buttons are detected by the "olButton" class.
- *
- * This event type makes sure that button clicks do not interfere with other
- *     events that are registered on the same <element>.
- *
- * Event types provided by this extension:
- * - *buttonclick* Triggered when a button is clicked. Listeners receive an
- *     object with a *buttonElement* property referencing the dom element of
- *     the clicked button, and an *buttonXY* property with the click position
- *     relative to the button.
- */
-OpenLayers.Events.buttonclick = OpenLayers.Class({
-    
-    /**
-     * Property: target
-     * {<OpenLayers.Events>} The events instance that the buttonclick event will
-     * be triggered on.
-     */
-    target: null,
-    
-    /**
-     * Property: events
-     * {Array} Events to observe and conditionally stop from propagating when
-     *     an element with the olButton class (or its olAlphaImg child) is
-     *     clicked.
-     */
-    events: [
-        'mousedown', 'mouseup', 'click', 'dblclick',
-        'touchstart', 'touchmove', 'touchend', 'keydown'
-    ],
-    
-    /**
-     * Property: startRegEx
-     * {RegExp} Regular expression to test Event.type for events that start
-     *     a buttonclick sequence.
-     */
-    startRegEx: /^mousedown|touchstart$/,
-
-    /**
-     * Property: cancelRegEx
-     * {RegExp} Regular expression to test Event.type for events that cancel
-     *     a buttonclick sequence.
-     */
-    cancelRegEx: /^touchmove$/,
-
-    /**
-     * Property: completeRegEx
-     * {RegExp} Regular expression to test Event.type for events that complete
-     *     a buttonclick sequence.
-     */
-    completeRegEx: /^mouseup|touchend$/,
-    
-    /**
-     * Property: startEvt
-     * {Event} The event that started the click sequence
-     */
-    
-    /**
-     * Constructor: OpenLayers.Events.buttonclick
-     * Construct a buttonclick event type. Applications are not supposed to
-     *     create instances of this class - they are created on demand by
-     *     <OpenLayers.Events> instances.
-     *
-     * Parameters:
-     * target - {<OpenLayers.Events>} The events instance that the buttonclick
-     *     event will be triggered on.
-     */
-    initialize: function(target) {
-        this.target = target;
-        for (var i=this.events.length-1; i>=0; --i) {
-            this.target.register(this.events[i], this, this.buttonClick, {
-                extension: true
-            });
-        }
-    },
-    
-    /**
-     * Method: destroy
-     */
-    destroy: function() {
-        for (var i=this.events.length-1; i>=0; --i) {
-            this.target.unregister(this.events[i], this, this.buttonClick);
-        }
-        delete this.target;
-    },
-
-    /**
-     * Method: getPressedButton
-     * Get the pressed button, if any. Returns undefined if no button
-     * was pressed.
-     *
-     * Arguments:
-     * element - {DOMElement} The event target.
-     *
-     * Returns:
-     * {DOMElement} The button element, or undefined.
-     */
-    getPressedButton: function(element) {
-        var depth = 3, // limit the search depth
-            button;
-        do {
-            if(OpenLayers.Element.hasClass(element, "olButton")) {
-                // hit!
-                button = element;
-                break;
-            }
-            element = element.parentNode;
-        } while(--depth > 0 && element);
-        return button;
-    },
-
-    /**
-     * Method: buttonClick
-     * Check if a button was clicked, and fire the buttonclick event
-     *
-     * Parameters:
-     * evt - {Event}
-     */
-    buttonClick: function(evt) {
-        var propagate = true,
-            element = OpenLayers.Event.element(evt);
-        if (element && (OpenLayers.Event.isLeftClick(evt) || !~evt.type.indexOf("mouse"))) {
-            // was a button pressed?
-            var button = this.getPressedButton(element);
-            if (button) {
-                if (evt.type === "keydown") {
-                    switch (evt.keyCode) {
-                    case OpenLayers.Event.KEY_RETURN:
-                    case OpenLayers.Event.KEY_SPACE:
-                        this.target.triggerEvent("buttonclick", {
-                            buttonElement: button
-                        });
-                        OpenLayers.Event.stop(evt);
-                        propagate = false;
-                        break;
-                    }
-                } else if (this.startEvt) {
-                    if (this.completeRegEx.test(evt.type)) {
-                        var pos = OpenLayers.Util.pagePosition(button);
-                        this.target.triggerEvent("buttonclick", {
-                            buttonElement: button,
-                            buttonXY: {
-                                x: this.startEvt.clientX - pos[0],
-                                y: this.startEvt.clientY - pos[1]
-                            }
-                        });
-                    }
-                    if (this.cancelRegEx.test(evt.type)) {
-                        delete this.startEvt;
-                    }
-                    OpenLayers.Event.stop(evt);
-                    propagate = false;
-                }
-                if (this.startRegEx.test(evt.type)) {
-                    this.startEvt = evt;
-                    OpenLayers.Event.stop(evt);
-                    propagate = false;
-                }
-            } else {
-                delete this.startEvt;
-            }
-        }
-        return propagate;
-    }
-    
-});
-/* ======================================================================
     OpenLayers/Projection.js
    ====================================================================== */
 
@@ -15335,7101 +15152,6 @@ OpenLayers.Map.TILE_WIDTH = 256;
  * {Integer} 256 Default tile height (unless otherwise specified)
  */
 OpenLayers.Map.TILE_HEIGHT = 256;
-/* ======================================================================
-    OpenLayers/Protocol.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- */
-
-/**
- * Class: OpenLayers.Protocol
- * Abstract vector layer protocol class.  Not to be instantiated directly.  Use
- *     one of the protocol subclasses instead.
- */
-OpenLayers.Protocol = OpenLayers.Class({
-    
-    /**
-     * Property: format
-     * {<OpenLayers.Format>} The format used by this protocol.
-     */
-    format: null,
-    
-    /**
-     * Property: options
-     * {Object} Any options sent to the constructor.
-     */
-    options: null,
-
-    /**
-     * Property: autoDestroy
-     * {Boolean} The creator of the protocol can set autoDestroy to false
-     *      to fully control when the protocol is destroyed. Defaults to
-     *      true.
-     */
-    autoDestroy: true,
-   
-    /**
-     * Property: defaultFilter
-     * {<OpenLayers.Filter>} Optional default filter to read requests
-     */
-    defaultFilter: null,
-    
-    /**
-     * Constructor: OpenLayers.Protocol
-     * Abstract class for vector protocols.  Create instances of a subclass.
-     *
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on the
-     *     instance.
-     */
-    initialize: function(options) {
-        options = options || {};
-        OpenLayers.Util.extend(this, options);
-        this.options = options;
-    },
-
-    /**
-     * Method: mergeWithDefaultFilter
-     * Merge filter passed to the read method with the default one
-     *
-     * Parameters:
-     * filter - {<OpenLayers.Filter>}
-     */
-    mergeWithDefaultFilter: function(filter) {
-        var merged;
-        if (filter && this.defaultFilter) {
-            merged = new OpenLayers.Filter.Logical({
-                type: OpenLayers.Filter.Logical.AND,
-                filters: [this.defaultFilter, filter]
-            });
-        } else {
-            merged = filter || this.defaultFilter || undefined;
-        }
-        return merged;
-    },
-
-    /**
-     * APIMethod: destroy
-     * Clean up the protocol.
-     */
-    destroy: function() {
-        this.options = null;
-        this.format = null;
-    },
-    
-    /**
-     * APIMethod: read
-     * Construct a request for reading new features.
-     *
-     * Parameters:
-     * options - {Object} Optional object for configuring the request.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     * object, the same object will be passed to the callback function passed
-     * if one exists in the options object.
-     */
-    read: function(options) {
-        options = options || {};
-        options.filter = this.mergeWithDefaultFilter(options.filter);
-    },
-    
-    
-    /**
-     * APIMethod: create
-     * Construct a request for writing newly created features.
-     *
-     * Parameters:
-     * features - {Array({<OpenLayers.Feature.Vector>})} or
-     *            {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     * object, the same object will be passed to the callback function passed
-     * if one exists in the options object.
-     */
-    create: function() {
-    },
-    
-    /**
-     * APIMethod: update
-     * Construct a request updating modified features.
-     *
-     * Parameters:
-     * features - {Array({<OpenLayers.Feature.Vector>})} or
-     *            {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     * object, the same object will be passed to the callback function passed
-     * if one exists in the options object.
-     */
-    update: function() {
-    },
-    
-    /**
-     * APIMethod: delete
-     * Construct a request deleting a removed feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     * object, the same object will be passed to the callback function passed
-     * if one exists in the options object.
-     */
-    "delete": function() {
-    },
-
-    /**
-     * APIMethod: commit
-     * Go over the features and for each take action
-     * based on the feature state. Possible actions are create,
-     * update and delete.
-     *
-     * Parameters:
-     * features - {Array({<OpenLayers.Feature.Vector>})}
-     * options - {Object} Object whose possible keys are "create", "update",
-     *      "delete", "callback" and "scope", the values referenced by the
-     *      first three are objects as passed to the "create", "update", and
-     *      "delete" methods, the value referenced by the "callback" key is
-     *      a function which is called when the commit operation is complete
-     *      using the scope referenced by the "scope" key.
-     *
-     * Returns:
-     * {Array({<OpenLayers.Protocol.Response>})} An array of
-     * <OpenLayers.Protocol.Response> objects.
-     */
-    commit: function() {
-    },
-
-    /**
-     * Method: abort
-     * Abort an ongoing request.
-     *
-     * Parameters:
-     * response - {<OpenLayers.Protocol.Response>}
-     */
-    abort: function(response) {
-    },
-   
-    /**
-     * Method: createCallback
-     * Returns a function that applies the given public method with resp and
-     *     options arguments.
-     *
-     * Parameters:
-     * method - {Function} The method to be applied by the callback.
-     * response - {<OpenLayers.Protocol.Response>} The protocol response object.
-     * options - {Object} Options sent to the protocol method
-     */
-    createCallback: function(method, response, options) {
-        return OpenLayers.Function.bind(function() {
-            method.apply(this, [response, options]);
-        }, this);
-    },
-   
-    CLASS_NAME: "OpenLayers.Protocol" 
-});
-
-/**
- * Class: OpenLayers.Protocol.Response
- * Protocols return Response objects to their users.
- */
-OpenLayers.Protocol.Response = OpenLayers.Class({
-    /**
-     * Property: code
-     * {Number} - OpenLayers.Protocol.Response.SUCCESS or
-     *            OpenLayers.Protocol.Response.FAILURE
-     */
-    code: null,
-
-    /**
-     * Property: requestType
-     * {String} The type of request this response corresponds to. Either
-     *      "create", "read", "update" or "delete".
-     */
-    requestType: null,
-
-    /**
-     * Property: last
-     * {Boolean} - true if this is the last response expected in a commit,
-     * false otherwise, defaults to true.
-     */
-    last: true,
-
-    /**
-     * Property: features
-     * {Array({<OpenLayers.Feature.Vector>})} or {<OpenLayers.Feature.Vector>}
-     * The features returned in the response by the server. Depending on the 
-     * protocol's read payload, either features or data will be populated.
-     */
-    features: null,
-
-    /**
-     * Property: data
-     * {Object}
-     * The data returned in the response by the server. Depending on the 
-     * protocol's read payload, either features or data will be populated.
-     */
-    data: null,
-
-    /**
-     * Property: reqFeatures
-     * {Array({<OpenLayers.Feature.Vector>})} or {<OpenLayers.Feature.Vector>}
-     * The features provided by the user and placed in the request by the
-     *      protocol.
-     */
-    reqFeatures: null,
-
-    /**
-     * Property: priv
-     */
-    priv: null,
-
-    /**
-     * Property: error
-     * {Object} The error object in case a service exception was encountered.
-     */
-    error: null,
-
-    /**
-     * Constructor: OpenLayers.Protocol.Response
-     *
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on the
-     *     instance.
-     */
-    initialize: function(options) {
-        OpenLayers.Util.extend(this, options);
-    },
-
-    /**
-     * Method: success
-     *
-     * Returns:
-     * {Boolean} - true on success, false otherwise
-     */
-    success: function() {
-        return this.code > 0;
-    },
-
-    CLASS_NAME: "OpenLayers.Protocol.Response"
-});
-
-OpenLayers.Protocol.Response.SUCCESS = 1;
-OpenLayers.Protocol.Response.FAILURE = 0;
-/* ======================================================================
-    OpenLayers/Request.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Events.js
- */
-
-/**
- * TODO: deprecate me
- * Use OpenLayers.Request.proxy instead.
- */
-OpenLayers.ProxyHost = "";
-
-/**
- * Namespace: OpenLayers.Request
- * The OpenLayers.Request namespace contains convenience methods for working
- *     with XMLHttpRequests.  These methods work with a cross-browser
- *     W3C compliant <OpenLayers.Request.XMLHttpRequest> class.
- */
-OpenLayers.Request = {
-    
-    /**
-     * Constant: DEFAULT_CONFIG
-     * {Object} Default configuration for all requests.
-     */
-    DEFAULT_CONFIG: {
-        method: "GET",
-        url: window.location.href,
-        async: true,
-        user: undefined,
-        password: undefined,
-        params: null,
-        proxy: OpenLayers.ProxyHost,
-        headers: {},
-        data: null,
-        callback: function() {},
-        success: null,
-        failure: null,
-        scope: null
-    },
-    
-    /**
-     * Constant: URL_SPLIT_REGEX
-     */
-    URL_SPLIT_REGEX: /([^:]*:)\/\/([^:]*:?[^@]*@)?([^:\/\?]*):?([^\/\?]*)/,
-    
-    /**
-     * APIProperty: events
-     * {<OpenLayers.Events>} An events object that handles all 
-     *     events on the {<OpenLayers.Request>} object.
-     *
-     * All event listeners will receive an event object with three properties:
-     * request - {<OpenLayers.Request.XMLHttpRequest>} The request object.
-     * config - {Object} The config object sent to the specific request method.
-     * requestUrl - {String} The request url.
-     * 
-     * Supported event types:
-     * complete - Triggered when we have a response from the request, if a
-     *     listener returns false, no further response processing will take
-     *     place.
-     * success - Triggered when the HTTP response has a success code (200-299).
-     * failure - Triggered when the HTTP response does not have a success code.
-     */
-    events: new OpenLayers.Events(this),
-    
-    /**
-     * Method: makeSameOrigin
-     * Using the specified proxy, returns a same origin url of the provided url.
-     *
-     * Parameters:
-     * url - {String} An arbitrary url
-     * proxy {String|Function} The proxy to use to make the provided url a
-     *     same origin url.
-     *
-     * Returns
-     * {String} the same origin url. If no proxy is provided, the returned url
-     *     will be the same as the provided url.
-     */
-    makeSameOrigin: function(url, proxy) {
-        var sameOrigin = url.indexOf("http") !== 0;
-        var urlParts = !sameOrigin && url.match(this.URL_SPLIT_REGEX);
-        if (urlParts) {
-            var location = window.location;
-            sameOrigin =
-                urlParts[1] == location.protocol &&
-                urlParts[3] == location.hostname;
-            var uPort = urlParts[4], lPort = location.port;
-            if (uPort != 80 && uPort != "" || lPort != "80" && lPort != "") {
-                sameOrigin = sameOrigin && uPort == lPort;
-            }
-        }
-        if (!sameOrigin) {
-            if (proxy) {
-                if (typeof proxy == "function") {
-                    url = proxy(url);
-                } else {
-                    url = proxy + encodeURIComponent(url);
-                }
-            } else {
-                OpenLayers.Console.warn(
-                    OpenLayers.i18n("proxyNeeded"), {url: url});
-            }
-        }
-        return url;
-    },
-
-    /**
-     * APIMethod: issue
-     * Create a new XMLHttpRequest object, open it, set any headers, bind
-     *     a callback to done state, and send any data.  It is recommended that
-     *     you use one <GET>, <POST>, <PUT>, <DELETE>, <OPTIONS>, or <HEAD>.
-     *     This method is only documented to provide detail on the configuration
-     *     options available to all request methods.
-     *
-     * Parameters:
-     * config - {Object} Object containing properties for configuring the
-     *     request.  Allowed configuration properties are described below.
-     *     This object is modified and should not be reused.
-     *
-     * Allowed config properties:
-     * method - {String} One of GET, POST, PUT, DELETE, HEAD, or
-     *     OPTIONS.  Default is GET.
-     * url - {String} URL for the request.
-     * async - {Boolean} Open an asynchronous request.  Default is true.
-     * user - {String} User for relevant authentication scheme.  Set
-     *     to null to clear current user.
-     * password - {String} Password for relevant authentication scheme.
-     *     Set to null to clear current password.
-     * proxy - {String} Optional proxy.  Defaults to
-     *     <OpenLayers.ProxyHost>.
-     * params - {Object} Any key:value pairs to be appended to the
-     *     url as a query string.  Assumes url doesn't already include a query
-     *     string or hash.  Typically, this is only appropriate for <GET>
-     *     requests where the query string will be appended to the url.
-     *     Parameter values that are arrays will be
-     *     concatenated with a comma (note that this goes against form-encoding)
-     *     as is done with <OpenLayers.Util.getParameterString>.
-     * headers - {Object} Object with header:value pairs to be set on
-     *     the request.
-     * data - {String | Document} Optional data to send with the request.
-     *     Typically, this is only used with <POST> and <PUT> requests.
-     *     Make sure to provide the appropriate "Content-Type" header for your
-     *     data.  For <POST> and <PUT> requests, the content type defaults to
-     *     "application-xml".  If your data is a different content type, or
-     *     if you are using a different HTTP method, set the "Content-Type"
-     *     header to match your data type.
-     * callback - {Function} Function to call when request is done.
-     *     To determine if the request failed, check request.status (200
-     *     indicates success).
-     * success - {Function} Optional function to call if request status is in
-     *     the 200s.  This will be called in addition to callback above and
-     *     would typically only be used as an alternative.
-     * failure - {Function} Optional function to call if request status is not
-     *     in the 200s.  This will be called in addition to callback above and
-     *     would typically only be used as an alternative.
-     * scope - {Object} If callback is a public method on some object,
-     *     set the scope to that object.
-     *
-     * Returns:
-     * {XMLHttpRequest} Request object.  To abort the request before a response
-     *     is received, call abort() on the request object.
-     */
-    issue: function(config) {        
-        // apply default config - proxy host may have changed
-        var defaultConfig = OpenLayers.Util.extend(
-            this.DEFAULT_CONFIG,
-            {proxy: OpenLayers.ProxyHost}
-        );
-        config = OpenLayers.Util.applyDefaults(config, defaultConfig);
-        
-        // Always set the "X-Requested-With" header to signal that this request
-        // was issued through the XHR-object. Since header keys are case 
-        // insensitive and we want to allow overriding of the "X-Requested-With"
-        // header through the user we cannot use applyDefaults, but have to 
-        // check manually whether we were called with a "X-Requested-With"
-        // header.
-        var customRequestedWithHeader = false,
-            headerKey;
-        for(headerKey in config.headers) {
-            if (config.headers.hasOwnProperty( headerKey )) {
-                if (headerKey.toLowerCase() === 'x-requested-with') {
-                    customRequestedWithHeader = true;
-                }
-            }
-        }
-        if (customRequestedWithHeader === false) {
-            // we did not have a custom "X-Requested-With" header
-            config.headers['X-Requested-With'] = 'XMLHttpRequest';
-        }
-
-        // create request, open, and set headers
-        var request = new OpenLayers.Request.XMLHttpRequest();
-        var url = OpenLayers.Util.urlAppend(config.url, 
-            OpenLayers.Util.getParameterString(config.params || {}));
-        url = OpenLayers.Request.makeSameOrigin(url, config.proxy);
-        request.open(
-            config.method, url, config.async, config.user, config.password
-        );
-        for(var header in config.headers) {
-            request.setRequestHeader(header, config.headers[header]);
-        }
-
-        var events = this.events;
-
-        // we want to execute runCallbacks with "this" as the
-        // execution scope
-        var self = this;
-        
-        request.onreadystatechange = function() {
-            if(request.readyState == OpenLayers.Request.XMLHttpRequest.DONE) {
-                var proceed = events.triggerEvent(
-                    "complete",
-                    {request: request, config: config, requestUrl: url}
-                );
-                if(proceed !== false) {
-                    self.runCallbacks(
-                        {request: request, config: config, requestUrl: url}
-                    );
-                }
-            }
-        };
-        
-        // send request (optionally with data) and return
-        // call in a timeout for asynchronous requests so the return is
-        // available before readyState == 4 for cached docs
-        if(config.async === false) {
-            request.send(config.data);
-        } else {
-            window.setTimeout(function(){
-                if (request.readyState !== 0) { // W3C: 0-UNSENT
-                    request.send(config.data);
-                }
-            }, 0);
-        }
-        return request;
-    },
-    
-    /**
-     * Method: runCallbacks
-     * Calls the complete, success and failure callbacks. Application
-     *    can listen to the "complete" event, have the listener 
-     *    display a confirm window and always return false, and
-     *    execute OpenLayers.Request.runCallbacks if the user
-     *    hits "yes" in the confirm window.
-     *
-     * Parameters:
-     * options - {Object} Hash containing request, config and requestUrl keys
-     */
-    runCallbacks: function(options) {
-        var request = options.request;
-        var config = options.config;
-        
-        // bind callbacks to readyState 4 (done)
-        var complete = (config.scope) ?
-            OpenLayers.Function.bind(config.callback, config.scope) :
-            config.callback;
-        
-        // optional success callback
-        var success;
-        if(config.success) {
-            success = (config.scope) ?
-                OpenLayers.Function.bind(config.success, config.scope) :
-                config.success;
-        }
-
-        // optional failure callback
-        var failure;
-        if(config.failure) {
-            failure = (config.scope) ?
-                OpenLayers.Function.bind(config.failure, config.scope) :
-                config.failure;
-        }
-
-        if (OpenLayers.Util.createUrlObject(config.url).protocol == "file:" &&
-                                                        request.responseText) {
-            request.status = 200;
-        }
-        complete(request);
-
-        if (!request.status || (request.status >= 200 && request.status < 300)) {
-            this.events.triggerEvent("success", options);
-            if(success) {
-                success(request);
-            }
-        }
-        if(request.status && (request.status < 200 || request.status >= 300)) {                    
-            this.events.triggerEvent("failure", options);
-            if(failure) {
-                failure(request);
-            }
-        }
-    },
-    
-    /**
-     * APIMethod: GET
-     * Send an HTTP GET request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to GET.
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.
-     *     This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    GET: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "GET"});
-        return OpenLayers.Request.issue(config);
-    },
-    
-    /**
-     * APIMethod: POST
-     * Send a POST request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to POST and "Content-Type" header set to "application/xml".
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.  The
-     *     default "Content-Type" header will be set to "application-xml" if
-     *     none is provided.  This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    POST: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "POST"});
-        // set content type to application/xml if it isn't already set
-        config.headers = config.headers ? config.headers : {};
-        if(!("CONTENT-TYPE" in OpenLayers.Util.upperCaseObject(config.headers))) {
-            config.headers["Content-Type"] = "application/xml";
-        }
-        return OpenLayers.Request.issue(config);
-    },
-    
-    /**
-     * APIMethod: PUT
-     * Send an HTTP PUT request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to PUT and "Content-Type" header set to "application/xml".
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.  The
-     *     default "Content-Type" header will be set to "application-xml" if
-     *     none is provided.  This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    PUT: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "PUT"});
-        // set content type to application/xml if it isn't already set
-        config.headers = config.headers ? config.headers : {};
-        if(!("CONTENT-TYPE" in OpenLayers.Util.upperCaseObject(config.headers))) {
-            config.headers["Content-Type"] = "application/xml";
-        }
-        return OpenLayers.Request.issue(config);
-    },
-    
-    /**
-     * APIMethod: DELETE
-     * Send an HTTP DELETE request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to DELETE.
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.
-     *     This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    DELETE: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "DELETE"});
-        return OpenLayers.Request.issue(config);
-    },
-  
-    /**
-     * APIMethod: HEAD
-     * Send an HTTP HEAD request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to HEAD.
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.
-     *     This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    HEAD: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "HEAD"});
-        return OpenLayers.Request.issue(config);
-    },
-    
-    /**
-     * APIMethod: OPTIONS
-     * Send an HTTP OPTIONS request.  Additional configuration properties are
-     *     documented in the <issue> method, with the method property set
-     *     to OPTIONS.
-     *
-     * Parameters:
-     * config - {Object} Object with properties for configuring the request.
-     *     See the <issue> method for documentation of allowed properties.
-     *     This object is modified and should not be reused.
-     * 
-     * Returns:
-     * {XMLHttpRequest} Request object.
-     */
-    OPTIONS: function(config) {
-        config = OpenLayers.Util.extend(config, {method: "OPTIONS"});
-        return OpenLayers.Request.issue(config);
-    }
-
-};
-/* ======================================================================
-    OpenLayers/Request/XMLHttpRequest.js
-   ====================================================================== */
-
-// XMLHttpRequest.js Copyright (C) 2010 Sergey Ilinsky (http://www.ilinsky.com)
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
- * @requires OpenLayers/Request.js
- */
-
-(function () {
-
-    // Save reference to earlier defined object implementation (if any)
-    var oXMLHttpRequest    = window.XMLHttpRequest;
-
-    // Define on browser type
-    var bGecko    = !!window.controllers,
-        bIE        = window.document.all && !window.opera,
-        bIE7    = bIE && window.navigator.userAgent.match(/MSIE 7.0/);
-
-    // Enables "XMLHttpRequest()" call next to "new XMLHttpReques()"
-    function fXMLHttpRequest() {
-        this._object    = oXMLHttpRequest && !bIE7 ? new oXMLHttpRequest : new window.ActiveXObject("Microsoft.XMLHTTP");
-        this._listeners    = [];
-    };
-
-    // Constructor
-    function cXMLHttpRequest() {
-        return new fXMLHttpRequest;
-    };
-    cXMLHttpRequest.prototype    = fXMLHttpRequest.prototype;
-
-    // BUGFIX: Firefox with Firebug installed would break pages if not executed
-    if (bGecko && oXMLHttpRequest.wrapped)
-        cXMLHttpRequest.wrapped    = oXMLHttpRequest.wrapped;
-
-    // Constants
-    cXMLHttpRequest.UNSENT                = 0;
-    cXMLHttpRequest.OPENED                = 1;
-    cXMLHttpRequest.HEADERS_RECEIVED    = 2;
-    cXMLHttpRequest.LOADING                = 3;
-    cXMLHttpRequest.DONE                = 4;
-
-    // Public Properties
-    cXMLHttpRequest.prototype.readyState    = cXMLHttpRequest.UNSENT;
-    cXMLHttpRequest.prototype.responseText    = '';
-    cXMLHttpRequest.prototype.responseXML    = null;
-    cXMLHttpRequest.prototype.status        = 0;
-    cXMLHttpRequest.prototype.statusText    = '';
-
-    // Priority proposal
-    cXMLHttpRequest.prototype.priority        = "NORMAL";
-
-    // Instance-level Events Handlers
-    cXMLHttpRequest.prototype.onreadystatechange    = null;
-
-    // Class-level Events Handlers
-    cXMLHttpRequest.onreadystatechange    = null;
-    cXMLHttpRequest.onopen                = null;
-    cXMLHttpRequest.onsend                = null;
-    cXMLHttpRequest.onabort                = null;
-
-    // Public Methods
-    cXMLHttpRequest.prototype.open    = function(sMethod, sUrl, bAsync, sUser, sPassword) {
-        // Delete headers, required when object is reused
-        delete this._headers;
-
-        // When bAsync parameter value is omitted, use true as default
-        if (arguments.length < 3)
-            bAsync    = true;
-
-        // Save async parameter for fixing Gecko bug with missing readystatechange in synchronous requests
-        this._async        = bAsync;
-
-        // Set the onreadystatechange handler
-        var oRequest    = this,
-            nState        = this.readyState,
-            fOnUnload;
-
-        // BUGFIX: IE - memory leak on page unload (inter-page leak)
-        if (bIE && bAsync) {
-            fOnUnload = function() {
-                if (nState != cXMLHttpRequest.DONE) {
-                    fCleanTransport(oRequest);
-                    // Safe to abort here since onreadystatechange handler removed
-                    oRequest.abort();
-                }
-            };
-            window.attachEvent("onunload", fOnUnload);
-        }
-
-        // Add method sniffer
-        if (cXMLHttpRequest.onopen)
-            cXMLHttpRequest.onopen.apply(this, arguments);
-
-        if (arguments.length > 4)
-            this._object.open(sMethod, sUrl, bAsync, sUser, sPassword);
-        else
-        if (arguments.length > 3)
-            this._object.open(sMethod, sUrl, bAsync, sUser);
-        else
-            this._object.open(sMethod, sUrl, bAsync);
-
-        this.readyState    = cXMLHttpRequest.OPENED;
-        fReadyStateChange(this);
-
-        this._object.onreadystatechange    = function() {
-            if (bGecko && !bAsync)
-                return;
-
-            // Synchronize state
-            oRequest.readyState        = oRequest._object.readyState;
-
-            //
-            fSynchronizeValues(oRequest);
-
-            // BUGFIX: Firefox fires unnecessary DONE when aborting
-            if (oRequest._aborted) {
-                // Reset readyState to UNSENT
-                oRequest.readyState    = cXMLHttpRequest.UNSENT;
-
-                // Return now
-                return;
-            }
-
-            if (oRequest.readyState == cXMLHttpRequest.DONE) {
-                // Free up queue
-                delete oRequest._data;
-/*                if (bAsync)
-                    fQueue_remove(oRequest);*/
-                //
-                fCleanTransport(oRequest);
-// Uncomment this block if you need a fix for IE cache
-/*
-                // BUGFIX: IE - cache issue
-                if (!oRequest._object.getResponseHeader("Date")) {
-                    // Save object to cache
-                    oRequest._cached    = oRequest._object;
-
-                    // Instantiate a new transport object
-                    cXMLHttpRequest.call(oRequest);
-
-                    // Re-send request
-                    if (sUser) {
-                         if (sPassword)
-                            oRequest._object.open(sMethod, sUrl, bAsync, sUser, sPassword);
-                        else
-                            oRequest._object.open(sMethod, sUrl, bAsync, sUser);
-                    }
-                    else
-                        oRequest._object.open(sMethod, sUrl, bAsync);
-                    oRequest._object.setRequestHeader("If-Modified-Since", oRequest._cached.getResponseHeader("Last-Modified") || new window.Date(0));
-                    // Copy headers set
-                    if (oRequest._headers)
-                        for (var sHeader in oRequest._headers)
-                            if (typeof oRequest._headers[sHeader] == "string")    // Some frameworks prototype objects with functions
-                                oRequest._object.setRequestHeader(sHeader, oRequest._headers[sHeader]);
-
-                    oRequest._object.onreadystatechange    = function() {
-                        // Synchronize state
-                        oRequest.readyState        = oRequest._object.readyState;
-
-                        if (oRequest._aborted) {
-                            //
-                            oRequest.readyState    = cXMLHttpRequest.UNSENT;
-
-                            // Return
-                            return;
-                        }
-
-                        if (oRequest.readyState == cXMLHttpRequest.DONE) {
-                            // Clean Object
-                            fCleanTransport(oRequest);
-
-                            // get cached request
-                            if (oRequest.status == 304)
-                                oRequest._object    = oRequest._cached;
-
-                            //
-                            delete oRequest._cached;
-
-                            //
-                            fSynchronizeValues(oRequest);
-
-                            //
-                            fReadyStateChange(oRequest);
-
-                            // BUGFIX: IE - memory leak in interrupted
-                            if (bIE && bAsync)
-                                window.detachEvent("onunload", fOnUnload);
-                        }
-                    };
-                    oRequest._object.send(null);
-
-                    // Return now - wait until re-sent request is finished
-                    return;
-                };
-*/
-                // BUGFIX: IE - memory leak in interrupted
-                if (bIE && bAsync)
-                    window.detachEvent("onunload", fOnUnload);
-            }
-
-            // BUGFIX: Some browsers (Internet Explorer, Gecko) fire OPEN readystate twice
-            if (nState != oRequest.readyState)
-                fReadyStateChange(oRequest);
-
-            nState    = oRequest.readyState;
-        }
-    };
-    function fXMLHttpRequest_send(oRequest) {
-        oRequest._object.send(oRequest._data);
-
-        // BUGFIX: Gecko - missing readystatechange calls in synchronous requests
-        if (bGecko && !oRequest._async) {
-            oRequest.readyState    = cXMLHttpRequest.OPENED;
-
-            // Synchronize state
-            fSynchronizeValues(oRequest);
-
-            // Simulate missing states
-            while (oRequest.readyState < cXMLHttpRequest.DONE) {
-                oRequest.readyState++;
-                fReadyStateChange(oRequest);
-                // Check if we are aborted
-                if (oRequest._aborted)
-                    return;
-            }
-        }
-    };
-    cXMLHttpRequest.prototype.send    = function(vData) {
-        // Add method sniffer
-        if (cXMLHttpRequest.onsend)
-            cXMLHttpRequest.onsend.apply(this, arguments);
-
-        if (!arguments.length)
-            vData    = null;
-
-        // BUGFIX: Safari - fails sending documents created/modified dynamically, so an explicit serialization required
-        // BUGFIX: IE - rewrites any custom mime-type to "text/xml" in case an XMLNode is sent
-        // BUGFIX: Gecko - fails sending Element (this is up to the implementation either to standard)
-        if (vData && vData.nodeType) {
-            vData    = window.XMLSerializer ? new window.XMLSerializer().serializeToString(vData) : vData.xml;
-            if (!this._headers["Content-Type"])
-                this._object.setRequestHeader("Content-Type", "application/xml");
-        }
-
-        this._data    = vData;
-/*
-        // Add to queue
-        if (this._async)
-            fQueue_add(this);
-        else*/
-            fXMLHttpRequest_send(this);
-    };
-    cXMLHttpRequest.prototype.abort    = function() {
-        // Add method sniffer
-        if (cXMLHttpRequest.onabort)
-            cXMLHttpRequest.onabort.apply(this, arguments);
-
-        // BUGFIX: Gecko - unnecessary DONE when aborting
-        if (this.readyState > cXMLHttpRequest.UNSENT)
-            this._aborted    = true;
-
-        this._object.abort();
-
-        // BUGFIX: IE - memory leak
-        fCleanTransport(this);
-
-        this.readyState    = cXMLHttpRequest.UNSENT;
-
-        delete this._data;
-/*        if (this._async)
-            fQueue_remove(this);*/
-    };
-    cXMLHttpRequest.prototype.getAllResponseHeaders    = function() {
-        return this._object.getAllResponseHeaders();
-    };
-    cXMLHttpRequest.prototype.getResponseHeader    = function(sName) {
-        return this._object.getResponseHeader(sName);
-    };
-    cXMLHttpRequest.prototype.setRequestHeader    = function(sName, sValue) {
-        // BUGFIX: IE - cache issue
-        if (!this._headers)
-            this._headers    = {};
-        this._headers[sName]    = sValue;
-
-        return this._object.setRequestHeader(sName, sValue);
-    };
-
-    // EventTarget interface implementation
-    cXMLHttpRequest.prototype.addEventListener    = function(sName, fHandler, bUseCapture) {
-        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
-            if (oListener[0] == sName && oListener[1] == fHandler && oListener[2] == bUseCapture)
-                return;
-        // Add listener
-        this._listeners.push([sName, fHandler, bUseCapture]);
-    };
-
-    cXMLHttpRequest.prototype.removeEventListener    = function(sName, fHandler, bUseCapture) {
-        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
-            if (oListener[0] == sName && oListener[1] == fHandler && oListener[2] == bUseCapture)
-                break;
-        // Remove listener
-        if (oListener)
-            this._listeners.splice(nIndex, 1);
-    };
-
-    cXMLHttpRequest.prototype.dispatchEvent    = function(oEvent) {
-        var oEventPseudo    = {
-            'type':            oEvent.type,
-            'target':        this,
-            'currentTarget':this,
-            'eventPhase':    2,
-            'bubbles':        oEvent.bubbles,
-            'cancelable':    oEvent.cancelable,
-            'timeStamp':    oEvent.timeStamp,
-            'stopPropagation':    function() {},    // There is no flow
-            'preventDefault':    function() {},    // There is no default action
-            'initEvent':        function() {}    // Original event object should be initialized
-        };
-
-        // Execute onreadystatechange
-        if (oEventPseudo.type == "readystatechange" && this.onreadystatechange)
-            (this.onreadystatechange.handleEvent || this.onreadystatechange).apply(this, [oEventPseudo]);
-
-        // Execute listeners
-        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
-            if (oListener[0] == oEventPseudo.type && !oListener[2])
-                (oListener[1].handleEvent || oListener[1]).apply(this, [oEventPseudo]);
-    };
-
-    //
-    cXMLHttpRequest.prototype.toString    = function() {
-        return '[' + "object" + ' ' + "XMLHttpRequest" + ']';
-    };
-
-    cXMLHttpRequest.toString    = function() {
-        return '[' + "XMLHttpRequest" + ']';
-    };
-
-    // Helper function
-    function fReadyStateChange(oRequest) {
-        // Sniffing code
-        if (cXMLHttpRequest.onreadystatechange)
-            cXMLHttpRequest.onreadystatechange.apply(oRequest);
-
-        // Fake event
-        oRequest.dispatchEvent({
-            'type':            "readystatechange",
-            'bubbles':        false,
-            'cancelable':    false,
-            'timeStamp':    new Date + 0
-        });
-    };
-
-    function fGetDocument(oRequest) {
-        var oDocument    = oRequest.responseXML,
-            sResponse    = oRequest.responseText;
-        // Try parsing responseText
-        if (bIE && sResponse && oDocument && !oDocument.documentElement && oRequest.getResponseHeader("Content-Type").match(/[^\/]+\/[^\+]+\+xml/)) {
-            oDocument    = new window.ActiveXObject("Microsoft.XMLDOM");
-            oDocument.async                = false;
-            oDocument.validateOnParse    = false;
-            oDocument.loadXML(sResponse);
-        }
-        // Check if there is no error in document
-        if (oDocument)
-            if ((bIE && oDocument.parseError != 0) || !oDocument.documentElement || (oDocument.documentElement && oDocument.documentElement.tagName == "parsererror"))
-                return null;
-        return oDocument;
-    };
-
-    function fSynchronizeValues(oRequest) {
-        try {    oRequest.responseText    = oRequest._object.responseText;    } catch (e) {}
-        try {    oRequest.responseXML    = fGetDocument(oRequest._object);    } catch (e) {}
-        try {    oRequest.status            = oRequest._object.status;            } catch (e) {}
-        try {    oRequest.statusText        = oRequest._object.statusText;        } catch (e) {}
-    };
-
-    function fCleanTransport(oRequest) {
-        // BUGFIX: IE - memory leak (on-page leak)
-        oRequest._object.onreadystatechange    = new window.Function;
-    };
-/*
-    // Queue manager
-    var oQueuePending    = {"CRITICAL":[],"HIGH":[],"NORMAL":[],"LOW":[],"LOWEST":[]},
-        aQueueRunning    = [];
-    function fQueue_add(oRequest) {
-        oQueuePending[oRequest.priority in oQueuePending ? oRequest.priority : "NORMAL"].push(oRequest);
-        //
-        setTimeout(fQueue_process);
-    };
-
-    function fQueue_remove(oRequest) {
-        for (var nIndex = 0, bFound    = false; nIndex < aQueueRunning.length; nIndex++)
-            if (bFound)
-                aQueueRunning[nIndex - 1]    = aQueueRunning[nIndex];
-            else
-            if (aQueueRunning[nIndex] == oRequest)
-                bFound    = true;
-        if (bFound)
-            aQueueRunning.length--;
-        //
-        setTimeout(fQueue_process);
-    };
-
-    function fQueue_process() {
-        if (aQueueRunning.length < 6) {
-            for (var sPriority in oQueuePending) {
-                if (oQueuePending[sPriority].length) {
-                    var oRequest    = oQueuePending[sPriority][0];
-                    oQueuePending[sPriority]    = oQueuePending[sPriority].slice(1);
-                    //
-                    aQueueRunning.push(oRequest);
-                    // Send request
-                    fXMLHttpRequest_send(oRequest);
-                    break;
-                }
-            }
-        }
-    };
-*/
-    // Internet Explorer 5.0 (missing apply)
-    if (!window.Function.prototype.apply) {
-        window.Function.prototype.apply    = function(oRequest, oArguments) {
-            if (!oArguments)
-                oArguments    = [];
-            oRequest.__func    = this;
-            oRequest.__func(oArguments[0], oArguments[1], oArguments[2], oArguments[3], oArguments[4]);
-            delete oRequest.__func;
-        };
-    };
-
-    // Register new object with window
-    /**
-     * Class: OpenLayers.Request.XMLHttpRequest
-     * Standard-compliant (W3C) cross-browser implementation of the
-     *     XMLHttpRequest object.  From
-     *     http://code.google.com/p/xmlhttprequest/.
-     */
-    OpenLayers.Request.XMLHttpRequest = cXMLHttpRequest;
-})();
-/* ======================================================================
-    OpenLayers/Protocol/HTTP.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Protocol.js
- * @requires OpenLayers/Request/XMLHttpRequest.js
- */
-
-/**
- * if application uses the query string, for example, for BBOX parameters,
- * OpenLayers/Format/QueryStringFilter.js should be included in the build config file
- */
-
-/**
- * Class: OpenLayers.Protocol.HTTP
- * A basic HTTP protocol for vector layers.  Create a new instance with the
- *     <OpenLayers.Protocol.HTTP> constructor.
- *
- * Inherits from:
- *  - <OpenLayers.Protocol>
- */
-OpenLayers.Protocol.HTTP = OpenLayers.Class(OpenLayers.Protocol, {
-
-    /**
-     * Property: url
-     * {String} Service URL, read-only, set through the options
-     *     passed to constructor.
-     */
-    url: null,
-
-    /**
-     * Property: headers
-     * {Object} HTTP request headers, read-only, set through the options
-     *     passed to the constructor,
-     *     Example: {'Content-Type': 'plain/text'}
-     */
-    headers: null,
-
-    /**
-     * Property: params
-     * {Object} Parameters of GET requests, read-only, set through the options
-     *     passed to the constructor,
-     *     Example: {'bbox': '5,5,5,5'}
-     */
-    params: null,
-    
-    /**
-     * Property: callback
-     * {Object} Function to be called when the <read>, <create>,
-     *     <update>, <delete> or <commit> operation completes, read-only,
-     *     set through the options passed to the constructor.
-     */
-    callback: null,
-
-    /**
-     * Property: scope
-     * {Object} Callback execution scope, read-only, set through the
-     *     options passed to the constructor.
-     */
-    scope: null,
-
-    /**
-     * APIProperty: readWithPOST
-     * {Boolean} true if read operations are done with POST requests
-     *     instead of GET, defaults to false.
-     */
-    readWithPOST: false,
-
-    /**
-     * APIProperty: updateWithPOST
-     * {Boolean} true if update operations are done with POST requests
-     *     defaults to false.
-     */
-    updateWithPOST: false,
-    
-    /**
-     * APIProperty: deleteWithPOST
-     * {Boolean} true if delete operations are done with POST requests
-     *     defaults to false.
-     *     if true, POST data is set to output of format.write().
-     */
-    deleteWithPOST: false,
-
-    /**
-     * Property: wildcarded.
-     * {Boolean} If true percent signs are added around values
-     *     read from LIKE filters, for example if the protocol
-     *     read method is passed a LIKE filter whose property
-     *     is "foo" and whose value is "bar" the string
-     *     "foo__ilike=%bar%" will be sent in the query string;
-     *     defaults to false.
-     */
-    wildcarded: false,
-
-    /**
-     * APIProperty: srsInBBOX
-     * {Boolean} Include the SRS identifier in BBOX query string parameter.  
-     *     Default is false.  If true and the layer has a projection object set,
-     *     any BBOX filter will be serialized with a fifth item identifying the
-     *     projection.  E.g. bbox=-1000,-1000,1000,1000,EPSG:900913
-     */
-    srsInBBOX: false,
-
-    /**
-     * Constructor: OpenLayers.Protocol.HTTP
-     * A class for giving layers generic HTTP protocol.
-     *
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on the
-     *     instance.
-     *
-     * Valid options include:
-     * url - {String}
-     * headers - {Object} 
-     * params - {Object} URL parameters for GET requests
-     * format - {<OpenLayers.Format>}
-     * callback - {Function}
-     * scope - {Object}
-     */
-    initialize: function(options) {
-        options = options || {};
-        this.params = {};
-        this.headers = {};
-        OpenLayers.Protocol.prototype.initialize.apply(this, arguments);
-
-        if (!this.filterToParams && OpenLayers.Format.QueryStringFilter) {
-            var format = new OpenLayers.Format.QueryStringFilter({
-                wildcarded: this.wildcarded,
-                srsInBBOX: this.srsInBBOX
-            });
-            this.filterToParams = function(filter, params) {
-                return format.write(filter, params);
-            };
-        }
-    },
-    
-    /**
-     * APIMethod: destroy
-     * Clean up the protocol.
-     */
-    destroy: function() {
-        this.params = null;
-        this.headers = null;
-        OpenLayers.Protocol.prototype.destroy.apply(this);
-    },
-
-    /**
-     * APIMethod: filterToParams
-     * Optional method to translate an <OpenLayers.Filter> object into an object
-     *     that can be serialized as request query string provided.  If a custom
-     *     method is not provided, the filter will be serialized using the 
-     *     <OpenLayers.Format.QueryStringFilter> class.
-     *
-     * Parameters:
-     * filter - {<OpenLayers.Filter>} filter to convert.
-     * params - {Object} The parameters object.
-     *
-     * Returns:
-     * {Object} The resulting parameters object.
-     */
-    
-    /**
-     * APIMethod: read
-     * Construct a request for reading new features.
-     *
-     * Parameters:
-     * options - {Object} Optional object for configuring the request.
-     *     This object is modified and should not be reused.
-     *
-     * Valid options:
-     * url - {String} Url for the request.
-     * params - {Object} Parameters to get serialized as a query string.
-     * headers - {Object} Headers to be set on the request.
-     * filter - {<OpenLayers.Filter>} Filter to get serialized as a
-     *     query string.
-     * readWithPOST - {Boolean} If the request should be done with POST.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} A response object, whose "priv" property
-     *     references the HTTP request, this object is also passed to the
-     *     callback function when the request completes, its "features" property
-     *     is then populated with the features received from the server.
-     */
-    read: function(options) {
-        OpenLayers.Protocol.prototype.read.apply(this, arguments);
-        options = options || {};
-        options.params = OpenLayers.Util.applyDefaults(
-            options.params, this.options.params);
-        options = OpenLayers.Util.applyDefaults(options, this.options);
-        if (options.filter && this.filterToParams) {
-            options.params = this.filterToParams(
-                options.filter, options.params
-            );
-        }
-        var readWithPOST = (options.readWithPOST !== undefined) ?
-                           options.readWithPOST : this.readWithPOST;
-        var resp = new OpenLayers.Protocol.Response({requestType: "read"});
-        if(readWithPOST) {
-            var headers = options.headers || {};
-            headers["Content-Type"] = "application/x-www-form-urlencoded";
-            resp.priv = OpenLayers.Request.POST({
-                url: options.url,
-                callback: this.createCallback(this.handleRead, resp, options),
-                data: OpenLayers.Util.getParameterString(options.params),
-                headers: headers
-            });
-        } else {
-            resp.priv = OpenLayers.Request.GET({
-                url: options.url,
-                callback: this.createCallback(this.handleRead, resp, options),
-                params: options.params,
-                headers: options.headers
-            });
-        }
-        return resp;
-    },
-
-    /**
-     * Method: handleRead
-     * Individual callbacks are created for read, create and update, should
-     *     a subclass need to override each one separately.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
-     *     the user callback.
-     * options - {Object} The user options passed to the read call.
-     */
-    handleRead: function(resp, options) {
-        this.handleResponse(resp, options);
-    },
-
-    /**
-     * APIMethod: create
-     * Construct a request for writing newly created features.
-     *
-     * Parameters:
-     * features - {Array({<OpenLayers.Feature.Vector>})} or
-     *     {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *     This object is modified and should not be reused.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     *     object, whose "priv" property references the HTTP request, this 
-     *     object is also passed to the callback function when the request
-     *     completes, its "features" property is then populated with the
-     *     the features received from the server.
-     */
-    create: function(features, options) {
-        options = OpenLayers.Util.applyDefaults(options, this.options);
-
-        var resp = new OpenLayers.Protocol.Response({
-            reqFeatures: features,
-            requestType: "create"
-        });
-
-        resp.priv = OpenLayers.Request.POST({
-            url: options.url,
-            callback: this.createCallback(this.handleCreate, resp, options),
-            headers: options.headers,
-            data: this.format.write(features)
-        });
-
-        return resp;
-    },
-
-    /**
-     * Method: handleCreate
-     * Called the the request issued by <create> is complete.  May be overridden
-     *     by subclasses.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
-     *     any user callback.
-     * options - {Object} The user options passed to the create call.
-     */
-    handleCreate: function(resp, options) {
-        this.handleResponse(resp, options);
-    },
-
-    /**
-     * APIMethod: update
-     * Construct a request updating modified feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *     This object is modified and should not be reused.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     *     object, whose "priv" property references the HTTP request, this 
-     *     object is also passed to the callback function when the request
-     *     completes, its "features" property is then populated with the
-     *     the feature received from the server.
-     */
-    update: function(feature, options) {
-        options = options || {};
-        var url = options.url ||
-                  feature.url ||
-                  this.options.url + "/" + feature.fid;
-        options = OpenLayers.Util.applyDefaults(options, this.options);
-
-        var resp = new OpenLayers.Protocol.Response({
-            reqFeatures: feature,
-            requestType: "update"
-        });
-
-        var method = this.updateWithPOST ? "POST" : "PUT";
-        resp.priv = OpenLayers.Request[method]({
-            url: url,
-            callback: this.createCallback(this.handleUpdate, resp, options),
-            headers: options.headers,
-            data: this.format.write(feature)
-        });
-
-        return resp;
-    },
-
-    /**
-     * Method: handleUpdate
-     * Called the the request issued by <update> is complete.  May be overridden
-     *     by subclasses.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
-     *     any user callback.
-     * options - {Object} The user options passed to the update call.
-     */
-    handleUpdate: function(resp, options) {
-        this.handleResponse(resp, options);
-    },
-
-    /**
-     * APIMethod: delete
-     * Construct a request deleting a removed feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>}
-     * options - {Object} Optional object for configuring the request.
-     *     This object is modified and should not be reused.
-     *
-     * Returns:
-     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
-     *     object, whose "priv" property references the HTTP request, this 
-     *     object is also passed to the callback function when the request
-     *     completes.
-     */
-    "delete": function(feature, options) {
-        options = options || {};
-        var url = options.url ||
-                  feature.url ||
-                  this.options.url + "/" + feature.fid;
-        options = OpenLayers.Util.applyDefaults(options, this.options);
-
-        var resp = new OpenLayers.Protocol.Response({
-            reqFeatures: feature,
-            requestType: "delete"
-        });
-
-        var method = this.deleteWithPOST ? "POST" : "DELETE";
-        var requestOptions = {
-            url: url,
-            callback: this.createCallback(this.handleDelete, resp, options),
-            headers: options.headers
-        };
-        if (this.deleteWithPOST) {
-            requestOptions.data = this.format.write(feature);
-        }
-        resp.priv = OpenLayers.Request[method](requestOptions);
-
-        return resp;
-    },
-
-    /**
-     * Method: handleDelete
-     * Called the the request issued by <delete> is complete.  May be overridden
-     *     by subclasses.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
-     *     any user callback.
-     * options - {Object} The user options passed to the delete call.
-     */
-    handleDelete: function(resp, options) {
-        this.handleResponse(resp, options);
-    },
-
-    /**
-     * Method: handleResponse
-     * Called by CRUD specific handlers.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
-     *     any user callback.
-     * options - {Object} The user options passed to the create, read, update,
-     *     or delete call.
-     */
-    handleResponse: function(resp, options) {
-        var request = resp.priv;
-        if(options.callback) {
-            if(request.status >= 200 && request.status < 300) {
-                // success
-                if(resp.requestType != "delete") {
-                    resp.features = this.parseFeatures(request);
-                }
-                resp.code = OpenLayers.Protocol.Response.SUCCESS;
-            } else {
-                // failure
-                resp.code = OpenLayers.Protocol.Response.FAILURE;
-            }
-            options.callback.call(options.scope, resp);
-        }
-    },
-
-    /**
-     * Method: parseFeatures
-     * Read HTTP response body and return features.
-     *
-     * Parameters:
-     * request - {XMLHttpRequest} The request object
-     *
-     * Returns:
-     * {Array({<OpenLayers.Feature.Vector>})} or
-     *     {<OpenLayers.Feature.Vector>} Array of features or a single feature.
-     */
-    parseFeatures: function(request) {
-        var doc = request.responseXML;
-        if (!doc || !doc.documentElement) {
-            doc = request.responseText;
-        }
-        if (!doc || doc.length <= 0) {
-            return null;
-        }
-        return this.format.read(doc);
-    },
-
-    /**
-     * APIMethod: commit
-     * Iterate over each feature and take action based on the feature state.
-     *     Possible actions are create, update and delete.
-     *
-     * Parameters:
-     * features - {Array({<OpenLayers.Feature.Vector>})}
-     * options - {Object} Optional object for setting up intermediate commit
-     *     callbacks.
-     *
-     * Valid options:
-     * create - {Object} Optional object to be passed to the <create> method.
-     * update - {Object} Optional object to be passed to the <update> method.
-     * delete - {Object} Optional object to be passed to the <delete> method.
-     * callback - {Function} Optional function to be called when the commit
-     *     is complete.
-     * scope - {Object} Optional object to be set as the scope of the callback.
-     *
-     * Returns:
-     * {Array(<OpenLayers.Protocol.Response>)} An array of response objects,
-     *     one per request made to the server, each object's "priv" property
-     *     references the corresponding HTTP request.
-     */
-    commit: function(features, options) {
-        options = OpenLayers.Util.applyDefaults(options, this.options);
-        var resp = [], nResponses = 0;
-        
-        // Divide up features before issuing any requests.  This properly
-        // counts requests in the event that any responses come in before
-        // all requests have been issued.
-        var types = {};
-        types[OpenLayers.State.INSERT] = [];
-        types[OpenLayers.State.UPDATE] = [];
-        types[OpenLayers.State.DELETE] = [];
-        var feature, list, requestFeatures = [];
-        for(var i=0, len=features.length; i<len; ++i) {
-            feature = features[i];
-            list = types[feature.state];
-            if(list) {
-                list.push(feature);
-                requestFeatures.push(feature); 
-            }
-        }
-        // tally up number of requests
-        var nRequests = (types[OpenLayers.State.INSERT].length > 0 ? 1 : 0) +
-            types[OpenLayers.State.UPDATE].length +
-            types[OpenLayers.State.DELETE].length;
-        
-        // This response will be sent to the final callback after all the others
-        // have been fired.
-        var success = true;
-        var finalResponse = new OpenLayers.Protocol.Response({
-            reqFeatures: requestFeatures        
-        });
-        
-        function insertCallback(response) {
-            var len = response.features ? response.features.length : 0;
-            var fids = new Array(len);
-            for(var i=0; i<len; ++i) {
-                fids[i] = response.features[i].fid;
-            }   
-            finalResponse.insertIds = fids;
-            callback.apply(this, [response]);
-        }
- 
-        function callback(response) {
-            this.callUserCallback(response, options);
-            success = success && response.success();
-            nResponses++;
-            if (nResponses >= nRequests) {
-                if (options.callback) {
-                    finalResponse.code = success ? 
-                        OpenLayers.Protocol.Response.SUCCESS :
-                        OpenLayers.Protocol.Response.FAILURE;
-                    options.callback.apply(options.scope, [finalResponse]);
-                }    
-            }
-        }
-
-        // start issuing requests
-        var queue = types[OpenLayers.State.INSERT];
-        if(queue.length > 0) {
-            resp.push(this.create(
-                queue, OpenLayers.Util.applyDefaults(
-                    {callback: insertCallback, scope: this}, options.create
-                )
-            ));
-        }
-        queue = types[OpenLayers.State.UPDATE];
-        for(var i=queue.length-1; i>=0; --i) {
-            resp.push(this.update(
-                queue[i], OpenLayers.Util.applyDefaults(
-                    {callback: callback, scope: this}, options.update
-                ))
-            );
-        }
-        queue = types[OpenLayers.State.DELETE];
-        for(var i=queue.length-1; i>=0; --i) {
-            resp.push(this["delete"](
-                queue[i], OpenLayers.Util.applyDefaults(
-                    {callback: callback, scope: this}, options["delete"]
-                ))
-            );
-        }
-        return resp;
-    },
-
-    /**
-     * APIMethod: abort
-     * Abort an ongoing request, the response object passed to
-     * this method must come from this HTTP protocol (as a result
-     * of a create, read, update, delete or commit operation).
-     *
-     * Parameters:
-     * response - {<OpenLayers.Protocol.Response>}
-     */
-    abort: function(response) {
-        if (response) {
-            response.priv.abort();
-        }
-    },
-
-    /**
-     * Method: callUserCallback
-     * This method is used from within the commit method each time an
-     *     an HTTP response is received from the server, it is responsible
-     *     for calling the user-supplied callbacks.
-     *
-     * Parameters:
-     * resp - {<OpenLayers.Protocol.Response>}
-     * options - {Object} The map of options passed to the commit call.
-     */
-    callUserCallback: function(resp, options) {
-        var opt = options[resp.requestType];
-        if(opt && opt.callback) {
-            opt.callback.call(opt.scope, resp);
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Protocol.HTTP" 
-});
-/* ======================================================================
-    OpenLayers/Format.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- * @requires OpenLayers/Util.js
- */
-
-/**
- * Class: OpenLayers.Format
- * Base class for format reading/writing a variety of formats.  Subclasses
- *     of OpenLayers.Format are expected to have read and write methods.
- */
-OpenLayers.Format = OpenLayers.Class({
-    
-    /**
-     * Property: options
-     * {Object} A reference to options passed to the constructor.
-     */
-    options: null,
-    
-    /**
-     * APIProperty: externalProjection
-     * {<OpenLayers.Projection>} When passed a externalProjection and
-     *     internalProjection, the format will reproject the geometries it
-     *     reads or writes. The externalProjection is the projection used by
-     *     the content which is passed into read or which comes out of write.
-     *     In order to reproject, a projection transformation function for the
-     *     specified projections must be available. This support may be 
-     *     provided via proj4js or via a custom transformation function. See
-     *     {<OpenLayers.Projection.addTransform>} for more information on
-     *     custom transformations.
-     */
-    externalProjection: null,
-
-    /**
-     * APIProperty: internalProjection
-     * {<OpenLayers.Projection>} When passed a externalProjection and
-     *     internalProjection, the format will reproject the geometries it
-     *     reads or writes. The internalProjection is the projection used by
-     *     the geometries which are returned by read or which are passed into
-     *     write.  In order to reproject, a projection transformation function
-     *     for the specified projections must be available. This support may be
-     *     provided via proj4js or via a custom transformation function. See
-     *     {<OpenLayers.Projection.addTransform>} for more information on
-     *     custom transformations.
-     */
-    internalProjection: null,
-
-    /**
-     * APIProperty: data
-     * {Object} When <keepData> is true, this is the parsed string sent to
-     *     <read>.
-     */
-    data: null,
-
-    /**
-     * APIProperty: keepData
-     * {Object} Maintain a reference (<data>) to the most recently read data.
-     *     Default is false.
-     */
-    keepData: false,
-
-    /**
-     * Constructor: OpenLayers.Format
-     * Instances of this class are not useful.  See one of the subclasses.
-     *
-     * Parameters:
-     * options - {Object} An optional object with properties to set on the
-     *           format
-     *
-     * Valid options:
-     * keepData - {Boolean} If true, upon <read>, the data property will be
-     *     set to the parsed object (e.g. the json or xml object).
-     *
-     * Returns:
-     * An instance of OpenLayers.Format
-     */
-    initialize: function(options) {
-        OpenLayers.Util.extend(this, options);
-        this.options = options;
-    },
-    
-    /**
-     * APIMethod: destroy
-     * Clean up.
-     */
-    destroy: function() {
-    },
-
-    /**
-     * Method: read
-     * Read data from a string, and return an object whose type depends on the
-     * subclass. 
-     * 
-     * Parameters:
-     * data - {string} Data to read/parse.
-     *
-     * Returns:
-     * Depends on the subclass
-     */
-    read: function(data) {
-        throw new Error('Read not implemented.');
-    },
-    
-    /**
-     * Method: write
-     * Accept an object, and return a string. 
-     *
-     * Parameters:
-     * object - {Object} Object to be serialized
-     *
-     * Returns:
-     * {String} A string representation of the object.
-     */
-    write: function(object) {
-        throw new Error('Write not implemented.');
-    },
-
-    CLASS_NAME: "OpenLayers.Format"
-});     
-/* ======================================================================
-    OpenLayers/Format/JSON.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * Note:
- * This work draws heavily from the public domain JSON serializer/deserializer
- *     at http://www.json.org/json.js. Rewritten so that it doesn't modify
- *     basic data prototypes.
- */
-
-/**
- * @requires OpenLayers/Format.js
- */
-
-/**
- * Class: OpenLayers.Format.JSON
- * A parser to read/write JSON safely.  Create a new instance with the
- *     <OpenLayers.Format.JSON> constructor.
- *
- * Inherits from:
- *  - <OpenLayers.Format>
- */
-OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
-    
-    /**
-     * APIProperty: indent
-     * {String} For "pretty" printing, the indent string will be used once for
-     *     each indentation level.
-     */
-    indent: "    ",
-    
-    /**
-     * APIProperty: space
-     * {String} For "pretty" printing, the space string will be used after
-     *     the ":" separating a name/value pair.
-     */
-    space: " ",
-    
-    /**
-     * APIProperty: newline
-     * {String} For "pretty" printing, the newline string will be used at the
-     *     end of each name/value pair or array item.
-     */
-    newline: "\n",
-    
-    /**
-     * Property: level
-     * {Integer} For "pretty" printing, this is incremented/decremented during
-     *     serialization.
-     */
-    level: 0,
-
-    /**
-     * Property: pretty
-     * {Boolean} Serialize with extra whitespace for structure.  This is set
-     *     by the <write> method.
-     */
-    pretty: false,
-
-    /**
-     * Property: nativeJSON
-     * {Boolean} Does the browser support native json?
-     */
-    nativeJSON: (function() {
-        return !!(window.JSON && typeof JSON.parse == "function" && typeof JSON.stringify == "function");
-    })(),
-
-    /**
-     * Constructor: OpenLayers.Format.JSON
-     * Create a new parser for JSON.
-     *
-     * Parameters:
-     * options - {Object} An optional object whose properties will be set on
-     *     this instance.
-     */
-
-    /**
-     * APIMethod: read
-     * Deserialize a json string.
-     *
-     * Parameters:
-     * json - {String} A JSON string
-     * filter - {Function} A function which will be called for every key and
-     *     value at every level of the final result. Each value will be
-     *     replaced by the result of the filter function. This can be used to
-     *     reform generic objects into instances of classes, or to transform
-     *     date strings into Date objects.
-     *     
-     * Returns:
-     * {Object} An object, array, string, or number .
-     */
-    read: function(json, filter) {
-        var object;
-        if (this.nativeJSON) {
-            object = JSON.parse(json, filter);
-        } else try {
-            /**
-             * Parsing happens in three stages. In the first stage, we run the
-             *     text against a regular expression which looks for non-JSON
-             *     characters. We are especially concerned with '()' and 'new'
-             *     because they can cause invocation, and '=' because it can
-             *     cause mutation. But just to be safe, we will reject all
-             *     unexpected characters.
-             */
-            if (/^[\],:{}\s]*$/.test(json.replace(/\\["\\\/bfnrtu]/g, '@').
-                                replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-                                replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-
-                /**
-                 * In the second stage we use the eval function to compile the
-                 *     text into a JavaScript structure. The '{' operator is
-                 *     subject to a syntactic ambiguity in JavaScript - it can
-                 *     begin a block or an object literal. We wrap the text in
-                 *     parens to eliminate the ambiguity.
-                 */
-                object = eval('(' + json + ')');
-
-                /**
-                 * In the optional third stage, we recursively walk the new
-                 *     structure, passing each name/value pair to a filter
-                 *     function for possible transformation.
-                 */
-                if(typeof filter === 'function') {
-                    function walk(k, v) {
-                        if(v && typeof v === 'object') {
-                            for(var i in v) {
-                                if(v.hasOwnProperty(i)) {
-                                    v[i] = walk(i, v[i]);
-                                }
-                            }
-                        }
-                        return filter(k, v);
-                    }
-                    object = walk('', object);
-                }
-            }
-        } catch(e) {
-            // Fall through if the regexp test fails.
-        }
-
-        if(this.keepData) {
-            this.data = object;
-        }
-
-        return object;
-    },
-
-    /**
-     * APIMethod: write
-     * Serialize an object into a JSON string.
-     *
-     * Parameters:
-     * value - {String} The object, array, string, number, boolean or date
-     *     to be serialized.
-     * pretty - {Boolean} Structure the output with newlines and indentation.
-     *     Default is false.
-     *
-     * Returns:
-     * {String} The JSON string representation of the input value.
-     */
-    write: function(value, pretty) {
-        this.pretty = !!pretty;
-        var json = null;
-        var type = typeof value;
-        if(this.serialize[type]) {
-            try {
-                json = (!this.pretty && this.nativeJSON) ?
-                    JSON.stringify(value) :
-                    this.serialize[type].apply(this, [value]);
-            } catch(err) {
-                OpenLayers.Console.error("Trouble serializing: " + err);
-            }
-        }
-        return json;
-    },
-    
-    /**
-     * Method: writeIndent
-     * Output an indentation string depending on the indentation level.
-     *
-     * Returns:
-     * {String} An appropriate indentation string.
-     */
-    writeIndent: function() {
-        var pieces = [];
-        if(this.pretty) {
-            for(var i=0; i<this.level; ++i) {
-                pieces.push(this.indent);
-            }
-        }
-        return pieces.join('');
-    },
-    
-    /**
-     * Method: writeNewline
-     * Output a string representing a newline if in pretty printing mode.
-     *
-     * Returns:
-     * {String} A string representing a new line.
-     */
-    writeNewline: function() {
-        return (this.pretty) ? this.newline : '';
-    },
-    
-    /**
-     * Method: writeSpace
-     * Output a string representing a space if in pretty printing mode.
-     *
-     * Returns:
-     * {String} A space.
-     */
-    writeSpace: function() {
-        return (this.pretty) ? this.space : '';
-    },
-
-    /**
-     * Property: serialize
-     * Object with properties corresponding to the serializable data types.
-     *     Property values are functions that do the actual serializing.
-     */
-    serialize: {
-        /**
-         * Method: serialize.object
-         * Transform an object into a JSON string.
-         *
-         * Parameters:
-         * object - {Object} The object to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the object.
-         */
-        'object': function(object) {
-            // three special objects that we want to treat differently
-            if(object == null) {
-                return "null";
-            }
-            if(object.constructor == Date) {
-                return this.serialize.date.apply(this, [object]);
-            }
-            if(object.constructor == Array) {
-                return this.serialize.array.apply(this, [object]);
-            }
-            var pieces = ['{'];
-            this.level += 1;
-            var key, keyJSON, valueJSON;
-            
-            var addComma = false;
-            for(key in object) {
-                if(object.hasOwnProperty(key)) {
-                    // recursive calls need to allow for sub-classing
-                    keyJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [key, this.pretty]);
-                    valueJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [object[key], this.pretty]);
-                    if(keyJSON != null && valueJSON != null) {
-                        if(addComma) {
-                            pieces.push(',');
-                        }
-                        pieces.push(this.writeNewline(), this.writeIndent(),
-                                    keyJSON, ':', this.writeSpace(), valueJSON);
-                        addComma = true;
-                    }
-                }
-            }
-            
-            this.level -= 1;
-            pieces.push(this.writeNewline(), this.writeIndent(), '}');
-            return pieces.join('');
-        },
-        
-        /**
-         * Method: serialize.array
-         * Transform an array into a JSON string.
-         *
-         * Parameters:
-         * array - {Array} The array to be serialized
-         * 
-         * Returns:
-         * {String} A JSON string representing the array.
-         */
-        'array': function(array) {
-            var json;
-            var pieces = ['['];
-            this.level += 1;
-    
-            for(var i=0, len=array.length; i<len; ++i) {
-                // recursive calls need to allow for sub-classing
-                json = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [array[i], this.pretty]);
-                if(json != null) {
-                    if(i > 0) {
-                        pieces.push(',');
-                    }
-                    pieces.push(this.writeNewline(), this.writeIndent(), json);
-                }
-            }
-
-            this.level -= 1;    
-            pieces.push(this.writeNewline(), this.writeIndent(), ']');
-            return pieces.join('');
-        },
-        
-        /**
-         * Method: serialize.string
-         * Transform a string into a JSON string.
-         *
-         * Parameters:
-         * string - {String} The string to be serialized
-         * 
-         * Returns:
-         * {String} A JSON string representing the string.
-         */
-        'string': function(string) {
-            // If the string contains no control characters, no quote characters, and no
-            // backslash characters, then we can simply slap some quotes around it.
-            // Otherwise we must also replace the offending characters with safe
-            // sequences.    
-            var m = {
-                '\b': '\\b',
-                '\t': '\\t',
-                '\n': '\\n',
-                '\f': '\\f',
-                '\r': '\\r',
-                '"' : '\\"',
-                '\\': '\\\\'
-            };
-            if(/["\\\x00-\x1f]/.test(string)) {
-                return '"' + string.replace(/([\x00-\x1f\\"])/g, function(a, b) {
-                    var c = m[b];
-                    if(c) {
-                        return c;
-                    }
-                    c = b.charCodeAt();
-                    return '\\u00' +
-                        Math.floor(c / 16).toString(16) +
-                        (c % 16).toString(16);
-                }) + '"';
-            }
-            return '"' + string + '"';
-        },
-
-        /**
-         * Method: serialize.number
-         * Transform a number into a JSON string.
-         *
-         * Parameters:
-         * number - {Number} The number to be serialized.
-         *
-         * Returns:
-         * {String} A JSON string representing the number.
-         */
-        'number': function(number) {
-            return isFinite(number) ? String(number) : "null";
-        },
-        
-        /**
-         * Method: serialize.boolean
-         * Transform a boolean into a JSON string.
-         *
-         * Parameters:
-         * bool - {Boolean} The boolean to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the boolean.
-         */
-        'boolean': function(bool) {
-            return String(bool);
-        },
-        
-        /**
-         * Method: serialize.object
-         * Transform a date into a JSON string.
-         *
-         * Parameters:
-         * date - {Date} The date to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the date.
-         */
-        'date': function(date) {    
-            function format(number) {
-                // Format integers to have at least two digits.
-                return (number < 10) ? '0' + number : number;
-            }
-            return '"' + date.getFullYear() + '-' +
-                    format(date.getMonth() + 1) + '-' +
-                    format(date.getDate()) + 'T' +
-                    format(date.getHours()) + ':' +
-                    format(date.getMinutes()) + ':' +
-                    format(date.getSeconds()) + '"';
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Format.JSON" 
-
-});     
-/* ======================================================================
-    OpenLayers/Format/XML.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Format.js
- */
-
-/**
- * Class: OpenLayers.Format.XML
- * Read and write XML.  For cross-browser XML generation, use methods on an
- *     instance of the XML format class instead of on <code>document<end>.
- *     The DOM creation and traversing methods exposed here all mimic the
- *     W3C XML DOM methods.  Create a new parser with the
- *     <OpenLayers.Format.XML> constructor.
- *
- * Inherits from:
- *  - <OpenLayers.Format>
- */
-OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
-    
-    /**
-     * Property: namespaces
-     * {Object} Mapping of namespace aliases to namespace URIs.  Properties
-     *     of this object should not be set individually.  Read-only.  All
-     *     XML subclasses should have their own namespaces object.  Use
-     *     <setNamespace> to add or set a namespace alias after construction.
-     */
-    namespaces: null,
-    
-    /**
-     * Property: namespaceAlias
-     * {Object} Mapping of namespace URI to namespace alias.  This object
-     *     is read-only.  Use <setNamespace> to add or set a namespace alias.
-     */
-    namespaceAlias: null,
-    
-    /**
-     * Property: defaultPrefix
-     * {String} The default namespace alias for creating element nodes.
-     */
-    defaultPrefix: null,
-    
-    /**
-     * Property: readers
-     * Contains public functions, grouped by namespace prefix, that will
-     *     be applied when a namespaced node is found matching the function
-     *     name.  The function will be applied in the scope of this parser
-     *     with two arguments: the node being read and a context object passed
-     *     from the parent.
-     */
-    readers: {},
-    
-    /**
-     * Property: writers
-     * As a compliment to the <readers> property, this structure contains public
-     *     writing functions grouped by namespace alias and named like the
-     *     node names they produce.
-     */
-    writers: {},
-
-    /**
-     * Property: xmldom
-     * {XMLDom} If this browser uses ActiveX, this will be set to a XMLDOM
-     *     object.  It is not intended to be a browser sniffing property.
-     *     Instead, the xmldom property is used instead of <code>document<end>
-     *     where namespaced node creation methods are not supported. In all
-     *     other browsers, this remains null.
-     */
-    xmldom: null,
-
-    /**
-     * Constructor: OpenLayers.Format.XML
-     * Construct an XML parser.  The parser is used to read and write XML.
-     *     Reading XML from a string returns a DOM element.  Writing XML from
-     *     a DOM element returns a string.
-     *
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on
-     *     the object.
-     */
-    initialize: function(options) {
-        if(window.ActiveXObject) {
-            this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
-        }
-        OpenLayers.Format.prototype.initialize.apply(this, [options]);
-        // clone the namespace object and set all namespace aliases
-        this.namespaces = OpenLayers.Util.extend({}, this.namespaces);
-        this.namespaceAlias = {};
-        for(var alias in this.namespaces) {
-            this.namespaceAlias[this.namespaces[alias]] = alias;
-        }
-    },
-    
-    /**
-     * APIMethod: destroy
-     * Clean up.
-     */
-    destroy: function() {
-        this.xmldom = null;
-        OpenLayers.Format.prototype.destroy.apply(this, arguments);
-    },
-    
-    /**
-     * Method: setNamespace
-     * Set a namespace alias and URI for the format.
-     *
-     * Parameters:
-     * alias - {String} The namespace alias (prefix).
-     * uri - {String} The namespace URI.
-     */
-    setNamespace: function(alias, uri) {
-        this.namespaces[alias] = uri;
-        this.namespaceAlias[uri] = alias;
-    },
-
-    /**
-     * APIMethod: read
-     * Deserialize a XML string and return a DOM node.
-     *
-     * Parameters:
-     * text - {String} A XML string
-     
-     * Returns:
-     * {DOMElement} A DOM node
-     */
-    read: function(text) {
-        var index = text.indexOf('<');
-        if(index > 0) {
-            text = text.substring(index);
-        }
-        var node = OpenLayers.Util.Try(
-            OpenLayers.Function.bind((
-                function() {
-                    var xmldom;
-                    /**
-                     * Since we want to be able to call this method on the prototype
-                     * itself, this.xmldom may not exist even if in IE.
-                     */
-                    if(window.ActiveXObject && !this.xmldom) {
-                        xmldom = new ActiveXObject("Microsoft.XMLDOM");
-                    } else {
-                        xmldom = this.xmldom;
-                        
-                    }
-                    xmldom.loadXML(text);
-                    return xmldom;
-                }
-            ), this),
-            function() {
-                return new DOMParser().parseFromString(text, 'text/xml');
-            },
-            function() {
-                var req = new XMLHttpRequest();
-                req.open("GET", "data:" + "text/xml" +
-                         ";charset=utf-8," + encodeURIComponent(text), false);
-                if(req.overrideMimeType) {
-                    req.overrideMimeType("text/xml");
-                }
-                req.send(null);
-                return req.responseXML;
-            }
-        );
-
-        if(this.keepData) {
-            this.data = node;
-        }
-
-        return node;
-    },
-
-    /**
-     * APIMethod: write
-     * Serialize a DOM node into a XML string.
-     * 
-     * Parameters:
-     * node - {DOMElement} A DOM node.
-     *
-     * Returns:
-     * {String} The XML string representation of the input node.
-     */
-    write: function(node) {
-        var data;
-        if(this.xmldom) {
-            data = node.xml;
-        } else {
-            var serializer = new XMLSerializer();
-            if (node.nodeType == 1) {
-                // Add nodes to a document before serializing. Everything else
-                // is serialized as is. This may need more work. See #1218 .
-                var doc = document.implementation.createDocument("", "", null);
-                if (doc.importNode) {
-                    node = doc.importNode(node, true);
-                }
-                doc.appendChild(node);
-                data = serializer.serializeToString(doc);
-            } else {
-                data = serializer.serializeToString(node);
-            }
-        }
-        return data;
-    },
-
-    /**
-     * APIMethod: createElementNS
-     * Create a new element with namespace.  This node can be appended to
-     *     another node with the standard node.appendChild method.  For
-     *     cross-browser support, this method must be used instead of
-     *     document.createElementNS.
-     *
-     * Parameters:
-     * uri - {String} Namespace URI for the element.
-     * name - {String} The qualified name of the element (prefix:localname).
-     * 
-     * Returns:
-     * {Element} A DOM element with namespace.
-     */
-    createElementNS: function(uri, name) {
-        var element;
-        if(this.xmldom) {
-            if(typeof uri == "string") {
-                element = this.xmldom.createNode(1, name, uri);
-            } else {
-                element = this.xmldom.createNode(1, name, "");
-            }
-        } else {
-            element = document.createElementNS(uri, name);
-        }
-        return element;
-    },
-
-    /**
-     * APIMethod: createTextNode
-     * Create a text node.  This node can be appended to another node with
-     *     the standard node.appendChild method.  For cross-browser support,
-     *     this method must be used instead of document.createTextNode.
-     * 
-     * Parameters:
-     * text - {String} The text of the node.
-     * 
-     * Returns: 
-     * {DOMElement} A DOM text node.
-     */
-    createTextNode: function(text) {
-        var node;
-        if (typeof text !== "string") {
-            text = String(text);
-        }
-        if(this.xmldom) {
-            node = this.xmldom.createTextNode(text);
-        } else {
-            node = document.createTextNode(text);
-        }
-        return node;
-    },
-
-    /**
-     * APIMethod: getElementsByTagNameNS
-     * Get a list of elements on a node given the namespace URI and local name.
-     *     To return all nodes in a given namespace, use '*' for the name
-     *     argument.  To return all nodes of a given (local) name, regardless
-     *     of namespace, use '*' for the uri argument.
-     * 
-     * Parameters:
-     * node - {Element} Node on which to search for other nodes.
-     * uri - {String} Namespace URI.
-     * name - {String} Local name of the tag (without the prefix).
-     * 
-     * Returns:
-     * {NodeList} A node list or array of elements.
-     */
-    getElementsByTagNameNS: function(node, uri, name) {
-        var elements = [];
-        if(node.getElementsByTagNameNS) {
-            elements = node.getElementsByTagNameNS(uri, name);
-        } else {
-            // brute force method
-            var allNodes = node.getElementsByTagName("*");
-            var potentialNode, fullName;
-            for(var i=0, len=allNodes.length; i<len; ++i) {
-                potentialNode = allNodes[i];
-                fullName = (potentialNode.prefix) ?
-                           (potentialNode.prefix + ":" + name) : name;
-                if((name == "*") || (fullName == potentialNode.nodeName)) {
-                    if((uri == "*") || (uri == potentialNode.namespaceURI)) {
-                        elements.push(potentialNode);
-                    }
-                }
-            }
-        }
-        return elements;
-    },
-
-    /**
-     * APIMethod: getAttributeNodeNS
-     * Get an attribute node given the namespace URI and local name.
-     * 
-     * Parameters:
-     * node - {Element} Node on which to search for attribute nodes.
-     * uri - {String} Namespace URI.
-     * name - {String} Local name of the attribute (without the prefix).
-     * 
-     * Returns:
-     * {DOMElement} An attribute node or null if none found.
-     */
-    getAttributeNodeNS: function(node, uri, name) {
-        var attributeNode = null;
-        if(node.getAttributeNodeNS) {
-            attributeNode = node.getAttributeNodeNS(uri, name);
-        } else {
-            var attributes = node.attributes;
-            var potentialNode, fullName;
-            for(var i=0, len=attributes.length; i<len; ++i) {
-                potentialNode = attributes[i];
-                if(potentialNode.namespaceURI == uri) {
-                    fullName = (potentialNode.prefix) ?
-                               (potentialNode.prefix + ":" + name) : name;
-                    if(fullName == potentialNode.nodeName) {
-                        attributeNode = potentialNode;
-                        break;
-                    }
-                }
-            }
-        }
-        return attributeNode;
-    },
-
-    /**
-     * APIMethod: getAttributeNS
-     * Get an attribute value given the namespace URI and local name.
-     * 
-     * Parameters:
-     * node - {Element} Node on which to search for an attribute.
-     * uri - {String} Namespace URI.
-     * name - {String} Local name of the attribute (without the prefix).
-     * 
-     * Returns:
-     * {String} An attribute value or and empty string if none found.
-     */
-    getAttributeNS: function(node, uri, name) {
-        var attributeValue = "";
-        if(node.getAttributeNS) {
-            attributeValue = node.getAttributeNS(uri, name) || "";
-        } else {
-            var attributeNode = this.getAttributeNodeNS(node, uri, name);
-            if(attributeNode) {
-                attributeValue = attributeNode.nodeValue;
-            }
-        }
-        return attributeValue;
-    },
-    
-    /**
-     * APIMethod: getChildValue
-     * Get the textual value of the node if it exists, or return an
-     *     optional default string.  Returns an empty string if no first child
-     *     exists and no default value is supplied.
-     *
-     * Parameters:
-     * node - {DOMElement} The element used to look for a first child value.
-     * def - {String} Optional string to return in the event that no
-     *     first child value exists.
-     *
-     * Returns:
-     * {String} The value of the first child of the given node.
-     */
-    getChildValue: function(node, def) {
-        var value = def || "";
-        if(node) {
-            for(var child=node.firstChild; child; child=child.nextSibling) {
-                switch(child.nodeType) {
-                    case 3: // text node
-                    case 4: // cdata section
-                        value += child.nodeValue;
-                }
-            }
-        }
-        return value;
-    },
-
-    /**
-     * APIMethod: isSimpleContent
-     * Test if the given node has only simple content (i.e. no child element
-     *     nodes).
-     *
-     * Parameters:
-     * node - {DOMElement} An element node.
-     *
-     * Returns:
-     * {Boolean} The node has no child element nodes (nodes of type 1). 
-     */
-    isSimpleContent: function(node) {
-        var simple = true;
-        for(var child=node.firstChild; child; child=child.nextSibling) {
-            if(child.nodeType === 1) {
-                simple = false;
-                break;
-            }
-        }
-        return simple;
-    },
-    
-    /**
-     * APIMethod: contentType
-     * Determine the content type for a given node.
-     *
-     * Parameters:
-     * node - {DOMElement}
-     *
-     * Returns:
-     * {Integer} One of OpenLayers.Format.XML.CONTENT_TYPE.{EMPTY,SIMPLE,COMPLEX,MIXED}
-     *     if the node has no, simple, complex, or mixed content.
-     */
-    contentType: function(node) {
-        var simple = false,
-            complex = false;
-            
-        var type = OpenLayers.Format.XML.CONTENT_TYPE.EMPTY;
-
-        for(var child=node.firstChild; child; child=child.nextSibling) {
-            switch(child.nodeType) {
-                case 1: // element
-                    complex = true;
-                    break;
-                case 8: // comment
-                    break;
-                default:
-                    simple = true;
-            }
-            if(complex && simple) {
-                break;
-            }
-        }
-        
-        if(complex && simple) {
-            type = OpenLayers.Format.XML.CONTENT_TYPE.MIXED;
-        } else if(complex) {
-            return OpenLayers.Format.XML.CONTENT_TYPE.COMPLEX;
-        } else if(simple) {
-            return OpenLayers.Format.XML.CONTENT_TYPE.SIMPLE;
-        }
-        return type;
-    },
-
-    /**
-     * APIMethod: hasAttributeNS
-     * Determine whether a node has a particular attribute matching the given
-     *     name and namespace.
-     * 
-     * Parameters:
-     * node - {Element} Node on which to search for an attribute.
-     * uri - {String} Namespace URI.
-     * name - {String} Local name of the attribute (without the prefix).
-     * 
-     * Returns:
-     * {Boolean} The node has an attribute matching the name and namespace.
-     */
-    hasAttributeNS: function(node, uri, name) {
-        var found = false;
-        if(node.hasAttributeNS) {
-            found = node.hasAttributeNS(uri, name);
-        } else {
-            found = !!this.getAttributeNodeNS(node, uri, name);
-        }
-        return found;
-    },
-    
-    /**
-     * APIMethod: setAttributeNS
-     * Adds a new attribute or changes the value of an attribute with the given
-     *     namespace and name.
-     *
-     * Parameters:
-     * node - {Element} Element node on which to set the attribute.
-     * uri - {String} Namespace URI for the attribute.
-     * name - {String} Qualified name (prefix:localname) for the attribute.
-     * value - {String} Attribute value.
-     */
-    setAttributeNS: function(node, uri, name, value) {
-        if(node.setAttributeNS) {
-            node.setAttributeNS(uri, name, value);
-        } else {
-            if(this.xmldom) {
-                if(uri) {
-                    var attribute = node.ownerDocument.createNode(
-                        2, name, uri
-                    );
-                    attribute.nodeValue = value;
-                    node.setAttributeNode(attribute);
-                } else {
-                    node.setAttribute(name, value);
-                }
-            } else {
-                throw "setAttributeNS not implemented";
-            }
-        }
-    },
-
-    /**
-     * Method: createElementNSPlus
-     * Shorthand for creating namespaced elements with optional attributes and
-     *     child text nodes.
-     *
-     * Parameters:
-     * name - {String} The qualified node name.
-     * options - {Object} Optional object for node configuration.
-     *
-     * Valid options:
-     * uri - {String} Optional namespace uri for the element - supply a prefix
-     *     instead if the namespace uri is a property of the format's namespace
-     *     object.
-     * attributes - {Object} Optional attributes to be set using the
-     *     <setAttributes> method.
-     * value - {String} Optional text to be appended as a text node.
-     *
-     * Returns:
-     * {Element} An element node.
-     */
-    createElementNSPlus: function(name, options) {
-        options = options || {};
-        // order of prefix preference
-        // 1. in the uri option
-        // 2. in the prefix option
-        // 3. in the qualified name
-        // 4. from the defaultPrefix
-        var uri = options.uri || this.namespaces[options.prefix];
-        if(!uri) {
-            var loc = name.indexOf(":");
-            uri = this.namespaces[name.substring(0, loc)];
-        }
-        if(!uri) {
-            uri = this.namespaces[this.defaultPrefix];
-        }
-        var node = this.createElementNS(uri, name);
-        if(options.attributes) {
-            this.setAttributes(node, options.attributes);
-        }
-        var value = options.value;
-        if(value != null) {
-            node.appendChild(this.createTextNode(value));
-        }
-        return node;
-    },
-    
-    /**
-     * Method: setAttributes
-     * Set multiple attributes given key value pairs from an object.
-     *
-     * Parameters:
-     * node - {Element} An element node.
-     * obj - {Object || Array} An object whose properties represent attribute
-     *     names and values represent attribute values.  If an attribute name
-     *     is a qualified name ("prefix:local"), the prefix will be looked up
-     *     in the parsers {namespaces} object.  If the prefix is found,
-     *     setAttributeNS will be used instead of setAttribute.
-     */
-    setAttributes: function(node, obj) {
-        var value, uri;
-        for(var name in obj) {
-            if(obj[name] != null && obj[name].toString) {
-                value = obj[name].toString();
-                // check for qualified attribute name ("prefix:local")
-                uri = this.namespaces[name.substring(0, name.indexOf(":"))] || null;
-                this.setAttributeNS(node, uri, name, value);
-            }
-        }
-    },
-
-    /**
-     * Method: readNode
-     * Shorthand for applying one of the named readers given the node
-     *     namespace and local name.  Readers take two args (node, obj) and
-     *     generally extend or modify the second.
-     *
-     * Parameters:
-     * node - {DOMElement} The node to be read (required).
-     * obj - {Object} The object to be modified (optional).
-     *
-     * Returns:
-     * {Object} The input object, modified (or a new one if none was provided).
-     */
-    readNode: function(node, obj) {
-        if(!obj) {
-            obj = {};
-        }
-        var group = this.readers[node.namespaceURI ? this.namespaceAlias[node.namespaceURI]: this.defaultPrefix];
-        if(group) {
-            var local = node.localName || node.nodeName.split(":").pop();
-            var reader = group[local] || group["*"];
-            if(reader) {
-                reader.apply(this, [node, obj]);
-            }
-        }
-        return obj;
-    },
-
-    /**
-     * Method: readChildNodes
-     * Shorthand for applying the named readers to all children of a node.
-     *     For each child of type 1 (element), <readSelf> is called.
-     *
-     * Parameters:
-     * node - {DOMElement} The node to be read (required).
-     * obj - {Object} The object to be modified (optional).
-     *
-     * Returns:
-     * {Object} The input object, modified.
-     */
-    readChildNodes: function(node, obj) {
-        if(!obj) {
-            obj = {};
-        }
-        var children = node.childNodes;
-        var child;
-        for(var i=0, len=children.length; i<len; ++i) {
-            child = children[i];
-            if(child.nodeType == 1) {
-                this.readNode(child, obj);
-            }
-        }
-        return obj;
-    },
-
-    /**
-     * Method: writeNode
-     * Shorthand for applying one of the named writers and appending the
-     *     results to a node.  If a qualified name is not provided for the
-     *     second argument (and a local name is used instead), the namespace
-     *     of the parent node will be assumed.
-     *
-     * Parameters:
-     * name - {String} The name of a node to generate.  If a qualified name
-     *     (e.g. "pre:Name") is used, the namespace prefix is assumed to be
-     *     in the <writers> group.  If a local name is used (e.g. "Name") then
-     *     the namespace of the parent is assumed.  If a local name is used
-     *     and no parent is supplied, then the default namespace is assumed.
-     * obj - {Object} Structure containing data for the writer.
-     * parent - {DOMElement} Result will be appended to this node.  If no parent
-     *     is supplied, the node will not be appended to anything.
-     *
-     * Returns:
-     * {DOMElement} The child node.
-     */
-    writeNode: function(name, obj, parent) {
-        var prefix, local;
-        var split = name.indexOf(":");
-        if(split > 0) {
-            prefix = name.substring(0, split);
-            local = name.substring(split + 1);
-        } else {
-            if(parent) {
-                prefix = this.namespaceAlias[parent.namespaceURI];
-            } else {
-                prefix = this.defaultPrefix;
-            }
-            local = name;
-        }
-        var child = this.writers[prefix][local].apply(this, [obj]);
-        if(parent) {
-            parent.appendChild(child);
-        }
-        return child;
-    },
-
-    /**
-     * APIMethod: getChildEl
-     * Get the first child element.  Optionally only return the first child
-     *     if it matches the given name and namespace URI.
-     *
-     * Parameters:
-     * node - {DOMElement} The parent node.
-     * name - {String} Optional node name (local) to search for.
-     * uri - {String} Optional namespace URI to search for.
-     *
-     * Returns:
-     * {DOMElement} The first child.  Returns null if no element is found, if
-     *     something significant besides an element is found, or if the element
-     *     found does not match the optional name and uri.
-     */
-    getChildEl: function(node, name, uri) {
-        return node && this.getThisOrNextEl(node.firstChild, name, uri);
-    },
-    
-    /**
-     * APIMethod: getNextEl
-     * Get the next sibling element.  Optionally get the first sibling only
-     *     if it matches the given local name and namespace URI.
-     *
-     * Parameters:
-     * node - {DOMElement} The node.
-     * name - {String} Optional local name of the sibling to search for.
-     * uri - {String} Optional namespace URI of the sibling to search for.
-     *
-     * Returns:
-     * {DOMElement} The next sibling element.  Returns null if no element is
-     *     found, something significant besides an element is found, or the
-     *     found element does not match the optional name and uri.
-     */
-    getNextEl: function(node, name, uri) {
-        return node && this.getThisOrNextEl(node.nextSibling, name, uri);
-    },
-    
-    /**
-     * Method: getThisOrNextEl
-     * Return this node or the next element node.  Optionally get the first
-     *     sibling with the given local name or namespace URI.
-     *
-     * Parameters:
-     * node - {DOMElement} The node.
-     * name - {String} Optional local name of the sibling to search for.
-     * uri - {String} Optional namespace URI of the sibling to search for.
-     *
-     * Returns:
-     * {DOMElement} The next sibling element.  Returns null if no element is
-     *     found, something significant besides an element is found, or the
-     *     found element does not match the query.
-     */
-    getThisOrNextEl: function(node, name, uri) {
-        outer: for(var sibling=node; sibling; sibling=sibling.nextSibling) {
-            switch(sibling.nodeType) {
-                case 1: // Element
-                    if((!name || name === (sibling.localName || sibling.nodeName.split(":").pop())) &&
-                       (!uri || uri === sibling.namespaceURI)) {
-                        // matches
-                        break outer;
-                    }
-                    sibling = null;
-                    break outer;
-                case 3: // Text
-                    if(/^\s*$/.test(sibling.nodeValue)) {
-                        break;
-                    }
-                case 4: // CDATA
-                case 6: // ENTITY_NODE
-                case 12: // NOTATION_NODE
-                case 10: // DOCUMENT_TYPE_NODE
-                case 11: // DOCUMENT_FRAGMENT_NODE
-                    sibling = null;
-                    break outer;
-            } // ignore comments and processing instructions
-        }
-        return sibling || null;
-    },
-    
-    /**
-     * APIMethod: lookupNamespaceURI
-     * Takes a prefix and returns the namespace URI associated with it on the given
-     *     node if found (and null if not). Supplying null for the prefix will
-     *     return the default namespace.
-     *
-     * For browsers that support it, this calls the native lookupNamesapceURI
-     *     function.  In other browsers, this is an implementation of
-     *     http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-lookupNamespaceURI.
-     *
-     * For browsers that don't support the attribute.ownerElement property, this
-     *     method cannot be called on attribute nodes.
-     *     
-     * Parameters:
-     * node - {DOMElement} The node from which to start looking.
-     * prefix - {String} The prefix to lookup or null to lookup the default namespace.
-     * 
-     * Returns:
-     * {String} The namespace URI for the given prefix.  Returns null if the prefix
-     *     cannot be found or the node is the wrong type.
-     */
-    lookupNamespaceURI: function(node, prefix) {
-        var uri = null;
-        if(node) {
-            if(node.lookupNamespaceURI) {
-                uri = node.lookupNamespaceURI(prefix);
-            } else {
-                outer: switch(node.nodeType) {
-                    case 1: // ELEMENT_NODE
-                        if(node.namespaceURI !== null && node.prefix === prefix) {
-                            uri = node.namespaceURI;
-                            break outer;
-                        }
-                        var len = node.attributes.length;
-                        if(len) {
-                            var attr;
-                            for(var i=0; i<len; ++i) {
-                                attr = node.attributes[i];
-                                if(attr.prefix === "xmlns" && attr.name === "xmlns:" + prefix) {
-                                    uri = attr.value || null;
-                                    break outer;
-                                } else if(attr.name === "xmlns" && prefix === null) {
-                                    uri = attr.value || null;
-                                    break outer;
-                                }
-                            }
-                        }
-                        uri = this.lookupNamespaceURI(node.parentNode, prefix);
-                        break outer;
-                    case 2: // ATTRIBUTE_NODE
-                        uri = this.lookupNamespaceURI(node.ownerElement, prefix);
-                        break outer;
-                    case 9: // DOCUMENT_NODE
-                        uri = this.lookupNamespaceURI(node.documentElement, prefix);
-                        break outer;
-                    case 6: // ENTITY_NODE
-                    case 12: // NOTATION_NODE
-                    case 10: // DOCUMENT_TYPE_NODE
-                    case 11: // DOCUMENT_FRAGMENT_NODE
-                        break outer;
-                    default: 
-                        // TEXT_NODE (3), CDATA_SECTION_NODE (4), ENTITY_REFERENCE_NODE (5),
-                        // PROCESSING_INSTRUCTION_NODE (7), COMMENT_NODE (8)
-                        uri =  this.lookupNamespaceURI(node.parentNode, prefix);
-                        break outer;
-                }
-            }
-        }
-        return uri;
-    },
-    
-    /**
-     * Method: getXMLDoc
-     * Get an XML document for nodes that are not supported in HTML (e.g.
-     * createCDATASection). On IE, this will either return an existing or
-     * create a new <xmldom> on the instance. On other browsers, this will
-     * either return an existing or create a new shared document (see
-     * <OpenLayers.Format.XML.document>).
-     *
-     * Returns:
-     * {XMLDocument}
-     */
-    getXMLDoc: function() {
-        if (!OpenLayers.Format.XML.document && !this.xmldom) {
-            if (document.implementation && document.implementation.createDocument) {
-                OpenLayers.Format.XML.document =
-                    document.implementation.createDocument("", "", null);
-            } else if (!this.xmldom && window.ActiveXObject) {
-                this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
-            }
-        }
-        return OpenLayers.Format.XML.document || this.xmldom;
-    },
-
-    CLASS_NAME: "OpenLayers.Format.XML" 
-
-});     
-
-OpenLayers.Format.XML.CONTENT_TYPE = {EMPTY: 0, SIMPLE: 1, COMPLEX: 2, MIXED: 3};
-
-/**
- * APIFunction: OpenLayers.Format.XML.lookupNamespaceURI
- * Takes a prefix and returns the namespace URI associated with it on the given
- *     node if found (and null if not). Supplying null for the prefix will
- *     return the default namespace.
- *
- * For browsers that support it, this calls the native lookupNamesapceURI
- *     function.  In other browsers, this is an implementation of
- *     http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-lookupNamespaceURI.
- *
- * For browsers that don't support the attribute.ownerElement property, this
- *     method cannot be called on attribute nodes.
- *     
- * Parameters:
- * node - {DOMElement} The node from which to start looking.
- * prefix - {String} The prefix to lookup or null to lookup the default namespace.
- * 
- * Returns:
- * {String} The namespace URI for the given prefix.  Returns null if the prefix
- *     cannot be found or the node is the wrong type.
- */
-OpenLayers.Format.XML.lookupNamespaceURI = OpenLayers.Function.bind(
-    OpenLayers.Format.XML.prototype.lookupNamespaceURI,
-    OpenLayers.Format.XML.prototype
-);
-
-/**
- * Property: OpenLayers.Format.XML.document
- * {XMLDocument} XML document to reuse for creating non-HTML compliant nodes,
- * like document.createCDATASection.
- */
-OpenLayers.Format.XML.document = null;
-/* ======================================================================
-    OpenLayers/Control.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- */
-
-/**
- * Class: OpenLayers.Control
- * Controls affect the display or behavior of the map. They allow everything
- * from panning and zooming to displaying a scale indicator. Controls by 
- * default are added to the map they are contained within however it is
- * possible to add a control to an external div by passing the div in the
- * options parameter.
- * 
- * Example:
- * The following example shows how to add many of the common controls
- * to a map.
- * 
- * > var map = new OpenLayers.Map('map', { controls: [] });
- * >
- * > map.addControl(new OpenLayers.Control.PanZoomBar());
- * > map.addControl(new OpenLayers.Control.LayerSwitcher({'ascending':false}));
- * > map.addControl(new OpenLayers.Control.Permalink());
- * > map.addControl(new OpenLayers.Control.Permalink('permalink'));
- * > map.addControl(new OpenLayers.Control.MousePosition());
- * > map.addControl(new OpenLayers.Control.OverviewMap());
- * > map.addControl(new OpenLayers.Control.KeyboardDefaults());
- *
- * The next code fragment is a quick example of how to intercept 
- * shift-mouse click to display the extent of the bounding box
- * dragged out by the user.  Usually controls are not created
- * in exactly this manner.  See the source for a more complete 
- * example:
- *
- * > var control = new OpenLayers.Control();
- * > OpenLayers.Util.extend(control, {
- * >     draw: function () {
- * >         // this Handler.Box will intercept the shift-mousedown
- * >         // before Control.MouseDefault gets to see it
- * >         this.box = new OpenLayers.Handler.Box( control, 
- * >             {"done": this.notice},
- * >             {keyMask: OpenLayers.Handler.MOD_SHIFT});
- * >         this.box.activate();
- * >     },
- * >
- * >     notice: function (bounds) {
- * >         OpenLayers.Console.userError(bounds);
- * >     }
- * > }); 
- * > map.addControl(control);
- * 
- */
-OpenLayers.Control = OpenLayers.Class({
-
-    /** 
-     * Property: id 
-     * {String} 
-     */
-    id: null,
-    
-    /** 
-     * Property: map 
-     * {<OpenLayers.Map>} this gets set in the addControl() function in
-     * OpenLayers.Map 
-     */
-    map: null,
-
-    /** 
-     * APIProperty: div 
-     * {DOMElement} The element that contains the control, if not present the 
-     *     control is placed inside the map.
-     */
-    div: null,
-
-    /** 
-     * APIProperty: type 
-     * {Number} Controls can have a 'type'. The type determines the type of
-     * interactions which are possible with them when they are placed in an
-     * <OpenLayers.Control.Panel>. 
-     */
-    type: null, 
-
-    /** 
-     * Property: allowSelection
-     * {Boolean} By default, controls do not allow selection, because
-     * it may interfere with map dragging. If this is true, OpenLayers
-     * will not prevent selection of the control.
-     * Default is false.
-     */
-    allowSelection: false,  
-
-    /** 
-     * Property: displayClass 
-     * {string}  This property is used for CSS related to the drawing of the
-     * Control. 
-     */
-    displayClass: "",
-    
-    /**
-    * APIProperty: title  
-    * {string}  This property is used for showing a tooltip over the  
-    * Control.  
-    */ 
-    title: "",
-
-    /**
-     * APIProperty: autoActivate
-     * {Boolean} Activate the control when it is added to a map.  Default is
-     *     false.
-     */
-    autoActivate: false,
-
-    /** 
-     * APIProperty: active 
-     * {Boolean} The control is active (read-only).  Use <activate> and 
-     *     <deactivate> to change control state.
-     */
-    active: null,
-
-    /** 
-     * Property: handler 
-     * {<OpenLayers.Handler>} null
-     */
-    handler: null,
-
-    /**
-     * APIProperty: eventListeners
-     * {Object} If set as an option at construction, the eventListeners
-     *     object will be registered with <OpenLayers.Events.on>.  Object
-     *     structure must be a listeners object as shown in the example for
-     *     the events.on method.
-     */
-    eventListeners: null,
-
-    /** 
-     * APIProperty: events
-     * {<OpenLayers.Events>} Events instance for listeners and triggering
-     *     control specific events.
-     *
-     * Register a listener for a particular event with the following syntax:
-     * (code)
-     * control.events.register(type, obj, listener);
-     * (end)
-     *
-     * Listeners will be called with a reference to an event object.  The
-     *     properties of this event depends on exactly what happened.
-     *
-     * All event objects have at least the following properties:
-     * object - {Object} A reference to control.events.object (a reference
-     *      to the control).
-     * element - {DOMElement} A reference to control.events.element (which
-     *      will be null unless documented otherwise).
-     *
-     * Supported map event types:
-     * activate - Triggered when activated.
-     * deactivate - Triggered when deactivated.
-     */
-    events: null,
-
-    /**
-     * Constructor: OpenLayers.Control
-     * Create an OpenLayers Control.  The options passed as a parameter
-     * directly extend the control.  For example passing the following:
-     * 
-     * > var control = new OpenLayers.Control({div: myDiv});
-     *
-     * Overrides the default div attribute value of null.
-     * 
-     * Parameters:
-     * options - {Object} 
-     */
-    initialize: function (options) {
-        // We do this before the extend so that instances can override
-        // className in options.
-        this.displayClass = 
-            this.CLASS_NAME.replace("OpenLayers.", "ol").replace(/\./g, "");
-        
-        OpenLayers.Util.extend(this, options);
-        
-        this.events = new OpenLayers.Events(this);
-        if(this.eventListeners instanceof Object) {
-            this.events.on(this.eventListeners);
-        }
-        if (this.id == null) {
-            this.id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
-        }
-    },
-
-    /**
-     * Method: destroy
-     * The destroy method is used to perform any clean up before the control
-     * is dereferenced.  Typically this is where event listeners are removed
-     * to prevent memory leaks.
-     */
-    destroy: function () {
-        if(this.events) {
-            if(this.eventListeners) {
-                this.events.un(this.eventListeners);
-            }
-            this.events.destroy();
-            this.events = null;
-        }
-        this.eventListeners = null;
-
-        // eliminate circular references
-        if (this.handler) {
-            this.handler.destroy();
-            this.handler = null;
-        }
-        if(this.handlers) {
-            for(var key in this.handlers) {
-                if(this.handlers.hasOwnProperty(key) &&
-                   typeof this.handlers[key].destroy == "function") {
-                    this.handlers[key].destroy();
-                }
-            }
-            this.handlers = null;
-        }
-        if (this.map) {
-            this.map.removeControl(this);
-            this.map = null;
-        }
-        this.div = null;
-    },
-
-    /** 
-     * Method: setMap
-     * Set the map property for the control. This is done through an accessor
-     * so that subclasses can override this and take special action once 
-     * they have their map variable set. 
-     *
-     * Parameters:
-     * map - {<OpenLayers.Map>} 
-     */
-    setMap: function(map) {
-        this.map = map;
-        if (this.handler) {
-            this.handler.setMap(map);
-        }
-    },
-  
-    /**
-     * Method: draw
-     * The draw method is called when the control is ready to be displayed
-     * on the page.  If a div has not been created one is created.  Controls
-     * with a visual component will almost always want to override this method 
-     * to customize the look of control. 
-     *
-     * Parameters:
-     * px - {<OpenLayers.Pixel>} The top-left pixel position of the control
-     *      or null.
-     *
-     * Returns:
-     * {DOMElement} A reference to the DIV DOMElement containing the control
-     */
-    draw: function (px) {
-        if (this.div == null) {
-            this.div = OpenLayers.Util.createDiv(this.id);
-            this.div.className = this.displayClass;
-            if (!this.allowSelection) {
-                this.div.className += " olControlNoSelect";
-                this.div.setAttribute("unselectable", "on", 0);
-                this.div.onselectstart = OpenLayers.Function.False; 
-            }    
-            if (this.title != "") {
-                this.div.title = this.title;
-            }
-        }
-        if (px != null) {
-            this.position = px.clone();
-        }
-        this.moveTo(this.position);
-        return this.div;
-    },
-
-    /**
-     * Method: moveTo
-     * Sets the left and top style attributes to the passed in pixel 
-     * coordinates.
-     *
-     * Parameters:
-     * px - {<OpenLayers.Pixel>}
-     */
-    moveTo: function (px) {
-        if ((px != null) && (this.div != null)) {
-            this.div.style.left = px.x + "px";
-            this.div.style.top = px.y + "px";
-        }
-    },
-
-    /**
-     * APIMethod: activate
-     * Explicitly activates a control and it's associated
-     * handler if one has been set.  Controls can be
-     * deactivated by calling the deactivate() method.
-     * 
-     * Returns:
-     * {Boolean}  True if the control was successfully activated or
-     *            false if the control was already active.
-     */
-    activate: function () {
-        if (this.active) {
-            return false;
-        }
-        if (this.handler) {
-            this.handler.activate();
-        }
-        this.active = true;
-        if(this.map) {
-            OpenLayers.Element.addClass(
-                this.map.viewPortDiv,
-                this.displayClass.replace(/ /g, "") + "Active"
-            );
-        }
-        this.events.triggerEvent("activate");
-        return true;
-    },
-    
-    /**
-     * APIMethod: deactivate
-     * Deactivates a control and it's associated handler if any.  The exact
-     * effect of this depends on the control itself.
-     * 
-     * Returns:
-     * {Boolean} True if the control was effectively deactivated or false
-     *           if the control was already inactive.
-     */
-    deactivate: function () {
-        if (this.active) {
-            if (this.handler) {
-                this.handler.deactivate();
-            }
-            this.active = false;
-            if(this.map) {
-                OpenLayers.Element.removeClass(
-                    this.map.viewPortDiv,
-                    this.displayClass.replace(/ /g, "") + "Active"
-                );
-            }
-            this.events.triggerEvent("deactivate");
-            return true;
-        }
-        return false;
-    },
-
-    CLASS_NAME: "OpenLayers.Control"
-});
-
-/**
- * Constant: OpenLayers.Control.TYPE_BUTTON
- */
-OpenLayers.Control.TYPE_BUTTON = 1;
-
-/**
- * Constant: OpenLayers.Control.TYPE_TOGGLE
- */
-OpenLayers.Control.TYPE_TOGGLE = 2;
-
-/**
- * Constant: OpenLayers.Control.TYPE_TOOL
- */
-OpenLayers.Control.TYPE_TOOL   = 3;
-/* ======================================================================
-    OpenLayers/Handler.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- * @requires OpenLayers/Events.js
- */
-
-/**
- * Class: OpenLayers.Handler
- * Base class to construct a higher-level handler for event sequences.  All
- *     handlers have activate and deactivate methods.  In addition, they have
- *     methods named like browser events.  When a handler is activated, any
- *     additional methods named like a browser event is registered as a
- *     listener for the corresponding event.  When a handler is deactivated,
- *     those same methods are unregistered as event listeners.
- *
- * Handlers also typically have a callbacks object with keys named like
- *     the abstracted events or event sequences that they are in charge of
- *     handling.  The controls that wrap handlers define the methods that
- *     correspond to these abstract events - so instead of listening for
- *     individual browser events, they only listen for the abstract events
- *     defined by the handler.
- *     
- * Handlers are created by controls, which ultimately have the responsibility
- *     of making changes to the the state of the application.  Handlers
- *     themselves may make temporary changes, but in general are expected to
- *     return the application in the same state that they found it.
- */
-OpenLayers.Handler = OpenLayers.Class({
-
-    /**
-     * Property: id
-     * {String}
-     */
-    id: null,
-        
-    /**
-     * APIProperty: control
-     * {<OpenLayers.Control>}. The control that initialized this handler.  The
-     *     control is assumed to have a valid map property - that map is used
-     *     in the handler's own setMap method.
-     */
-    control: null,
-
-    /**
-     * Property: map
-     * {<OpenLayers.Map>}
-     */
-    map: null,
-
-    /**
-     * APIProperty: keyMask
-     * {Integer} Use bitwise operators and one or more of the OpenLayers.Handler
-     *     constants to construct a keyMask.  The keyMask is used by
-     *     <checkModifiers>.  If the keyMask matches the combination of keys
-     *     down on an event, checkModifiers returns true.
-     *
-     * Example:
-     * (code)
-     *     // handler only responds if the Shift key is down
-     *     handler.keyMask = OpenLayers.Handler.MOD_SHIFT;
-     *
-     *     // handler only responds if Ctrl-Shift is down
-     *     handler.keyMask = OpenLayers.Handler.MOD_SHIFT |
-     *                       OpenLayers.Handler.MOD_CTRL;
-     * (end)
-     */
-    keyMask: null,
-
-    /**
-     * Property: active
-     * {Boolean}
-     */
-    active: false,
-    
-    /**
-     * Property: evt
-     * {Event} This property references the last event handled by the handler.
-     *     Note that this property is not part of the stable API.  Use of the
-     *     evt property should be restricted to controls in the library
-     *     or other applications that are willing to update with changes to
-     *     the OpenLayers code.
-     */
-    evt: null,
-
-    /**
-     * Constructor: OpenLayers.Handler
-     * Construct a handler.
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} The control that initialized this
-     *     handler.  The control is assumed to have a valid map property; that
-     *     map is used in the handler's own setMap method.  If a map property
-     *     is present in the options argument it will be used instead.
-     * callbacks - {Object} An object whose properties correspond to abstracted
-     *     events or sequences of browser events.  The values for these
-     *     properties are functions defined by the control that get called by
-     *     the handler.
-     * options - {Object} An optional object whose properties will be set on
-     *     the handler.
-     */
-    initialize: function(control, callbacks, options) {
-        OpenLayers.Util.extend(this, options);
-        this.control = control;
-        this.callbacks = callbacks;
-
-        var map = this.map || control.map;
-        if (map) {
-            this.setMap(map); 
-        }
-        
-        this.id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
-    },
-    
-    /**
-     * Method: setMap
-     */
-    setMap: function (map) {
-        this.map = map;
-    },
-
-    /**
-     * Method: checkModifiers
-     * Check the keyMask on the handler.  If no <keyMask> is set, this always
-     *     returns true.  If a <keyMask> is set and it matches the combination
-     *     of keys down on an event, this returns true.
-     *
-     * Returns:
-     * {Boolean} The keyMask matches the keys down on an event.
-     */
-    checkModifiers: function (evt) {
-        if(this.keyMask == null) {
-            return true;
-        }
-        /* calculate the keyboard modifier mask for this event */
-        var keyModifiers =
-            (evt.shiftKey ? OpenLayers.Handler.MOD_SHIFT : 0) |
-            (evt.ctrlKey  ? OpenLayers.Handler.MOD_CTRL  : 0) |
-            (evt.altKey   ? OpenLayers.Handler.MOD_ALT   : 0);
-    
-        /* if it differs from the handler object's key mask,
-           bail out of the event handler */
-        return (keyModifiers == this.keyMask);
-    },
-
-    /**
-     * APIMethod: activate
-     * Turn on the handler.  Returns false if the handler was already active.
-     * 
-     * Returns: 
-     * {Boolean} The handler was activated.
-     */
-    activate: function() {
-        if(this.active) {
-            return false;
-        }
-        // register for event handlers defined on this class.
-        var events = OpenLayers.Events.prototype.BROWSER_EVENTS;
-        for (var i=0, len=events.length; i<len; i++) {
-            if (this[events[i]]) {
-                this.register(events[i], this[events[i]]); 
-            }
-        } 
-        this.active = true;
-        return true;
-    },
-    
-    /**
-     * APIMethod: deactivate
-     * Turn off the handler.  Returns false if the handler was already inactive.
-     * 
-     * Returns:
-     * {Boolean} The handler was deactivated.
-     */
-    deactivate: function() {
-        if(!this.active) {
-            return false;
-        }
-        // unregister event handlers defined on this class.
-        var events = OpenLayers.Events.prototype.BROWSER_EVENTS;
-        for (var i=0, len=events.length; i<len; i++) {
-            if (this[events[i]]) {
-                this.unregister(events[i], this[events[i]]); 
-            }
-        } 
-        this.active = false;
-        return true;
-    },
-
-    /**
-    * Method: callback
-    * Trigger the control's named callback with the given arguments
-    *
-    * Parameters:
-    * name - {String} The key for the callback that is one of the properties
-    *     of the handler's callbacks object.
-    * args - {Array(*)} An array of arguments (any type) with which to call 
-    *     the callback (defined by the control).
-    */
-    callback: function (name, args) {
-        if (name && this.callbacks[name]) {
-            this.callbacks[name].apply(this.control, args);
-        }
-    },
-
-    /**
-    * Method: register
-    * register an event on the map
-    */
-    register: function (name, method) {
-        // TODO: deal with registerPriority in 3.0
-        this.map.events.registerPriority(name, this, method);
-        this.map.events.registerPriority(name, this, this.setEvent);
-    },
-
-    /**
-    * Method: unregister
-    * unregister an event from the map
-    */
-    unregister: function (name, method) {
-        this.map.events.unregister(name, this, method);   
-        this.map.events.unregister(name, this, this.setEvent);
-    },
-    
-    /**
-     * Method: setEvent
-     * With each registered browser event, the handler sets its own evt
-     *     property.  This property can be accessed by controls if needed
-     *     to get more information about the event that the handler is
-     *     processing.
-     *
-     * This allows modifier keys on the event to be checked (alt, shift,
-     *     and ctrl cannot be checked with the keyboard handler).  For a
-     *     control to determine which modifier keys are associated with the
-     *     event that a handler is currently processing, it should access
-     *     (code)handler.evt.altKey || handler.evt.shiftKey ||
-     *     handler.evt.ctrlKey(end).
-     *
-     * Parameters:
-     * evt - {Event} The browser event.
-     */
-    setEvent: function(evt) {
-        this.evt = evt;
-        return true;
-    },
-
-    /**
-     * Method: destroy
-     * Deconstruct the handler.
-     */
-    destroy: function () {
-        // unregister event listeners
-        this.deactivate();
-        // eliminate circular references
-        this.control = this.map = null;        
-    },
-
-    CLASS_NAME: "OpenLayers.Handler"
-});
-
-/**
- * Constant: OpenLayers.Handler.MOD_NONE
- * If set as the <keyMask>, <checkModifiers> returns false if any key is down.
- */
-OpenLayers.Handler.MOD_NONE  = 0;
-
-/**
- * Constant: OpenLayers.Handler.MOD_SHIFT
- * If set as the <keyMask>, <checkModifiers> returns false if Shift is down.
- */
-OpenLayers.Handler.MOD_SHIFT = 1;
-
-/**
- * Constant: OpenLayers.Handler.MOD_CTRL
- * If set as the <keyMask>, <checkModifiers> returns false if Ctrl is down.
- */
-OpenLayers.Handler.MOD_CTRL  = 2;
-
-/**
- * Constant: OpenLayers.Handler.MOD_ALT
- * If set as the <keyMask>, <checkModifiers> returns false if Alt is down.
- */
-OpenLayers.Handler.MOD_ALT   = 4;
-
-
-/* ======================================================================
-    OpenLayers/Handler/Click.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Handler.js
- */
-
-/**
- * Class: OpenLayers.Handler.Click
- * A handler for mouse clicks.  The intention of this handler is to give
- *     controls more flexibility with handling clicks.  Browsers trigger
- *     click events twice for a double-click.  In addition, the mousedown,
- *     mousemove, mouseup sequence fires a click event.  With this handler,
- *     controls can decide whether to ignore clicks associated with a double
- *     click.  By setting a <pixelTolerance>, controls can also ignore clicks
- *     that include a drag.  Create a new instance with the
- *     <OpenLayers.Handler.Click> constructor.
- * 
- * Inherits from:
- *  - <OpenLayers.Handler> 
- */
-OpenLayers.Handler.Click = OpenLayers.Class(OpenLayers.Handler, {
-    /**
-     * APIProperty: delay
-     * {Number} Number of milliseconds between clicks before the event is
-     *     considered a double-click.
-     */
-    delay: 300,
-    
-    /**
-     * APIProperty: single
-     * {Boolean} Handle single clicks.  Default is true.  If false, clicks
-     * will not be reported.  If true, single-clicks will be reported.
-     */
-    single: true,
-    
-    /**
-     * APIProperty: double
-     * {Boolean} Handle double-clicks.  Default is false.
-     */
-    'double': false,
-    
-    /**
-     * APIProperty: pixelTolerance
-     * {Number} Maximum number of pixels between mouseup and mousedown for an
-     *     event to be considered a click.  Default is 0.  If set to an
-     *     integer value, clicks with a drag greater than the value will be
-     *     ignored.  This property can only be set when the handler is
-     *     constructed.
-     */
-    pixelTolerance: 0,
-        
-    /**
-     * APIProperty: dblclickTolerance
-     * {Number} Maximum distance in pixels between clicks for a sequence of 
-     *     events to be considered a double click.  Default is 13.  If the
-     *     distance between two clicks is greater than this value, a double-
-     *     click will not be fired.
-     */
-    dblclickTolerance: 13,
-        
-    /**
-     * APIProperty: stopSingle
-     * {Boolean} Stop other listeners from being notified of clicks.  Default
-     *     is false.  If true, any listeners registered before this one for 
-     *     click or rightclick events will not be notified.
-     */
-    stopSingle: false,
-    
-    /**
-     * APIProperty: stopDouble
-     * {Boolean} Stop other listeners from being notified of double-clicks.
-     *     Default is false.  If true, any click listeners registered before
-     *     this one will not be notified of *any* double-click events.
-     * 
-     * The one caveat with stopDouble is that given a map with two click
-     *     handlers, one with stopDouble true and the other with stopSingle
-     *     true, the stopSingle handler should be activated last to get
-     *     uniform cross-browser performance.  Since IE triggers one click
-     *     with a dblclick and FF triggers two, if a stopSingle handler is
-     *     activated first, all it gets in IE is a single click when the
-     *     second handler stops propagation on the dblclick.
-     */
-    stopDouble: false,
-
-    /**
-     * Property: timerId
-     * {Number} The id of the timeout waiting to clear the <delayedCall>.
-     */
-    timerId: null,
-
-    /**
-     * Property: touch
-     * {Boolean} When a touchstart event is fired, touch will be true and all
-     *     mouse related listeners will do nothing.
-     */
-    touch: false,
-    
-    /**
-     * Property: down
-     * {Object} Object that store relevant information about the last
-     *     mousedown or touchstart. Its 'xy' OpenLayers.Pixel property gives
-     *     the average location of the mouse/touch event. Its 'touches'
-     *     property records clientX/clientY of each touches.
-     */
-    down: null,
-
-    /**
-     * Property: last
-     * {Object} Object that store relevant information about the last
-     *     mousemove or touchmove. Its 'xy' OpenLayers.Pixel property gives
-     *     the average location of the mouse/touch event. Its 'touches'
-     *     property records clientX/clientY of each touches.
-     */
-    last: null,
-
-    /** 
-     * Property: first
-     * {Object} When waiting for double clicks, this object will store 
-     *     information about the first click in a two click sequence.
-     */
-    first: null,
-
-    /**
-     * Property: rightclickTimerId
-     * {Number} The id of the right mouse timeout waiting to clear the 
-     *     <delayedEvent>.
-     */
-    rightclickTimerId: null,
-    
-    /**
-     * Constructor: OpenLayers.Handler.Click
-     * Create a new click handler.
-     * 
-     * Parameters:
-     * control - {<OpenLayers.Control>} The control that is making use of
-     *     this handler.  If a handler is being used without a control, the
-     *     handler's setMap method must be overridden to deal properly with
-     *     the map.
-     * callbacks - {Object} An object with keys corresponding to callbacks
-     *     that will be called by the handler. The callbacks should
-     *     expect to recieve a single argument, the click event.
-     *     Callbacks for 'click' and 'dblclick' are supported.
-     * options - {Object} Optional object whose properties will be set on the
-     *     handler.
-     */
-    
-    /**
-     * Method: touchstart
-     * Handle touchstart.
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    touchstart: function(evt) {
-        if (!this.touch) {
-            this.unregisterMouseListeners();
-            this.touch = true;
-        }
-        this.down = this.getEventInfo(evt);
-        this.last = this.getEventInfo(evt);
-        return true;
-    },
-    
-    /**
-     * Method: touchmove
-     *    Store position of last move, because touchend event can have
-     *    an empty "touches" property.
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    touchmove: function(evt) {
-        this.last = this.getEventInfo(evt);
-        return true;
-    },
-
-    /**
-     * Method: touchend
-     *   Correctly set event xy property, and add lastTouches to have
-     *   touches property from last touchstart or touchmove
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    touchend: function(evt) {
-        // touchstart may not have been allowed to propagate
-        if (this.down) {
-            evt.xy = this.last.xy;
-            evt.lastTouches = this.last.touches;
-            this.handleSingle(evt);
-            this.down = null;
-        }
-        return true;
-    },
-    
-    /**
-     * Method: unregisterMouseListeners
-     * In a touch environment, we don't want to handle mouse events.
-     */
-    unregisterMouseListeners: function() {
-        this.map.events.un({
-            mousedown: this.mousedown,
-            mouseup: this.mouseup,
-            click: this.click,
-            dblclick: this.dblclick,
-            scope: this
-        });
-    },
-
-    /**
-     * Method: mousedown
-     * Handle mousedown.
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    mousedown: function(evt) {
-        this.down = this.getEventInfo(evt);
-        this.last = this.getEventInfo(evt);
-        return true;
-    },
-
-    /**
-     * Method: mouseup
-     * Handle mouseup.  Installed to support collection of right mouse events.
-     * 
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    mouseup: function (evt) {
-        var propagate = true;
-
-        // Collect right mouse clicks from the mouseup
-        //  IE - ignores the second right click in mousedown so using
-        //  mouseup instead
-        if (this.checkModifiers(evt) && this.control.handleRightClicks &&
-           OpenLayers.Event.isRightClick(evt)) {
-            propagate = this.rightclick(evt);
-        }
-
-        return propagate;
-    },
-    
-    /**
-     * Method: rightclick
-     * Handle rightclick.  For a dblrightclick, we get two clicks so we need 
-     *     to always register for dblrightclick to properly handle single 
-     *     clicks.
-     *     
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    rightclick: function(evt) {
-        if(this.passesTolerance(evt)) {
-           if(this.rightclickTimerId != null) {
-                //Second click received before timeout this must be 
-                // a double click
-                this.clearTimer();
-                this.callback('dblrightclick', [evt]);
-                return !this.stopDouble;
-            } else { 
-                //Set the rightclickTimerId, send evt only if double is 
-                // true else trigger single
-                var clickEvent = this['double'] ?
-                    OpenLayers.Util.extend({}, evt) : 
-                    this.callback('rightclick', [evt]);
-
-                var delayedRightCall = OpenLayers.Function.bind(
-                    this.delayedRightCall, 
-                    this, 
-                    clickEvent
-                );
-                this.rightclickTimerId = window.setTimeout(
-                    delayedRightCall, this.delay
-                );
-            } 
-        }
-        return !this.stopSingle;
-    },
-    
-    /**
-     * Method: delayedRightCall
-     * Sets <rightclickTimerId> to null.  And optionally triggers the 
-     *     rightclick callback if evt is set.
-     */
-    delayedRightCall: function(evt) {
-        this.rightclickTimerId = null;
-        if (evt) {
-           this.callback('rightclick', [evt]);
-        }
-    },
-    
-    /**
-     * Method: click
-     * Handle click events from the browser.  This is registered as a listener
-     *     for click events and should not be called from other events in this
-     *     handler.
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    click: function(evt) {
-        if (!this.last) {
-            this.last = this.getEventInfo(evt);
-        }
-        this.handleSingle(evt);
-        return !this.stopSingle;
-    },
-
-    /**
-     * Method: dblclick
-     * Handle dblclick.  For a dblclick, we get two clicks in some browsers
-     *     (FF) and one in others (IE).  So we need to always register for
-     *     dblclick to properly handle single clicks.  This method is registered
-     *     as a listener for the dblclick browser event.  It should *not* be
-     *     called by other methods in this handler.
-     *     
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    dblclick: function(evt) {
-        this.handleDouble(evt);
-        return !this.stopDouble;
-    },
-    
-    /** 
-     * Method: handleDouble
-     * Handle double-click sequence.
-     */
-    handleDouble: function(evt) {
-        if (this.passesDblclickTolerance(evt)) {
-            if (this["double"]) {
-                this.callback("dblclick", [evt]);
-            }
-            // to prevent a dblclick from firing the click callback in IE
-            this.clearTimer();
-        }
-    },
-    
-    /** 
-     * Method: handleSingle
-     * Handle single click sequence.
-     */
-    handleSingle: function(evt) {
-        if (this.passesTolerance(evt)) {
-            if (this.timerId != null) {
-                // already received a click
-                if (this.last.touches && this.last.touches.length === 1) {
-                    // touch device, no dblclick event - this may be a double
-                    if (this["double"]) {
-                        // on Android don't let the browser zoom on the page
-                        OpenLayers.Event.stop(evt);
-                    }
-                    this.handleDouble(evt);
-                }
-                // if we're not in a touch environment we clear the click timer
-                // if we've got a second touch, we'll get two touchend events
-                if (!this.last.touches || this.last.touches.length !== 2) {
-                    this.clearTimer();
-                }
-            } else {
-                // remember the first click info so we can compare to the second
-                this.first = this.getEventInfo(evt);
-                // set the timer, send evt only if single is true
-                //use a clone of the event object because it will no longer 
-                //be a valid event object in IE in the timer callback
-                var clickEvent = this.single ?
-                    OpenLayers.Util.extend({}, evt) : null;
-                this.queuePotentialClick(clickEvent);
-            }
-        }
-    },
-    
-    /** 
-     * Method: queuePotentialClick
-     * This method is separated out largely to make testing easier (so we
-     *     don't have to override window.setTimeout)
-     */
-    queuePotentialClick: function(evt) {
-        this.timerId = window.setTimeout(
-            OpenLayers.Function.bind(this.delayedCall, this, evt),
-            this.delay
-        );
-    },
-
-    /**
-     * Method: passesTolerance
-     * Determine whether the event is within the optional pixel tolerance.  Note
-     *     that the pixel tolerance check only works if mousedown events get to
-     *     the listeners registered here.  If they are stopped by other elements,
-     *     the <pixelTolerance> will have no effect here (this method will always
-     *     return true).
-     *
-     * Returns:
-     * {Boolean} The click is within the pixel tolerance (if specified).
-     */
-    passesTolerance: function(evt) {
-        var passes = true;
-        if (this.pixelTolerance != null && this.down && this.down.xy) {
-            passes = this.pixelTolerance >= this.down.xy.distanceTo(evt.xy);
-            // for touch environments, we also enforce that all touches
-            // start and end within the given tolerance to be considered a click
-            if (passes && this.touch && 
-                this.down.touches.length === this.last.touches.length) {
-                // the touchend event doesn't come with touches, so we check
-                // down and last
-                for (var i=0, ii=this.down.touches.length; i<ii; ++i) {
-                    if (this.getTouchDistance(
-                            this.down.touches[i], 
-                            this.last.touches[i]
-                        ) > this.pixelTolerance) {
-                        passes = false;
-                        break;
-                    }
-                }
-            }
-        }
-        return passes;
-    },
-    
-    /** 
-     * Method: getTouchDistance
-     *
-     * Returns:
-     * {Boolean} The pixel displacement between two touches.
-     */
-    getTouchDistance: function(from, to) {
-        return Math.sqrt(
-            Math.pow(from.clientX - to.clientX, 2) +
-            Math.pow(from.clientY - to.clientY, 2)
-        );
-    },
-    
-    /**
-     * Method: passesDblclickTolerance
-     * Determine whether the event is within the optional double-cick pixel 
-     *     tolerance.
-     *
-     * Returns:
-     * {Boolean} The click is within the double-click pixel tolerance.
-     */
-    passesDblclickTolerance: function(evt) {
-        var passes = true;
-        if (this.down && this.first) {
-            passes = this.down.xy.distanceTo(this.first.xy) <= this.dblclickTolerance;
-        }
-        return passes;
-    },
-
-    /**
-     * Method: clearTimer
-     * Clear the timer and set <timerId> to null.
-     */
-    clearTimer: function() {
-        if (this.timerId != null) {
-            window.clearTimeout(this.timerId);
-            this.timerId = null;
-        }
-        if (this.rightclickTimerId != null) {
-            window.clearTimeout(this.rightclickTimerId);
-            this.rightclickTimerId = null;
-        }
-    },
-    
-    /**
-     * Method: delayedCall
-     * Sets <timerId> to null.  And optionally triggers the click callback if
-     *     evt is set.
-     */
-    delayedCall: function(evt) {
-        this.timerId = null;
-        if (evt) {
-            this.callback("click", [evt]);
-        }
-    },
-
-    /**
-     * Method: getEventInfo
-     * This method allows us to store event information without storing the
-     *     actual event.  In touch devices (at least), the same event is 
-     *     modified between touchstart, touchmove, and touchend.
-     *
-     * Returns:
-     * {Object} An object with event related info.
-     */
-    getEventInfo: function(evt) {
-        var touches;
-        if (evt.touches) {
-            var len = evt.touches.length;
-            touches = new Array(len);
-            var touch;
-            for (var i=0; i<len; i++) {
-                touch = evt.touches[i];
-                touches[i] = {
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
-                };
-            }
-        }
-        return {
-            xy: evt.xy,
-            touches: touches
-        };
-    },
-
-    /**
-     * APIMethod: deactivate
-     * Deactivate the handler.
-     *
-     * Returns:
-     * {Boolean} The handler was successfully deactivated.
-     */
-    deactivate: function() {
-        var deactivated = false;
-        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            this.clearTimer();
-            this.down = null;
-            this.first = null;
-            this.last = null;
-            this.touch = false;
-            deactivated = true;
-        }
-        return deactivated;
-    },
-
-    CLASS_NAME: "OpenLayers.Handler.Click"
-});
-/* ======================================================================
-    OpenLayers/Handler/Drag.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Handler.js
- */
-
-/**
- * Class: OpenLayers.Handler.Drag
- * The drag handler is used to deal with sequences of browser events related
- *     to dragging.  The handler is used by controls that want to know when
- *     a drag sequence begins, when a drag is happening, and when it has
- *     finished.
- *
- * Controls that use the drag handler typically construct it with callbacks
- *     for 'down', 'move', and 'done'.  Callbacks for these keys are called
- *     when the drag begins, with each move, and when the drag is done.  In
- *     addition, controls can have callbacks keyed to 'up' and 'out' if they
- *     care to differentiate between the types of events that correspond with
- *     the end of a drag sequence.  If no drag actually occurs (no mouse move)
- *     the 'down' and 'up' callbacks will be called, but not the 'done'
- *     callback.
- *
- * Create a new drag handler with the <OpenLayers.Handler.Drag> constructor.
- *
- * Inherits from:
- *  - <OpenLayers.Handler>
- */
-OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
-  
-    /** 
-     * Property: started
-     * {Boolean} When a mousedown or touchstart event is received, we want to
-     * record it, but not set 'dragging' until the mouse moves after starting.
-     */
-    started: false,
-
-    /**
-     * Property: stopDown
-     * {Boolean} Stop propagation of mousedown events from getting to listeners
-     *     on the same element.  Default is true.
-     */
-    stopDown: true,
-
-    /** 
-     * Property: dragging 
-     * {Boolean} 
-     */
-    dragging: false,
-
-    /**
-     * Property: touch
-     * {Boolean} When a touchstart event is fired, touch will be true and all
-     *     mouse related listeners will do nothing.
-     */
-    touch: false,
-
-    /** 
-     * Property: last
-     * {<OpenLayers.Pixel>} The last pixel location of the drag.
-     */
-    last: null,
-
-    /** 
-     * Property: start
-     * {<OpenLayers.Pixel>} The first pixel location of the drag.
-     */
-    start: null,
-
-    /**
-     * Property: lastMoveEvt
-     * {Object} The last mousemove event that occurred. Used to
-     *     position the map correctly when our "delay drag"
-     *     timeout expired.
-     */
-    lastMoveEvt: null,
-
-    /**
-     * Property: oldOnselectstart
-     * {Function}
-     */
-    oldOnselectstart: null,
-    
-    /**
-     * Property: interval
-     * {Integer} In order to increase performance, an interval (in 
-     *     milliseconds) can be set to reduce the number of drag events 
-     *     called. If set, a new drag event will not be set until the 
-     *     interval has passed. 
-     *     Defaults to 0, meaning no interval. 
-     */
-    interval: 0,
-    
-    /**
-     * Property: timeoutId
-     * {String} The id of the timeout used for the mousedown interval.
-     *     This is "private", and should be left alone.
-     */
-    timeoutId: null,
-    
-    /**
-     * APIProperty: documentDrag
-     * {Boolean} If set to true, the handler will also handle mouse moves when
-     *     the cursor has moved out of the map viewport. Default is false.
-     */
-    documentDrag: false,
-    
-    /**
-     * Property: documentEvents
-     * {Boolean} Are we currently observing document events?
-     */
-    documentEvents: null,
-
-    /**
-     * Constructor: OpenLayers.Handler.Drag
-     * Returns OpenLayers.Handler.Drag
-     * 
-     * Parameters:
-     * control - {<OpenLayers.Control>} The control that is making use of
-     *     this handler.  If a handler is being used without a control, the
-     *     handlers setMap method must be overridden to deal properly with
-     *     the map.
-     * callbacks - {Object} An object containing a single function to be
-     *     called when the drag operation is finished. The callback should
-     *     expect to recieve a single argument, the pixel location of the event.
-     *     Callbacks for 'move' and 'done' are supported. You can also speficy
-     *     callbacks for 'down', 'up', and 'out' to respond to those events.
-     * options - {Object} 
-     */
-    initialize: function(control, callbacks, options) {
-        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
-        
-        if (this.documentDrag === true) {
-            var me = this;
-            this._docMove = function(evt) {
-                me.mousemove({
-                    xy: {x: evt.clientX, y: evt.clientY},
-                    element: document
-                });
-            };
-            this._docUp = function(evt) {
-                me.mouseup({xy: {x: evt.clientX, y: evt.clientY}});
-            };
-        }
-    },
-
-    
-    /**
-     * Method: dragstart
-     * This private method is factorized from mousedown and touchstart methods
-     *
-     * Parameters:
-     * evt - {Event} The event
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    dragstart: function (evt) {
-        var propagate = true;
-        this.dragging = false;
-        if (this.checkModifiers(evt) &&
-               (OpenLayers.Event.isLeftClick(evt) ||
-                OpenLayers.Event.isSingleTouch(evt))) {
-            this.started = true;
-            this.start = evt.xy;
-            this.last = evt.xy;
-            OpenLayers.Element.addClass(
-                this.map.viewPortDiv, "olDragDown"
-            );
-            this.down(evt);
-            this.callback("down", [evt.xy]);
-
-            OpenLayers.Event.stop(evt);
-
-            if(!this.oldOnselectstart) {
-                this.oldOnselectstart = document.onselectstart ?
-                    document.onselectstart : OpenLayers.Function.True;
-            }
-            document.onselectstart = OpenLayers.Function.False;
-
-            propagate = !this.stopDown;
-        } else {
-            this.started = false;
-            this.start = null;
-            this.last = null;
-        }
-        return propagate;
-    },
-
-    /**
-     * Method: dragmove
-     * This private method is factorized from mousemove and touchmove methods
-     *
-     * Parameters:
-     * evt - {Event} The event
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    dragmove: function (evt) {
-        this.lastMoveEvt = evt;
-        if (this.started && !this.timeoutId && (evt.xy.x != this.last.x ||
-                                                evt.xy.y != this.last.y)) {
-            if(this.documentDrag === true && this.documentEvents) {
-                if(evt.element === document) {
-                    this.adjustXY(evt);
-                    // do setEvent manually because the documentEvents are not
-                    // registered with the map
-                    this.setEvent(evt);
-                } else {
-                    this.removeDocumentEvents();
-                }
-            }
-            if (this.interval > 0) {
-                this.timeoutId = setTimeout(
-                    OpenLayers.Function.bind(this.removeTimeout, this),
-                    this.interval);
-            }
-            this.dragging = true;
-
-            this.move(evt);
-            this.callback("move", [evt.xy]);
-            if(!this.oldOnselectstart) {
-                this.oldOnselectstart = document.onselectstart;
-                document.onselectstart = OpenLayers.Function.False;
-            }
-            this.last = evt.xy;
-        }
-        return true;
-    },
-
-    /**
-     * Method: dragend
-     * This private method is factorized from mouseup and touchend methods
-     *
-     * Parameters:
-     * evt - {Event} The event
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    dragend: function (evt) {
-        if (this.started) {
-            if(this.documentDrag === true && this.documentEvents) {
-                this.adjustXY(evt);
-                this.removeDocumentEvents();
-            }
-            var dragged = (this.start != this.last);
-            this.started = false;
-            this.dragging = false;
-            OpenLayers.Element.removeClass(
-                this.map.viewPortDiv, "olDragDown"
-            );
-            this.up(evt);
-            this.callback("up", [evt.xy]);
-            if(dragged) {
-                this.callback("done", [evt.xy]);
-            }
-            document.onselectstart = this.oldOnselectstart;
-        }
-        return true;
-    },
-
-    /**
-     * The four methods below (down, move, up, and out) are used by subclasses
-     *     to do their own processing related to these mouse events.
-     */
-
-    /**
-     * Method: down
-     * This method is called during the handling of the mouse down event.
-     *     Subclasses can do their own processing here.
-     *
-     * Parameters:
-     * evt - {Event} The mouse down event
-     */
-    down: function(evt) {
-    },
-
-    /**
-     * Method: move
-     * This method is called during the handling of the mouse move event.
-     *     Subclasses can do their own processing here.
-     *
-     * Parameters:
-     * evt - {Event} The mouse move event
-     *
-     */
-    move: function(evt) {
-    },
-
-    /**
-     * Method: up
-     * This method is called during the handling of the mouse up event.
-     *     Subclasses can do their own processing here.
-     *
-     * Parameters:
-     * evt - {Event} The mouse up event
-     */
-    up: function(evt) {
-    },
-
-    /**
-     * Method: out
-     * This method is called during the handling of the mouse out event.
-     *     Subclasses can do their own processing here.
-     *
-     * Parameters:
-     * evt - {Event} The mouse out event
-     */
-    out: function(evt) {
-    },
-
-    /**
-     * The methods below are part of the magic of event handling.  Because
-     *     they are named like browser events, they are registered as listeners
-     *     for the events they represent.
-     */
-
-    /**
-     * Method: mousedown
-     * Handle mousedown events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    mousedown: function(evt) {
-        return this.dragstart(evt);
-    },
-
-    /**
-     * Method: touchstart
-     * Handle touchstart events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    touchstart: function(evt) {
-        if (!this.touch) {
-            this.touch = true;
-            // unregister mouse listeners
-            this.map.events.un({
-                mousedown: this.mousedown,
-                mouseup: this.mouseup,
-                mousemove: this.mousemove,
-                click: this.click,
-                scope: this
-            });
-        }
-        return this.dragstart(evt);
-    },
-
-    /**
-     * Method: mousemove
-     * Handle mousemove events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    mousemove: function(evt) {
-        return this.dragmove(evt);
-    },
-
-    /**
-     * Method: touchmove
-     * Handle touchmove events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    touchmove: function(evt) {
-        return this.dragmove(evt);
-    },
-
-    /**
-     * Method: removeTimeout
-     * Private. Called by mousemove() to remove the drag timeout.
-     */
-    removeTimeout: function() {
-        this.timeoutId = null;
-        // if timeout expires while we're still dragging (mouseup
-        // hasn't occurred) then call mousemove to move to the
-        // correct position
-        if(this.dragging) {
-            this.mousemove(this.lastMoveEvt);
-        }
-    },
-
-    /**
-     * Method: mouseup
-     * Handle mouseup events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    mouseup: function(evt) {
-        return this.dragend(evt);
-    },
-
-    /**
-     * Method: touchend
-     * Handle touchend events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    touchend: function(evt) {
-        // override evt.xy with last position since touchend does not have
-        // any touch position
-        evt.xy = this.last;
-        return this.dragend(evt);
-    },
-
-    /**
-     * Method: mouseout
-     * Handle mouseout events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    mouseout: function (evt) {
-        if (this.started && OpenLayers.Util.mouseLeft(evt, this.map.viewPortDiv)) {
-            if(this.documentDrag === true) {
-                this.addDocumentEvents();
-            } else {
-                var dragged = (this.start != this.last);
-                this.started = false; 
-                this.dragging = false;
-                OpenLayers.Element.removeClass(
-                    this.map.viewPortDiv, "olDragDown"
-                );
-                this.out(evt);
-                this.callback("out", []);
-                if(dragged) {
-                    this.callback("done", [evt.xy]);
-                }
-                if(document.onselectstart) {
-                    document.onselectstart = this.oldOnselectstart;
-                }
-            }
-        }
-        return true;
-    },
-
-    /**
-     * Method: click
-     * The drag handler captures the click event.  If something else registers
-     *     for clicks on the same element, its listener will not be called 
-     *     after a drag.
-     * 
-     * Parameters: 
-     * evt - {Event} 
-     * 
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    click: function (evt) {
-        // let the click event propagate only if the mouse moved
-        return (this.start == this.last);
-    },
-
-    /**
-     * Method: activate
-     * Activate the handler.
-     * 
-     * Returns:
-     * {Boolean} The handler was successfully activated.
-     */
-    activate: function() {
-        var activated = false;
-        if(OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
-            this.dragging = false;
-            activated = true;
-        }
-        return activated;
-    },
-
-    /**
-     * Method: deactivate 
-     * Deactivate the handler.
-     * 
-     * Returns:
-     * {Boolean} The handler was successfully deactivated.
-     */
-    deactivate: function() {
-        var deactivated = false;
-        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            this.touch = false;
-            this.started = false;
-            this.dragging = false;
-            this.start = null;
-            this.last = null;
-            deactivated = true;
-            OpenLayers.Element.removeClass(
-                this.map.viewPortDiv, "olDragDown"
-            );
-        }
-        return deactivated;
-    },
-    
-    /**
-     * Method: adjustXY
-     * Converts event coordinates that are relative to the document body to
-     * ones that are relative to the map viewport. The latter is the default in
-     * OpenLayers.
-     * 
-     * Parameters:
-     * evt - {Object}
-     */
-    adjustXY: function(evt) {
-        var pos = OpenLayers.Util.pagePosition(this.map.viewPortDiv);
-        evt.xy.x -= pos[0];
-        evt.xy.y -= pos[1];
-    },
-    
-    /**
-     * Method: addDocumentEvents
-     * Start observing document events when documentDrag is true and the mouse
-     * cursor leaves the map viewport while dragging.
-     */
-    addDocumentEvents: function() {
-        OpenLayers.Element.addClass(document.body, "olDragDown");
-        this.documentEvents = true;
-        OpenLayers.Event.observe(document, "mousemove", this._docMove);
-        OpenLayers.Event.observe(document, "mouseup", this._docUp);
-    },
-    
-    /**
-     * Method: removeDocumentEvents
-     * Stops observing document events when documentDrag is true and the mouse
-     * cursor re-enters the map viewport while dragging.
-     */
-    removeDocumentEvents: function() {
-        OpenLayers.Element.removeClass(document.body, "olDragDown");
-        this.documentEvents = false;
-        OpenLayers.Event.stopObserving(document, "mousemove", this._docMove);
-        OpenLayers.Event.stopObserving(document, "mouseup", this._docUp);
-    },
-
-    CLASS_NAME: "OpenLayers.Handler.Drag"
-});
-/* ======================================================================
-    OpenLayers/Handler/Feature.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-
-/**
- * @requires OpenLayers/Handler.js
- */
-
-/**
- * Class: OpenLayers.Handler.Feature 
- * Handler to respond to mouse events related to a drawn feature.  Callbacks
- *     with the following keys will be notified of the following events
- *     associated with features: click, clickout, over, out, and dblclick.
- *
- * This handler stops event propagation for mousedown and mouseup if those
- *     browser events target features that can be selected.
- *
- * Inherits from:
- *  - <OpenLayers.Handler>
- */
-OpenLayers.Handler.Feature = OpenLayers.Class(OpenLayers.Handler, {
-
-    /**
-     * Property: EVENTMAP
-     * {Object} A object mapping the browser events to objects with callback
-     *     keys for in and out.
-     */
-    EVENTMAP: {
-        'click': {'in': 'click', 'out': 'clickout'},
-        'mousemove': {'in': 'over', 'out': 'out'},
-        'dblclick': {'in': 'dblclick', 'out': null},
-        'mousedown': {'in': null, 'out': null},
-        'mouseup': {'in': null, 'out': null},
-        'touchstart': {'in': 'click', 'out': 'clickout'}
-    },
-
-    /**
-     * Property: feature
-     * {<OpenLayers.Feature.Vector>} The last feature that was hovered.
-     */
-    feature: null,
-
-    /**
-     * Property: lastFeature
-     * {<OpenLayers.Feature.Vector>} The last feature that was handled.
-     */
-    lastFeature: null,
-
-    /**
-     * Property: down
-     * {<OpenLayers.Pixel>} The location of the last mousedown.
-     */
-    down: null,
-
-    /**
-     * Property: up
-     * {<OpenLayers.Pixel>} The location of the last mouseup.
-     */
-    up: null,
-
-    /**
-     * Property: touch
-     * {Boolean} When a touchstart event is fired, touch will be true and all
-     *     mouse related listeners will do nothing.
-     */
-    touch: false,
-    
-    /**
-     * Property: clickTolerance
-     * {Number} The number of pixels the mouse can move between mousedown
-     *     and mouseup for the event to still be considered a click.
-     *     Dragging the map should not trigger the click and clickout callbacks
-     *     unless the map is moved by less than this tolerance. Defaults to 4.
-     */
-    clickTolerance: 4,
-
-    /**
-     * Property: geometryTypes
-     * To restrict dragging to a limited set of geometry types, send a list
-     * of strings corresponding to the geometry class names.
-     * 
-     * @type Array(String)
-     */
-    geometryTypes: null,
-
-    /**
-     * Property: stopClick
-     * {Boolean} If stopClick is set to true, handled clicks do not
-     *      propagate to other click listeners. Otherwise, handled clicks
-     *      do propagate. Unhandled clicks always propagate, whatever the
-     *      value of stopClick. Defaults to true.
-     */
-    stopClick: true,
-
-    /**
-     * Property: stopDown
-     * {Boolean} If stopDown is set to true, handled mousedowns do not
-     *      propagate to other mousedown listeners. Otherwise, handled
-     *      mousedowns do propagate. Unhandled mousedowns always propagate,
-     *      whatever the value of stopDown. Defaults to true.
-     */
-    stopDown: true,
-
-    /**
-     * Property: stopUp
-     * {Boolean} If stopUp is set to true, handled mouseups do not
-     *      propagate to other mouseup listeners. Otherwise, handled mouseups
-     *      do propagate. Unhandled mouseups always propagate, whatever the
-     *      value of stopUp. Defaults to false.
-     */
-    stopUp: false,
-    
-    /**
-     * Constructor: OpenLayers.Handler.Feature
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} 
-     * layer - {<OpenLayers.Layer.Vector>}
-     * callbacks - {Object} An object with a 'over' property whos value is
-     *     a function to be called when the mouse is over a feature. The 
-     *     callback should expect to recieve a single argument, the feature.
-     * options - {Object} 
-     */
-    initialize: function(control, layer, callbacks, options) {
-        OpenLayers.Handler.prototype.initialize.apply(this, [control, callbacks, options]);
-        this.layer = layer;
-    },
-
-    /**
-     * Method: touchstart
-     * Handle touchstart events
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} Let the event propagate.
-     */
-    touchstart: function(evt) {
-        if(!this.touch) {
-            this.touch =  true;
-            this.map.events.un({
-                mousedown: this.mousedown,
-                mouseup: this.mouseup,
-                mousemove: this.mousemove,
-                click: this.click,
-                dblclick: this.dblclick,
-                scope: this
-            });
-        }
-        return OpenLayers.Event.isMultiTouch(evt) ?
-                true : this.mousedown(evt);
-    },
-
-    /**
-     * Method: touchmove
-     * Handle touchmove events. We just prevent the browser default behavior,
-     *    for Android Webkit not to select text when moving the finger after
-     *    selecting a feature.
-     *
-     * Parameters:
-     * evt - {Event}
-     */
-    touchmove: function(evt) {
-        OpenLayers.Event.stop(evt);
-    },
-
-    /**
-     * Method: mousedown
-     * Handle mouse down.  Stop propagation if a feature is targeted by this
-     *     event (stops map dragging during feature selection).
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    mousedown: function(evt) {
-        // Feature selection is only done with a left click. Other handlers may stop the
-        // propagation of left-click mousedown events but not right-click mousedown events.
-        // This mismatch causes problems when comparing the location of the down and up
-        // events in the click function so it is important ignore right-clicks.
-        if (OpenLayers.Event.isLeftClick(evt) || OpenLayers.Event.isSingleTouch(evt)) {
-            this.down = evt.xy;
-        }
-        return this.handle(evt) ? !this.stopDown : true;
-    },
-    
-    /**
-     * Method: mouseup
-     * Handle mouse up.  Stop propagation if a feature is targeted by this
-     *     event.
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    mouseup: function(evt) {
-        this.up = evt.xy;
-        return this.handle(evt) ? !this.stopUp : true;
-    },
-
-    /**
-     * Method: click
-     * Handle click.  Call the "click" callback if click on a feature,
-     *     or the "clickout" callback if click outside any feature.
-     * 
-     * Parameters:
-     * evt - {Event} 
-     *
-     * Returns:
-     * {Boolean}
-     */
-    click: function(evt) {
-        return this.handle(evt) ? !this.stopClick : true;
-    },
-        
-    /**
-     * Method: mousemove
-     * Handle mouse moves.  Call the "over" callback if moving in to a feature,
-     *     or the "out" callback if moving out of a feature.
-     * 
-     * Parameters:
-     * evt - {Event} 
-     *
-     * Returns:
-     * {Boolean}
-     */
-    mousemove: function(evt) {
-        if (!this.callbacks['over'] && !this.callbacks['out']) {
-            return true;
-        }     
-        this.handle(evt);
-        return true;
-    },
-    
-    /**
-     * Method: dblclick
-     * Handle dblclick.  Call the "dblclick" callback if dblclick on a feature.
-     *
-     * Parameters:
-     * evt - {Event} 
-     *
-     * Returns:
-     * {Boolean}
-     */
-    dblclick: function(evt) {
-        return !this.handle(evt);
-    },
-
-    /**
-     * Method: geometryTypeMatches
-     * Return true if the geometry type of the passed feature matches
-     *     one of the geometry types in the geometryTypes array.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Vector.Feature>}
-     *
-     * Returns:
-     * {Boolean}
-     */
-    geometryTypeMatches: function(feature) {
-        return this.geometryTypes == null ||
-            OpenLayers.Util.indexOf(this.geometryTypes,
-                                    feature.geometry.CLASS_NAME) > -1;
-    },
-
-    /**
-     * Method: handle
-     *
-     * Parameters:
-     * evt - {Event}
-     *
-     * Returns:
-     * {Boolean} The event occurred over a relevant feature.
-     */
-    handle: function(evt) {
-        if(this.feature && !this.feature.layer) {
-            // feature has been destroyed
-            this.feature = null;
-        }
-        var type = evt.type;
-        var handled = false;
-        var previouslyIn = !!(this.feature); // previously in a feature
-        var click = (type == "click" || type == "dblclick" || type == "touchstart");
-        this.feature = this.layer.getFeatureFromEvent(evt);
-        if(this.feature && !this.feature.layer) {
-            // feature has been destroyed
-            this.feature = null;
-        }
-        if(this.lastFeature && !this.lastFeature.layer) {
-            // last feature has been destroyed
-            this.lastFeature = null;
-        }
-        if(this.feature) {
-            if(type === "touchstart") {
-                // stop the event to prevent Android Webkit from
-                // "flashing" the map div
-                OpenLayers.Event.stop(evt);
-            }
-            var inNew = (this.feature != this.lastFeature);
-            if(this.geometryTypeMatches(this.feature)) {
-                // in to a feature
-                if(previouslyIn && inNew) {
-                    // out of last feature and in to another
-                    if(this.lastFeature) {
-                        this.triggerCallback(type, 'out', [this.lastFeature]);
-                    }
-                    this.triggerCallback(type, 'in', [this.feature]);
-                } else if(!previouslyIn || click) {
-                    // in feature for the first time
-                    this.triggerCallback(type, 'in', [this.feature]);
-                }
-                this.lastFeature = this.feature;
-                handled = true;
-            } else {
-                // not in to a feature
-                if(this.lastFeature && (previouslyIn && inNew || click)) {
-                    // out of last feature for the first time
-                    this.triggerCallback(type, 'out', [this.lastFeature]);
-                }
-                // next time the mouse goes in a feature whose geometry type
-                // doesn't match we don't want to call the 'out' callback
-                // again, so let's set this.feature to null so that
-                // previouslyIn will evaluate to false the next time
-                // we enter handle. Yes, a bit hackish...
-                this.feature = null;
-            }
-        } else {
-            if(this.lastFeature && (previouslyIn || click)) {
-                this.triggerCallback(type, 'out', [this.lastFeature]);
-            }
-        }
-        return handled;
-    },
-    
-    /**
-     * Method: triggerCallback
-     * Call the callback keyed in the event map with the supplied arguments.
-     *     For click and clickout, the <clickTolerance> is checked first.
-     *
-     * Parameters:
-     * type - {String}
-     */
-    triggerCallback: function(type, mode, args) {
-        var key = this.EVENTMAP[type][mode];
-        if(key) {
-            if(type == 'click' && this.up && this.down) {
-                // for click/clickout, only trigger callback if tolerance is met
-                var dpx = Math.sqrt(
-                    Math.pow(this.up.x - this.down.x, 2) +
-                    Math.pow(this.up.y - this.down.y, 2)
-                );
-                if(dpx <= this.clickTolerance) {
-                    this.callback(key, args);
-                }
-            } else {
-                this.callback(key, args);
-            }
-        }
-    },
-
-    /**
-     * Method: activate 
-     * Turn on the handler.  Returns false if the handler was already active.
-     *
-     * Returns:
-     * {Boolean}
-     */
-    activate: function() {
-        var activated = false;
-        if(OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
-            this.moveLayerToTop();
-            this.map.events.on({
-                "removelayer": this.handleMapEvents,
-                "changelayer": this.handleMapEvents,
-                scope: this
-            });
-            activated = true;
-        }
-        return activated;
-    },
-    
-    /**
-     * Method: deactivate 
-     * Turn off the handler.  Returns false if the handler was already active.
-     *
-     * Returns: 
-     * {Boolean}
-     */
-    deactivate: function() {
-        var deactivated = false;
-        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            this.moveLayerBack();
-            this.feature = null;
-            this.lastFeature = null;
-            this.down = null;
-            this.up = null;
-            this.touch = false;
-            this.map.events.un({
-                "removelayer": this.handleMapEvents,
-                "changelayer": this.handleMapEvents,
-                scope: this
-            });
-            deactivated = true;
-        }
-        return deactivated;
-    },
-    
-    /**
-     * Method: handleMapEvents
-     * 
-     * Parameters:
-     * evt - {Object}
-     */
-    handleMapEvents: function(evt) {
-        if (evt.type == "removelayer" || evt.property == "order") {
-            this.moveLayerToTop();
-        }
-    },
-    
-    /**
-     * Method: moveLayerToTop
-     * Moves the layer for this handler to the top, so mouse events can reach
-     * it.
-     */
-    moveLayerToTop: function() {
-        var index = Math.max(this.map.Z_INDEX_BASE['Feature'] - 1,
-            this.layer.getZIndex()) + 1;
-        this.layer.setZIndex(index);
-        
-    },
-    
-    /**
-     * Method: moveLayerBack
-     * Moves the layer back to the position determined by the map's layers
-     * array.
-     */
-    moveLayerBack: function() {
-        var index = this.layer.getZIndex() - 1;
-        if (index >= this.map.Z_INDEX_BASE['Feature']) {
-            this.layer.setZIndex(index);
-        } else {
-            this.map.setLayerZIndex(this.layer,
-                this.map.getLayerIndex(this.layer));
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Handler.Feature"
-});
-/* ======================================================================
-    OpenLayers/Control/DragFeature.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-
-/**
- * @requires OpenLayers/Control.js
- * @requires OpenLayers/Handler/Drag.js
- * @requires OpenLayers/Handler/Feature.js
- */
-
-/**
- * Class: OpenLayers.Control.DragFeature
- * The DragFeature control moves a feature with a drag of the mouse. Create a
- * new control with the <OpenLayers.Control.DragFeature> constructor.
- *
- * Inherits From:
- *  - <OpenLayers.Control>
- */
-OpenLayers.Control.DragFeature = OpenLayers.Class(OpenLayers.Control, {
-
-    /**
-     * APIProperty: geometryTypes
-     * {Array(String)} To restrict dragging to a limited set of geometry types,
-     *     send a list of strings corresponding to the geometry class names.
-     */
-    geometryTypes: null,
-    
-    /**
-     * APIProperty: onStart
-     * {Function} Define this function if you want to know when a drag starts.
-     *     The function should expect to receive two arguments: the feature
-     *     that is about to be dragged and the pixel location of the mouse.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that is about to be
-     *     dragged.
-     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
-     */
-    onStart: function(feature, pixel) {},
-
-    /**
-     * APIProperty: onDrag
-     * {Function} Define this function if you want to know about each move of a
-     *     feature. The function should expect to receive two arguments: the
-     *     feature that is being dragged and the pixel location of the mouse.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
-     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
-     */
-    onDrag: function(feature, pixel) {},
-
-    /**
-     * APIProperty: onComplete
-     * {Function} Define this function if you want to know when a feature is
-     *     done dragging. The function should expect to receive two arguments:
-     *     the feature that is being dragged and the pixel location of the
-     *     mouse.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
-     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
-     */
-    onComplete: function(feature, pixel) {},
-
-    /**
-     * APIProperty: onEnter
-     * {Function} Define this function if you want to know when the mouse
-     *     goes over a feature and thereby makes this feature a candidate
-     *     for dragging.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that is ready
-     *     to be dragged.
-     */
-    onEnter: function(feature) {},
-
-    /**
-     * APIProperty: onLeave
-     * {Function} Define this function if you want to know when the mouse
-     *     goes out of the feature that was dragged.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
-     */
-    onLeave: function(feature) {},
-
-    /**
-     * APIProperty: documentDrag
-     * {Boolean} If set to true, mouse dragging will continue even if the
-     *     mouse cursor leaves the map viewport. Default is false.
-     */
-    documentDrag: false,
-    
-    /**
-     * Property: layer
-     * {<OpenLayers.Layer.Vector>}
-     */
-    layer: null,
-    
-    /**
-     * Property: feature
-     * {<OpenLayers.Feature.Vector>}
-     */
-    feature: null,
-
-    /**
-     * Property: dragCallbacks
-     * {Object} The functions that are sent to the drag handler for callback.
-     */
-    dragCallbacks: {},
-
-    /**
-     * Property: featureCallbacks
-     * {Object} The functions that are sent to the feature handler for callback.
-     */
-    featureCallbacks: {},
-    
-    /**
-     * Property: lastPixel
-     * {<OpenLayers.Pixel>}
-     */
-    lastPixel: null,
-
-    /**
-     * Constructor: OpenLayers.Control.DragFeature
-     * Create a new control to drag features.
-     *
-     * Parameters:
-     * layer - {<OpenLayers.Layer.Vector>} The layer containing features to be
-     *     dragged.
-     * options - {Object} Optional object whose properties will be set on the
-     *     control.
-     */
-    initialize: function(layer, options) {
-        OpenLayers.Control.prototype.initialize.apply(this, [options]);
-        this.layer = layer;
-        this.handlers = {
-            drag: new OpenLayers.Handler.Drag(
-                this, OpenLayers.Util.extend({
-                    down: this.downFeature,
-                    move: this.moveFeature,
-                    up: this.upFeature,
-                    out: this.cancel,
-                    done: this.doneDragging
-                }, this.dragCallbacks), {
-                    documentDrag: this.documentDrag
-                }
-            ),
-            feature: new OpenLayers.Handler.Feature(
-                this, this.layer, OpenLayers.Util.extend({
-                    // 'click' and 'clickout' callback are for the mobile
-                    // support: no 'over' or 'out' in touch based browsers.
-                    click: this.clickFeature,
-                    clickout: this.clickoutFeature,
-                    over: this.overFeature,
-                    out: this.outFeature
-                }, this.featureCallbacks),
-                {geometryTypes: this.geometryTypes}
-            )
-        };
-    },
-
-    /**
-     * Method: clickFeature
-     * Called when the feature handler detects a click-in on a feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>}
-     */
-    clickFeature: function(feature) {
-        if (this.handlers.feature.touch && !this.over && this.overFeature(feature)) {
-            this.handlers.drag.dragstart(this.handlers.feature.evt);
-            // to let the events propagate to the feature handler (click callback)
-            this.handlers.drag.stopDown = false;
-        }
-    },
-
-    /**
-     * Method: clickoutFeature
-     * Called when the feature handler detects a click-out on a feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>}
-     */
-    clickoutFeature: function(feature) {
-        if (this.handlers.feature.touch && this.over) {
-            this.outFeature(feature);
-            this.handlers.drag.stopDown = true;
-        }
-    },
-
-    /**
-     * APIMethod: destroy
-     * Take care of things that are not handled in superclass
-     */
-    destroy: function() {
-        this.layer = null;
-        OpenLayers.Control.prototype.destroy.apply(this, []);
-    },
-
-    /**
-     * APIMethod: activate
-     * Activate the control and the feature handler.
-     * 
-     * Returns:
-     * {Boolean} Successfully activated the control and feature handler.
-     */
-    activate: function() {
-        return (this.handlers.feature.activate() &&
-                OpenLayers.Control.prototype.activate.apply(this, arguments));
-    },
-
-    /**
-     * APIMethod: deactivate
-     * Deactivate the control and all handlers.
-     * 
-     * Returns:
-     * {Boolean} Successfully deactivated the control.
-     */
-    deactivate: function() {
-        // the return from the handlers is unimportant in this case
-        this.handlers.drag.deactivate();
-        this.handlers.feature.deactivate();
-        this.feature = null;
-        this.dragging = false;
-        this.lastPixel = null;
-        OpenLayers.Element.removeClass(
-            this.map.viewPortDiv, this.displayClass + "Over"
-        );
-        return OpenLayers.Control.prototype.deactivate.apply(this, arguments);
-    },
-
-    /**
-     * Method: overFeature
-     * Called when the feature handler detects a mouse-over on a feature.
-     *     This activates the drag handler.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The selected feature.
-     *
-     * Returns:
-     * {Boolean} Successfully activated the drag handler.
-     */
-    overFeature: function(feature) {
-        var activated = false;
-        if(!this.handlers.drag.dragging) {
-            this.feature = feature;
-            this.handlers.drag.activate();
-            activated = true;
-            this.over = true;
-            OpenLayers.Element.addClass(this.map.viewPortDiv, this.displayClass + "Over");
-            this.onEnter(feature);
-        } else {
-            if(this.feature.id == feature.id) {
-                this.over = true;
-            } else {
-                this.over = false;
-            }
-        }
-        return activated;
-    },
-
-    /**
-     * Method: downFeature
-     * Called when the drag handler detects a mouse-down.
-     *
-     * Parameters:
-     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
-     */
-    downFeature: function(pixel) {
-        this.lastPixel = pixel;
-        this.onStart(this.feature, pixel);
-    },
-
-    /**
-     * Method: moveFeature
-     * Called when the drag handler detects a mouse-move.  Also calls the
-     *     optional onDrag method.
-     * 
-     * Parameters:
-     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
-     */
-    moveFeature: function(pixel) {
-        var res = this.map.getResolution();
-        this.feature.geometry.move(res * (pixel.x - this.lastPixel.x),
-                                   res * (this.lastPixel.y - pixel.y));
-        this.layer.drawFeature(this.feature);
-        this.lastPixel = pixel;
-        this.onDrag(this.feature, pixel);
-    },
-
-    /**
-     * Method: upFeature
-     * Called when the drag handler detects a mouse-up.
-     * 
-     * Parameters:
-     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
-     */
-    upFeature: function(pixel) {
-        if(!this.over) {
-            this.handlers.drag.deactivate();
-        }
-    },
-
-    /**
-     * Method: doneDragging
-     * Called when the drag handler is done dragging.
-     *
-     * Parameters:
-     * pixel - {<OpenLayers.Pixel>} The last event pixel location.  If this event
-     *     came from a mouseout, this may not be in the map viewport.
-     */
-    doneDragging: function(pixel) {
-        this.onComplete(this.feature, pixel);
-    },
-
-    /**
-     * Method: outFeature
-     * Called when the feature handler detects a mouse-out on a feature.
-     *
-     * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} The feature that the mouse left.
-     */
-    outFeature: function(feature) {
-        if(!this.handlers.drag.dragging) {
-            this.over = false;
-            this.handlers.drag.deactivate();
-            OpenLayers.Element.removeClass(
-                this.map.viewPortDiv, this.displayClass + "Over"
-            );
-            this.onLeave(feature);
-            this.feature = null;
-        } else {
-            if(this.feature.id == feature.id) {
-                this.over = false;
-            }
-        }
-    },
-        
-    /**
-     * Method: cancel
-     * Called when the drag handler detects a mouse-out (from the map viewport).
-     */
-    cancel: function() {
-        this.handlers.drag.deactivate();
-        this.over = false;
-    },
-
-    /**
-     * Method: setMap
-     * Set the map property for the control and all handlers.
-     *
-     * Parameters: 
-     * map - {<OpenLayers.Map>} The control's map.
-     */
-    setMap: function(map) {
-        this.handlers.drag.setMap(map);
-        this.handlers.feature.setMap(map);
-        OpenLayers.Control.prototype.setMap.apply(this, arguments);
-    },
-
-    CLASS_NAME: "OpenLayers.Control.DragFeature"
-});
-/* ======================================================================
-    OpenLayers/Handler/Box.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Handler.js
- * @requires OpenLayers/Handler/Drag.js
- */
-
-/**
- * Class: OpenLayers.Handler.Box
- * Handler for dragging a rectangle across the map.  Box is displayed 
- * on mouse down, moves on mouse move, and is finished on mouse up.
- *
- * Inherits from:
- *  - <OpenLayers.Handler> 
- */
-OpenLayers.Handler.Box = OpenLayers.Class(OpenLayers.Handler, {
-
-    /** 
-     * Property: dragHandler 
-     * {<OpenLayers.Handler.Drag>} 
-     */
-    dragHandler: null,
-
-    /**
-     * APIProperty: boxDivClassName
-     * {String} The CSS class to use for drawing the box. Default is
-     *     olHandlerBoxZoomBox
-     */
-    boxDivClassName: 'olHandlerBoxZoomBox',
-    
-    /**
-     * Property: boxOffsets
-     * {Object} Caches box offsets from css. This is used by the getBoxOffsets
-     * method.
-     */
-    boxOffsets: null,
-
-    /**
-     * Constructor: OpenLayers.Handler.Box
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} 
-     * callbacks - {Object} An object with a properties whose values are
-     *     functions.  Various callbacks described below.
-     * options - {Object} 
-     *
-     * Named callbacks:
-     * start - Called when the box drag operation starts.
-     * done - Called when the box drag operation is finished.
-     *     The callback should expect to receive a single argument, the box 
-     *     bounds or a pixel. If the box dragging didn't span more than a 5 
-     *     pixel distance, a pixel will be returned instead of a bounds object.
-     */
-    initialize: function(control, callbacks, options) {
-        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
-        this.dragHandler = new OpenLayers.Handler.Drag(
-            this, 
-            {
-                down: this.startBox, 
-                move: this.moveBox, 
-                out: this.removeBox,
-                up: this.endBox
-            }, 
-            {keyMask: this.keyMask}
-        );
-    },
-
-    /**
-     * Method: destroy
-     */
-    destroy: function() {
-        OpenLayers.Handler.prototype.destroy.apply(this, arguments);
-        if (this.dragHandler) {
-            this.dragHandler.destroy();
-            this.dragHandler = null;
-        }            
-    },
-
-    /**
-     * Method: setMap
-     */
-    setMap: function (map) {
-        OpenLayers.Handler.prototype.setMap.apply(this, arguments);
-        if (this.dragHandler) {
-            this.dragHandler.setMap(map);
-        }
-    },
-
-    /**
-    * Method: startBox
-    *
-    * Parameters:
-    * xy - {<OpenLayers.Pixel>}
-    */
-    startBox: function (xy) {
-        this.callback("start", []);
-        this.zoomBox = OpenLayers.Util.createDiv('zoomBox', {
-            x: -9999, y: -9999
-        });
-        this.zoomBox.className = this.boxDivClassName;                                         
-        this.zoomBox.style.zIndex = this.map.Z_INDEX_BASE["Popup"] - 1;
-        
-        this.map.viewPortDiv.appendChild(this.zoomBox);
-        
-        OpenLayers.Element.addClass(
-            this.map.viewPortDiv, "olDrawBox"
-        );
-    },
-
-    /**
-    * Method: moveBox
-    */
-    moveBox: function (xy) {
-        var startX = this.dragHandler.start.x;
-        var startY = this.dragHandler.start.y;
-        var deltaX = Math.abs(startX - xy.x);
-        var deltaY = Math.abs(startY - xy.y);
-
-        var offset = this.getBoxOffsets();
-        this.zoomBox.style.width = (deltaX + offset.width + 1) + "px";
-        this.zoomBox.style.height = (deltaY + offset.height + 1) + "px";
-        this.zoomBox.style.left = (xy.x < startX ?
-            startX - deltaX - offset.left : startX - offset.left) + "px";
-        this.zoomBox.style.top = (xy.y < startY ?
-            startY - deltaY - offset.top : startY - offset.top) + "px";
-    },
-
-    /**
-    * Method: endBox
-    */
-    endBox: function(end) {
-        var result;
-        if (Math.abs(this.dragHandler.start.x - end.x) > 5 ||    
-            Math.abs(this.dragHandler.start.y - end.y) > 5) {   
-            var start = this.dragHandler.start;
-            var top = Math.min(start.y, end.y);
-            var bottom = Math.max(start.y, end.y);
-            var left = Math.min(start.x, end.x);
-            var right = Math.max(start.x, end.x);
-            result = new OpenLayers.Bounds(left, bottom, right, top);
-        } else {
-            result = this.dragHandler.start.clone(); // i.e. OL.Pixel
-        } 
-        this.removeBox();
-
-        this.callback("done", [result]);
-    },
-
-    /**
-     * Method: removeBox
-     * Remove the zoombox from the screen and nullify our reference to it.
-     */
-    removeBox: function() {
-        this.map.viewPortDiv.removeChild(this.zoomBox);
-        this.zoomBox = null;
-        this.boxOffsets = null;
-        OpenLayers.Element.removeClass(
-            this.map.viewPortDiv, "olDrawBox"
-        );
-
-    },
-
-    /**
-     * Method: activate
-     */
-    activate: function () {
-        if (OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
-            this.dragHandler.activate();
-            return true;
-        } else {
-            return false;
-        }
-    },
-
-    /**
-     * Method: deactivate
-     */
-    deactivate: function () {
-        if (OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            if (this.dragHandler.deactivate()) {
-                if (this.zoomBox) {
-                    this.removeBox();
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    },
-    
-    /**
-     * Method: getBoxOffsets
-     * Determines border offsets for a box, according to the box model.
-     * 
-     * Returns:
-     * {Object} an object with the following offsets:
-     *     - left
-     *     - right
-     *     - top
-     *     - bottom
-     *     - width
-     *     - height
-     */
-    getBoxOffsets: function() {
-        if (!this.boxOffsets) {
-            // Determine the box model. If the testDiv's clientWidth is 3, then
-            // the borders are outside and we are dealing with the w3c box
-            // model. Otherwise, the browser uses the traditional box model and
-            // the borders are inside the box bounds, leaving us with a
-            // clientWidth of 1.
-            var testDiv = document.createElement("div");
-            //testDiv.style.visibility = "hidden";
-            testDiv.style.position = "absolute";
-            testDiv.style.border = "1px solid black";
-            testDiv.style.width = "3px";
-            document.body.appendChild(testDiv);
-            var w3cBoxModel = testDiv.clientWidth == 3;
-            document.body.removeChild(testDiv);
-            
-            var left = parseInt(OpenLayers.Element.getStyle(this.zoomBox,
-                "border-left-width"));
-            var right = parseInt(OpenLayers.Element.getStyle(
-                this.zoomBox, "border-right-width"));
-            var top = parseInt(OpenLayers.Element.getStyle(this.zoomBox,
-                "border-top-width"));
-            var bottom = parseInt(OpenLayers.Element.getStyle(
-                this.zoomBox, "border-bottom-width"));
-            this.boxOffsets = {
-                left: left,
-                right: right,
-                top: top,
-                bottom: bottom,
-                width: w3cBoxModel === false ? left + right : 0,
-                height: w3cBoxModel === false ? top + bottom : 0
-            };
-        }
-        return this.boxOffsets;
-    },
-  
-    CLASS_NAME: "OpenLayers.Handler.Box"
-});
-/* ======================================================================
-    OpenLayers/Control/ZoomBox.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Control.js
- * @requires OpenLayers/Handler/Box.js
- */
-
-/**
- * Class: OpenLayers.Control.ZoomBox
- * The ZoomBox control enables zooming directly to a given extent, by drawing 
- * a box on the map. The box is drawn by holding down shift, whilst dragging 
- * the mouse.
- *
- * Inherits from:
- *  - <OpenLayers.Control>
- */
-OpenLayers.Control.ZoomBox = OpenLayers.Class(OpenLayers.Control, {
-    /**
-     * Property: type
-     * {OpenLayers.Control.TYPE}
-     */
-    type: OpenLayers.Control.TYPE_TOOL,
-
-    /**
-     * Property: out
-     * {Boolean} Should the control be used for zooming out?
-     */
-    out: false,
-
-    /**
-     * APIProperty: keyMask
-     * {Integer} Zoom only occurs if the keyMask matches the combination of 
-     *     keys down. Use bitwise operators and one or more of the
-     *     <OpenLayers.Handler> constants to construct a keyMask. Leave null if 
-     *     not used mask. Default is null.
-     */
-    keyMask: null,
-
-    /**
-     * APIProperty: alwaysZoom
-     * {Boolean} Always zoom in/out, when box drawed 
-     */
-    alwaysZoom: false,
-
-    /**
-     * Method: draw
-     */    
-    draw: function() {
-        this.handler = new OpenLayers.Handler.Box( this,
-                            {done: this.zoomBox}, {keyMask: this.keyMask} );
-    },
-
-    /**
-     * Method: zoomBox
-     *
-     * Parameters:
-     * position - {<OpenLayers.Bounds>} or {<OpenLayers.Pixel>}
-     */
-    zoomBox: function (position) {
-        if (position instanceof OpenLayers.Bounds) {
-            var bounds;
-            if (!this.out) {
-                var minXY = this.map.getLonLatFromPixel({
-                    x: position.left,
-                    y: position.bottom
-                });
-                var maxXY = this.map.getLonLatFromPixel({
-                    x: position.right,
-                    y: position.top
-                });
-                bounds = new OpenLayers.Bounds(minXY.lon, minXY.lat,
-                                               maxXY.lon, maxXY.lat);
-            } else {
-                var pixWidth = Math.abs(position.right-position.left);
-                var pixHeight = Math.abs(position.top-position.bottom);
-                var zoomFactor = Math.min((this.map.size.h / pixHeight),
-                    (this.map.size.w / pixWidth));
-                var extent = this.map.getExtent();
-                var center = this.map.getLonLatFromPixel(
-                    position.getCenterPixel());
-                var xmin = center.lon - (extent.getWidth()/2)*zoomFactor;
-                var xmax = center.lon + (extent.getWidth()/2)*zoomFactor;
-                var ymin = center.lat - (extent.getHeight()/2)*zoomFactor;
-                var ymax = center.lat + (extent.getHeight()/2)*zoomFactor;
-                bounds = new OpenLayers.Bounds(xmin, ymin, xmax, ymax);
-            }
-            // always zoom in/out 
-            var lastZoom = this.map.getZoom(); 
-            this.map.zoomToExtent(bounds);
-            if (lastZoom == this.map.getZoom() && this.alwaysZoom == true){ 
-                this.map.zoomTo(lastZoom + (this.out ? -1 : 1)); 
-            }
-        } else { // it's a pixel
-            if (!this.out) {
-                this.map.setCenter(this.map.getLonLatFromPixel(position),
-                               this.map.getZoom() + 1);
-            } else {
-                this.map.setCenter(this.map.getLonLatFromPixel(position),
-                               this.map.getZoom() - 1);
-            }
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Control.ZoomBox"
-});
-/* ======================================================================
-    OpenLayers/Control/DragPan.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Control.js
- * @requires OpenLayers/Handler/Drag.js
- */
-
-/**
- * Class: OpenLayers.Control.DragPan
- * The DragPan control pans the map with a drag of the mouse.
- *
- * Inherits from:
- *  - <OpenLayers.Control>
- */
-OpenLayers.Control.DragPan = OpenLayers.Class(OpenLayers.Control, {
-
-    /** 
-     * Property: type
-     * {OpenLayers.Control.TYPES}
-     */
-    type: OpenLayers.Control.TYPE_TOOL,
-    
-    /**
-     * Property: panned
-     * {Boolean} The map moved.
-     */
-    panned: false,
-    
-    /**
-     * Property: interval
-     * {Integer} The number of milliseconds that should ellapse before
-     *     panning the map again. Defaults to 1 millisecond. In most cases
-     *     you won't want to change this value. For slow machines/devices
-     *     larger values can be tried out.
-     */
-    interval: 1,
-    
-    /**
-     * APIProperty: documentDrag
-     * {Boolean} If set to true, mouse dragging will continue even if the
-     *     mouse cursor leaves the map viewport. Default is false.
-     */
-    documentDrag: false,
-
-    /**
-     * Property: kinetic
-     * {<OpenLayers.Kinetic>} The OpenLayers.Kinetic object.
-     */
-    kinetic: null,
-
-    /**
-     * APIProperty: enableKinetic
-     * {Boolean} Set this option to enable "kinetic dragging". Can be
-     *     set to true or to an object. If set to an object this
-     *     object will be passed to the {<OpenLayers.Kinetic>}
-     *     constructor. Defaults to false.
-     *     If you set this property, you should ensure that 
-     *     OpenLayers/Kinetic.js is included in your build config
-     */
-    enableKinetic: false,
-
-    /**
-     * APIProperty: kineticInterval
-     * {Integer} Interval in milliseconds between 2 steps in the "kinetic
-     *     scrolling". Applies only if enableKinetic is set. Defaults
-     *     to 10 milliseconds.
-     */
-    kineticInterval: 10,
-
-
-    /**
-     * Method: draw
-     * Creates a Drag handler, using <panMap> and
-     * <panMapDone> as callbacks.
-     */    
-    draw: function() {
-        if(this.enableKinetic) {
-            var config = {interval: this.kineticInterval};
-            if(typeof this.enableKinetic === "object") {
-                config = OpenLayers.Util.extend(config, this.enableKinetic);
-            }
-            this.kinetic = new OpenLayers.Kinetic(config);
-        }
-        this.handler = new OpenLayers.Handler.Drag(this, {
-                "move": this.panMap,
-                "done": this.panMapDone,
-                "down": this.panMapStart
-            }, {
-                interval: this.interval,
-                documentDrag: this.documentDrag
-            }
-        );
-    },
-
-    /**
-     * Method: panMapStart
-     */
-    panMapStart: function() {
-        if(this.kinetic) {
-            this.kinetic.begin();
-        }
-    },
-
-    /**
-    * Method: panMap
-    *
-    * Parameters:
-    * xy - {<OpenLayers.Pixel>} Pixel of the mouse position
-    */
-    panMap: function(xy) {
-        if(this.kinetic) {
-            this.kinetic.update(xy);
-        }
-        this.panned = true;
-        this.map.pan(
-            this.handler.last.x - xy.x,
-            this.handler.last.y - xy.y,
-            {dragging: true, animate: false}
-        );
-    },
-    
-    /**
-     * Method: panMapDone
-     * Finish the panning operation.  Only call setCenter (through <panMap>)
-     *     if the map has actually been moved.
-     *
-     * Parameters:
-     * xy - {<OpenLayers.Pixel>} Pixel of the mouse position
-     */
-    panMapDone: function(xy) {
-        if(this.panned) {
-            var res = null;
-            if (this.kinetic) {
-                res = this.kinetic.end(xy);
-            }
-            this.map.pan(
-                this.handler.last.x - xy.x,
-                this.handler.last.y - xy.y,
-                {dragging: !!res, animate: false}
-            );
-            if (res) {
-                var self = this;
-                this.kinetic.move(res, function(x, y, end) {
-                    self.map.pan(x, y, {dragging: !end, animate: false});
-                });
-            }
-            this.panned = false;
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Control.DragPan"
-});
-/* ======================================================================
-    OpenLayers/Handler/MouseWheel.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Handler.js
- */
-
-/**
- * Class: OpenLayers.Handler.MouseWheel
- * Handler for wheel up/down events.
- * 
- * Inherits from:
- *  - <OpenLayers.Handler>
- */
-OpenLayers.Handler.MouseWheel = OpenLayers.Class(OpenLayers.Handler, {
-    /** 
-     * Property: wheelListener 
-     * {function} 
-     */
-    wheelListener: null,
-
-    /** 
-     * Property: mousePosition
-     * {<OpenLayers.Pixel>} mousePosition is necessary because
-     * evt.clientX/Y is buggy in Moz on wheel events, so we cache and use the
-     * value from the last mousemove.
-     */
-    mousePosition: null,
-
-    /**
-     * Property: interval
-     * {Integer} In order to increase server performance, an interval (in 
-     *     milliseconds) can be set to reduce the number of up/down events 
-     *     called. If set, a new up/down event will not be set until the 
-     *     interval has passed. 
-     *     Defaults to 0, meaning no interval. 
-     */
-    interval: 0,
-    
-    /**
-     * Property: delta
-     * {Integer} When interval is set, delta collects the mousewheel z-deltas
-     *     of the events that occur within the interval.
-     *      See also the cumulative option
-     */
-    delta: 0,
-    
-    /**
-     * Property: cumulative
-     * {Boolean} When interval is set: true to collect all the mousewheel 
-     *     z-deltas, false to only record the delta direction (positive or
-     *     negative)
-     */
-    cumulative: true,
-
-    /**
-     * Constructor: OpenLayers.Handler.MouseWheel
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} 
-     * callbacks - {Object} An object containing a single function to be
-     *                          called when the drag operation is finished.
-     *                          The callback should expect to recieve a single
-     *                          argument, the point geometry.
-     * options - {Object} 
-     */
-    initialize: function(control, callbacks, options) {
-        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
-        this.wheelListener = OpenLayers.Function.bindAsEventListener(
-            this.onWheelEvent, this
-        );
-    },
-
-    /**
-     * Method: destroy
-     */    
-    destroy: function() {
-        OpenLayers.Handler.prototype.destroy.apply(this, arguments);
-        this.wheelListener = null;
-    },
-
-    /**
-     *  Mouse ScrollWheel code thanks to http://adomas.org/javascript-mouse-wheel/
-     */
-
-    /** 
-     * Method: onWheelEvent
-     * Catch the wheel event and handle it xbrowserly
-     * 
-     * Parameters:
-     * e - {Event} 
-     */
-    onWheelEvent: function(e){
-        
-        // make sure we have a map and check keyboard modifiers
-        if (!this.map || !this.checkModifiers(e)) {
-            return;
-        }
-        
-        // Ride up the element's DOM hierarchy to determine if it or any of 
-        //  its ancestors was: 
-        //   * specifically marked as scrollable
-        //   * one of our layer divs
-        //   * the map div
-        //
-        var overScrollableDiv = false;
-        var overLayerDiv = false;
-        var overMapDiv = false;
-        
-        var elem = OpenLayers.Event.element(e);
-        while((elem != null) && !overMapDiv && !overScrollableDiv) {
-
-            if (!overScrollableDiv) {
-                try {
-                    if (elem.currentStyle) {
-                        overflow = elem.currentStyle["overflow"];
-                    } else {
-                        var style = 
-                            document.defaultView.getComputedStyle(elem, null);
-                        var overflow = style.getPropertyValue("overflow");
-                    }
-                    overScrollableDiv = ( overflow && 
-                        (overflow == "auto") || (overflow == "scroll") );
-                } catch(err) {
-                    //sometimes when scrolling in a popup, this causes 
-                    // obscure browser error
-                }
-            }
-
-            if (!overLayerDiv) {
-                for(var i=0, len=this.map.layers.length; i<len; i++) {
-                    // Are we in the layer div? Note that we have two cases
-                    // here: one is to catch EventPane layers, which have a 
-                    // pane above the layer (layer.pane)
-                    if (elem == this.map.layers[i].div 
-                        || elem == this.map.layers[i].pane) { 
-                        overLayerDiv = true;
-                        break;
-                    }
-                }
-            }
-            overMapDiv = (elem == this.map.div);
-
-            elem = elem.parentNode;
-        }
-        
-        // Logic below is the following:
-        //
-        // If we are over a scrollable div or not over the map div:
-        //  * do nothing (let the browser handle scrolling)
-        //
-        //    otherwise 
-        // 
-        //    If we are over the layer div: 
-        //     * zoom/in out
-        //     then
-        //     * kill event (so as not to also scroll the page after zooming)
-        //
-        //       otherwise
-        //
-        //       Kill the event (dont scroll the page if we wheel over the 
-        //        layerswitcher or the pan/zoom control)
-        //
-        if (!overScrollableDiv && overMapDiv) {
-            if (overLayerDiv) {
-                var delta = 0;
-                if (!e) {
-                    e = window.event;
-                }
-                if (e.wheelDelta) {
-                    delta = e.wheelDelta/120; 
-                    if (window.opera && window.opera.version() < 9.2) {
-                        delta = -delta;
-                    }
-                } else if (e.detail) {
-                    delta = -e.detail / 3;
-                }
-                this.delta = this.delta + delta;
-
-                if(this.interval) {
-                    window.clearTimeout(this._timeoutId);
-                    this._timeoutId = window.setTimeout(
-                        OpenLayers.Function.bind(function(){
-                            this.wheelZoom(e);
-                        }, this),
-                        this.interval
-                    );
-                } else {
-                    this.wheelZoom(e);
-                }
-            }
-            OpenLayers.Event.stop(e);
-        }
-    },
-
-    /**
-     * Method: wheelZoom
-     * Given the wheel event, we carry out the appropriate zooming in or out,
-     *     based on the 'wheelDelta' or 'detail' property of the event.
-     * 
-     * Parameters:
-     * e - {Event}
-     */
-    wheelZoom: function(e) {
-        var delta = this.delta;
-        this.delta = 0;
-        
-        if (delta) {
-            // add the mouse position to the event because mozilla has 
-            // a bug with clientX and clientY (see 
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=352179)
-            // getLonLatFromViewPortPx(e) returns wrong values
-            if (this.mousePosition) {
-                e.xy = this.mousePosition;
-            } 
-            if (!e.xy) {
-                // If the mouse hasn't moved over the map yet, then
-                // we don't have a mouse position (in FF), so we just
-                // act as if the mouse was at the center of the map.
-                // Note that we can tell we are in the map -- and 
-                // this.map is ensured to be true above.
-                e.xy = this.map.getPixelFromLonLat(
-                    this.map.getCenter()
-                );
-            }
-            if (delta < 0) {
-                this.callback("down", [e, this.cumulative ? delta : -1]);
-            } else {
-                this.callback("up", [e, this.cumulative ? delta : 1]);
-            }
-        }
-    },
-    
-    /**
-     * Method: mousemove
-     * Update the stored mousePosition on every move.
-     * 
-     * Parameters:
-     * evt - {Event} The browser event
-     *
-     * Returns: 
-     * {Boolean} Allow event propagation
-     */
-    mousemove: function (evt) {
-        this.mousePosition = evt.xy;
-    },
-
-    /**
-     * Method: activate 
-     */
-    activate: function (evt) {
-        if (OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
-            //register mousewheel events specifically on the window and document
-            var wheelListener = this.wheelListener;
-            OpenLayers.Event.observe(window, "DOMMouseScroll", wheelListener);
-            OpenLayers.Event.observe(window, "mousewheel", wheelListener);
-            OpenLayers.Event.observe(document, "mousewheel", wheelListener);
-            return true;
-        } else {
-            return false;
-        }
-    },
-
-    /**
-     * Method: deactivate 
-     */
-    deactivate: function (evt) {
-        if (OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            // unregister mousewheel events specifically on the window and document
-            var wheelListener = this.wheelListener;
-            OpenLayers.Event.stopObserving(window, "DOMMouseScroll", wheelListener);
-            OpenLayers.Event.stopObserving(window, "mousewheel", wheelListener);
-            OpenLayers.Event.stopObserving(document, "mousewheel", wheelListener);
-            return true;
-        } else {
-            return false;
-        }
-    },
-
-    CLASS_NAME: "OpenLayers.Handler.MouseWheel"
-});
-/* ======================================================================
-    OpenLayers/Control/Navigation.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Control/ZoomBox.js
- * @requires OpenLayers/Control/DragPan.js
- * @requires OpenLayers/Handler/MouseWheel.js
- * @requires OpenLayers/Handler/Click.js
- */
-
-/**
- * Class: OpenLayers.Control.Navigation
- * The navigation control handles map browsing with mouse events (dragging,
- *     double-clicking, and scrolling the wheel).  Create a new navigation 
- *     control with the <OpenLayers.Control.Navigation> control.  
- * 
- *     Note that this control is added to the map by default (if no controls 
- *     array is sent in the options object to the <OpenLayers.Map> 
- *     constructor).
- * 
- * Inherits:
- *  - <OpenLayers.Control>
- */
-OpenLayers.Control.Navigation = OpenLayers.Class(OpenLayers.Control, {
-
-    /** 
-     * Property: dragPan
-     * {<OpenLayers.Control.DragPan>} 
-     */
-    dragPan: null,
-
-    /**
-     * APIProperty: dragPanOptions
-     * {Object} Options passed to the DragPan control.
-     */
-    dragPanOptions: null,
-
-    /**
-     * Property: pinchZoom
-     * {<OpenLayers.Control.PinchZoom>}
-     */
-    pinchZoom: null,
-
-    /**
-     * APIProperty: pinchZoomOptions
-     * {Object} Options passed to the PinchZoom control.
-     */
-    pinchZoomOptions: null,
-
-    /**
-     * APIProperty: documentDrag
-     * {Boolean} Allow panning of the map by dragging outside map viewport.
-     *     Default is false.
-     */
-    documentDrag: false,
-
-    /** 
-     * Property: zoomBox
-     * {<OpenLayers.Control.ZoomBox>}
-     */
-    zoomBox: null,
-
-    /**
-     * APIProperty: zoomBoxEnabled
-     * {Boolean} Whether the user can draw a box to zoom
-     */
-    zoomBoxEnabled: true, 
-
-    /**
-     * APIProperty: zoomWheelEnabled
-     * {Boolean} Whether the mousewheel should zoom the map
-     */
-    zoomWheelEnabled: true,
-    
-    /**
-     * Property: mouseWheelOptions
-     * {Object} Options passed to the MouseWheel control (only useful if
-     *     <zoomWheelEnabled> is set to true)
-     */
-    mouseWheelOptions: null,
-
-    /**
-     * APIProperty: handleRightClicks
-     * {Boolean} Whether or not to handle right clicks. Default is false.
-     */
-    handleRightClicks: false,
-
-    /**
-     * APIProperty: zoomBoxKeyMask
-     * {Integer} <OpenLayers.Handler> key code of the key, which has to be
-     *    pressed, while drawing the zoom box with the mouse on the screen. 
-     *    You should probably set handleRightClicks to true if you use this
-     *    with MOD_CTRL, to disable the context menu for machines which use
-     *    CTRL-Click as a right click.
-     * Default: <OpenLayers.Handler.MOD_SHIFT>
-     */
-    zoomBoxKeyMask: OpenLayers.Handler.MOD_SHIFT,
-    
-    /**
-     * APIProperty: autoActivate
-     * {Boolean} Activate the control when it is added to a map.  Default is
-     *     true.
-     */
-    autoActivate: true,
-
-    /**
-     * Constructor: OpenLayers.Control.Navigation
-     * Create a new navigation control
-     * 
-     * Parameters:
-     * options - {Object} An optional object whose properties will be set on
-     *                    the control
-     */
-    initialize: function(options) {
-        this.handlers = {};
-        OpenLayers.Control.prototype.initialize.apply(this, arguments);
-    },
-
-    /**
-     * Method: destroy
-     * The destroy method is used to perform any clean up before the control
-     * is dereferenced.  Typically this is where event listeners are removed
-     * to prevent memory leaks.
-     */
-    destroy: function() {
-        this.deactivate();
-
-        if (this.dragPan) {
-            this.dragPan.destroy();
-        }
-        this.dragPan = null;
-
-        if (this.zoomBox) {
-            this.zoomBox.destroy();
-        }
-        this.zoomBox = null;
-
-        if (this.pinchZoom) {
-            this.pinchZoom.destroy();
-        }
-        this.pinchZoom = null;
-
-        OpenLayers.Control.prototype.destroy.apply(this,arguments);
-    },
-    
-    /**
-     * Method: activate
-     */
-    activate: function() {
-        this.dragPan.activate();
-        if (this.zoomWheelEnabled) {
-            this.handlers.wheel.activate();
-        }    
-        this.handlers.click.activate();
-        if (this.zoomBoxEnabled) {
-            this.zoomBox.activate();
-        }
-        if (this.pinchZoom) {
-            this.pinchZoom.activate();
-        }
-        return OpenLayers.Control.prototype.activate.apply(this,arguments);
-    },
-
-    /**
-     * Method: deactivate
-     */
-    deactivate: function() {
-        if (this.pinchZoom) {
-            this.pinchZoom.deactivate();
-        }
-        this.zoomBox.deactivate();
-        this.dragPan.deactivate();
-        this.handlers.click.deactivate();
-        this.handlers.wheel.deactivate();
-        return OpenLayers.Control.prototype.deactivate.apply(this,arguments);
-    },
-    
-    /**
-     * Method: draw
-     */
-    draw: function() {
-        // disable right mouse context menu for support of right click events
-        if (this.handleRightClicks) {
-            this.map.viewPortDiv.oncontextmenu = OpenLayers.Function.False;
-        }
-
-        var clickCallbacks = { 
-            'click': this.defaultClick,
-            'dblclick': this.defaultDblClick, 
-            'dblrightclick': this.defaultDblRightClick 
-        };
-        var clickOptions = {
-            'double': true, 
-            'stopDouble': true
-        };
-        this.handlers.click = new OpenLayers.Handler.Click(
-            this, clickCallbacks, clickOptions
-        );
-        this.dragPan = new OpenLayers.Control.DragPan(
-            OpenLayers.Util.extend({
-                map: this.map,
-                documentDrag: this.documentDrag
-            }, this.dragPanOptions)
-        );
-        this.zoomBox = new OpenLayers.Control.ZoomBox(
-                    {map: this.map, keyMask: this.zoomBoxKeyMask});
-        this.dragPan.draw();
-        this.zoomBox.draw();
-        this.handlers.wheel = new OpenLayers.Handler.MouseWheel(
-                                    this, {"up"  : this.wheelUp,
-                                           "down": this.wheelDown},
-                                    this.mouseWheelOptions );
-        if (OpenLayers.Control.PinchZoom) {
-            this.pinchZoom = new OpenLayers.Control.PinchZoom(
-                OpenLayers.Util.extend(
-                    {map: this.map}, this.pinchZoomOptions));
-        }
-    },
-
-    /**
-     * Method: defaultClick
-     *
-     * Parameters:
-     * evt - {Event}
-     */
-    defaultClick: function (evt) {
-        if (evt.lastTouches && evt.lastTouches.length == 2) {
-            this.map.zoomOut();
-        }
-    },
-
-    /**
-     * Method: defaultDblClick 
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    defaultDblClick: function (evt) {
-        var newCenter = this.map.getLonLatFromViewPortPx( evt.xy ); 
-        this.map.setCenter(newCenter, this.map.zoom + 1);
-    },
-
-    /**
-     * Method: defaultDblRightClick 
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    defaultDblRightClick: function (evt) {
-        var newCenter = this.map.getLonLatFromViewPortPx( evt.xy ); 
-        this.map.setCenter(newCenter, this.map.zoom - 1);
-    },
-    
-    /**
-     * Method: wheelChange  
-     *
-     * Parameters:
-     * evt - {Event}
-     * deltaZ - {Integer}
-     */
-    wheelChange: function(evt, deltaZ) {
-        var currentZoom = this.map.getZoom();
-        var newZoom = this.map.getZoom() + Math.round(deltaZ);
-        newZoom = Math.max(newZoom, 0);
-        newZoom = Math.min(newZoom, this.map.getNumZoomLevels());
-        if (newZoom === currentZoom) {
-            return;
-        }
-        var size    = this.map.getSize();
-        var deltaX  = size.w/2 - evt.xy.x;
-        var deltaY  = evt.xy.y - size.h/2;
-        var newRes  = this.map.baseLayer.getResolutionForZoom(newZoom);
-        var zoomPoint = this.map.getLonLatFromPixel(evt.xy);
-        var newCenter = new OpenLayers.LonLat(
-                            zoomPoint.lon + deltaX * newRes,
-                            zoomPoint.lat + deltaY * newRes );
-        this.map.setCenter( newCenter, newZoom );
-    },
-
-    /** 
-     * Method: wheelUp
-     * User spun scroll wheel up
-     * 
-     * Parameters:
-     * evt - {Event}
-     * delta - {Integer}
-     */
-    wheelUp: function(evt, delta) {
-        this.wheelChange(evt, delta || 1);
-    },
-
-    /** 
-     * Method: wheelDown
-     * User spun scroll wheel down
-     * 
-     * Parameters:
-     * evt - {Event}
-     * delta - {Integer}
-     */
-    wheelDown: function(evt, delta) {
-        this.wheelChange(evt, delta || -1);
-    },
-    
-    /**
-     * Method: disableZoomBox
-     */
-    disableZoomBox : function() {
-        this.zoomBoxEnabled = false;
-        this.zoomBox.deactivate();       
-    },
-    
-    /**
-     * Method: enableZoomBox
-     */
-    enableZoomBox : function() {
-        this.zoomBoxEnabled = true;
-        if (this.active) {
-            this.zoomBox.activate();
-        }    
-    },
-    
-    /**
-     * Method: disableZoomWheel
-     */
-    
-    disableZoomWheel : function() {
-        this.zoomWheelEnabled = false;
-        this.handlers.wheel.deactivate();       
-    },
-    
-    /**
-     * Method: enableZoomWheel
-     */
-    
-    enableZoomWheel : function() {
-        this.zoomWheelEnabled = true;
-        if (this.active) {
-            this.handlers.wheel.activate();
-        }    
-    },
-
-    CLASS_NAME: "OpenLayers.Control.Navigation"
-});
-/* ======================================================================
-    OpenLayers/Handler/Hover.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Handler.js
- */
-
-/**
- * Class: OpenLayers.Handler.Hover
- * The hover handler is to be used to emulate mouseovers on objects
- *      on the map that aren't DOM elements. For example one can use
- *      this handler to send WMS/GetFeatureInfo requests as the user
- *      moves the mouve over the map.
- * 
- * Inherits from:
- *  - <OpenLayers.Handler> 
- */
-OpenLayers.Handler.Hover = OpenLayers.Class(OpenLayers.Handler, {
-
-    /**
-     * APIProperty: delay
-     * {Integer} - Number of milliseconds between mousemoves before
-     *      the event is considered a hover. Default is 500.
-     */
-    delay: 500,
-    
-    /**
-     * APIProperty: pixelTolerance
-     * {Integer} - Maximum number of pixels between mousemoves for
-     *      an event to be considered a hover. Default is null.
-     */
-    pixelTolerance: null,
-
-    /**
-     * APIProperty: stopMove
-     * {Boolean} - Stop other listeners from being notified on mousemoves.
-     *      Default is false.
-     */
-    stopMove: false,
-
-    /**
-     * Property: px
-     * {<OpenLayers.Pixel>} - The location of the last mousemove, expressed
-     *      in pixels.
-     */
-    px: null,
-
-    /**
-     * Property: timerId
-     * {Number} - The id of the timer.
-     */
-    timerId: null,
- 
-    /**
-     * Constructor: OpenLayers.Handler.Hover
-     * Construct a hover handler.
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} The control that initialized this
-     *     handler.  The control is assumed to have a valid map property; that
-     *     map is used in the handler's own setMap method.
-     * callbacks - {Object} An object with keys corresponding to callbacks
-     *     that will be called by the handler. The callbacks should
-     *     expect to receive a single argument, the event. Callbacks for
-     *     'move', the mouse is moving, and 'pause', the mouse is pausing,
-     *     are supported.
-     * options - {Object} An optional object whose properties will be set on
-     *     the handler.
-     */
-
-    /**
-     * Method: mousemove
-     * Called when the mouse moves on the map.
-     *
-     * Parameters:
-     * evt - {<OpenLayers.Event>}
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    mousemove: function(evt) {
-        if(this.passesTolerance(evt.xy)) {
-            this.clearTimer();
-            this.callback('move', [evt]);
-            this.px = evt.xy;
-            // clone the evt so original properties can be accessed even
-            // if the browser deletes them during the delay
-            evt = OpenLayers.Util.extend({}, evt);
-            this.timerId = window.setTimeout(
-                OpenLayers.Function.bind(this.delayedCall, this, evt),
-                this.delay
-            );
-        }
-        return !this.stopMove;
-    },
-
-    /**
-     * Method: mouseout
-     * Called when the mouse goes out of the map.
-     *
-     * Parameters:
-     * evt - {<OpenLayers.Event>}
-     *
-     * Returns:
-     * {Boolean} Continue propagating this event.
-     */
-    mouseout: function(evt) {
-        if (OpenLayers.Util.mouseLeft(evt, this.map.viewPortDiv)) {
-            this.clearTimer();
-            this.callback('move', [evt]);
-        }
-        return true;
-    },
-
-    /**
-     * Method: passesTolerance
-     * Determine whether the mouse move is within the optional pixel tolerance.
-     *
-     * Parameters:
-     * px - {<OpenLayers.Pixel>}
-     *
-     * Returns:
-     * {Boolean} The mouse move is within the pixel tolerance.
-     */
-    passesTolerance: function(px) {
-        var passes = true;
-        if(this.pixelTolerance && this.px) {
-            var dpx = Math.sqrt(
-                Math.pow(this.px.x - px.x, 2) +
-                Math.pow(this.px.y - px.y, 2)
-            );
-            if(dpx < this.pixelTolerance) {
-                passes = false;
-            }
-        }
-        return passes;
-    },
-
-    /**
-     * Method: clearTimer
-     * Clear the timer and set <timerId> to null.
-     */
-    clearTimer: function() {
-        if(this.timerId != null) {
-            window.clearTimeout(this.timerId);
-            this.timerId = null;
-        }
-    },
-
-    /**
-     * Method: delayedCall
-     * Triggers pause callback.
-     *
-     * Parameters:
-     * evt - {<OpenLayers.Event>}
-     */
-    delayedCall: function(evt) {
-        this.callback('pause', [evt]);
-    },
-
-    /**
-     * APIMethod: deactivate
-     * Deactivate the handler.
-     *
-     * Returns:
-     * {Boolean} The handler was successfully deactivated.
-     */
-    deactivate: function() {
-        var deactivated = false;
-        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
-            this.clearTimer();
-            deactivated = true;
-        }
-        return deactivated;
-    },
-
-    CLASS_NAME: "OpenLayers.Handler.Hover"
-});
 /* ======================================================================
     OpenLayers/Layer.js
    ====================================================================== */
@@ -26183,6 +18905,7089 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
 
     CLASS_NAME: "OpenLayers.Layer.Grid"
 });
+/* ======================================================================
+    OpenLayers/Protocol.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ */
+
+/**
+ * Class: OpenLayers.Protocol
+ * Abstract vector layer protocol class.  Not to be instantiated directly.  Use
+ *     one of the protocol subclasses instead.
+ */
+OpenLayers.Protocol = OpenLayers.Class({
+    
+    /**
+     * Property: format
+     * {<OpenLayers.Format>} The format used by this protocol.
+     */
+    format: null,
+    
+    /**
+     * Property: options
+     * {Object} Any options sent to the constructor.
+     */
+    options: null,
+
+    /**
+     * Property: autoDestroy
+     * {Boolean} The creator of the protocol can set autoDestroy to false
+     *      to fully control when the protocol is destroyed. Defaults to
+     *      true.
+     */
+    autoDestroy: true,
+   
+    /**
+     * Property: defaultFilter
+     * {<OpenLayers.Filter>} Optional default filter to read requests
+     */
+    defaultFilter: null,
+    
+    /**
+     * Constructor: OpenLayers.Protocol
+     * Abstract class for vector protocols.  Create instances of a subclass.
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on the
+     *     instance.
+     */
+    initialize: function(options) {
+        options = options || {};
+        OpenLayers.Util.extend(this, options);
+        this.options = options;
+    },
+
+    /**
+     * Method: mergeWithDefaultFilter
+     * Merge filter passed to the read method with the default one
+     *
+     * Parameters:
+     * filter - {<OpenLayers.Filter>}
+     */
+    mergeWithDefaultFilter: function(filter) {
+        var merged;
+        if (filter && this.defaultFilter) {
+            merged = new OpenLayers.Filter.Logical({
+                type: OpenLayers.Filter.Logical.AND,
+                filters: [this.defaultFilter, filter]
+            });
+        } else {
+            merged = filter || this.defaultFilter || undefined;
+        }
+        return merged;
+    },
+
+    /**
+     * APIMethod: destroy
+     * Clean up the protocol.
+     */
+    destroy: function() {
+        this.options = null;
+        this.format = null;
+    },
+    
+    /**
+     * APIMethod: read
+     * Construct a request for reading new features.
+     *
+     * Parameters:
+     * options - {Object} Optional object for configuring the request.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     * object, the same object will be passed to the callback function passed
+     * if one exists in the options object.
+     */
+    read: function(options) {
+        options = options || {};
+        options.filter = this.mergeWithDefaultFilter(options.filter);
+    },
+    
+    
+    /**
+     * APIMethod: create
+     * Construct a request for writing newly created features.
+     *
+     * Parameters:
+     * features - {Array({<OpenLayers.Feature.Vector>})} or
+     *            {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     * object, the same object will be passed to the callback function passed
+     * if one exists in the options object.
+     */
+    create: function() {
+    },
+    
+    /**
+     * APIMethod: update
+     * Construct a request updating modified features.
+     *
+     * Parameters:
+     * features - {Array({<OpenLayers.Feature.Vector>})} or
+     *            {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     * object, the same object will be passed to the callback function passed
+     * if one exists in the options object.
+     */
+    update: function() {
+    },
+    
+    /**
+     * APIMethod: delete
+     * Construct a request deleting a removed feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     * object, the same object will be passed to the callback function passed
+     * if one exists in the options object.
+     */
+    "delete": function() {
+    },
+
+    /**
+     * APIMethod: commit
+     * Go over the features and for each take action
+     * based on the feature state. Possible actions are create,
+     * update and delete.
+     *
+     * Parameters:
+     * features - {Array({<OpenLayers.Feature.Vector>})}
+     * options - {Object} Object whose possible keys are "create", "update",
+     *      "delete", "callback" and "scope", the values referenced by the
+     *      first three are objects as passed to the "create", "update", and
+     *      "delete" methods, the value referenced by the "callback" key is
+     *      a function which is called when the commit operation is complete
+     *      using the scope referenced by the "scope" key.
+     *
+     * Returns:
+     * {Array({<OpenLayers.Protocol.Response>})} An array of
+     * <OpenLayers.Protocol.Response> objects.
+     */
+    commit: function() {
+    },
+
+    /**
+     * Method: abort
+     * Abort an ongoing request.
+     *
+     * Parameters:
+     * response - {<OpenLayers.Protocol.Response>}
+     */
+    abort: function(response) {
+    },
+   
+    /**
+     * Method: createCallback
+     * Returns a function that applies the given public method with resp and
+     *     options arguments.
+     *
+     * Parameters:
+     * method - {Function} The method to be applied by the callback.
+     * response - {<OpenLayers.Protocol.Response>} The protocol response object.
+     * options - {Object} Options sent to the protocol method
+     */
+    createCallback: function(method, response, options) {
+        return OpenLayers.Function.bind(function() {
+            method.apply(this, [response, options]);
+        }, this);
+    },
+   
+    CLASS_NAME: "OpenLayers.Protocol" 
+});
+
+/**
+ * Class: OpenLayers.Protocol.Response
+ * Protocols return Response objects to their users.
+ */
+OpenLayers.Protocol.Response = OpenLayers.Class({
+    /**
+     * Property: code
+     * {Number} - OpenLayers.Protocol.Response.SUCCESS or
+     *            OpenLayers.Protocol.Response.FAILURE
+     */
+    code: null,
+
+    /**
+     * Property: requestType
+     * {String} The type of request this response corresponds to. Either
+     *      "create", "read", "update" or "delete".
+     */
+    requestType: null,
+
+    /**
+     * Property: last
+     * {Boolean} - true if this is the last response expected in a commit,
+     * false otherwise, defaults to true.
+     */
+    last: true,
+
+    /**
+     * Property: features
+     * {Array({<OpenLayers.Feature.Vector>})} or {<OpenLayers.Feature.Vector>}
+     * The features returned in the response by the server. Depending on the 
+     * protocol's read payload, either features or data will be populated.
+     */
+    features: null,
+
+    /**
+     * Property: data
+     * {Object}
+     * The data returned in the response by the server. Depending on the 
+     * protocol's read payload, either features or data will be populated.
+     */
+    data: null,
+
+    /**
+     * Property: reqFeatures
+     * {Array({<OpenLayers.Feature.Vector>})} or {<OpenLayers.Feature.Vector>}
+     * The features provided by the user and placed in the request by the
+     *      protocol.
+     */
+    reqFeatures: null,
+
+    /**
+     * Property: priv
+     */
+    priv: null,
+
+    /**
+     * Property: error
+     * {Object} The error object in case a service exception was encountered.
+     */
+    error: null,
+
+    /**
+     * Constructor: OpenLayers.Protocol.Response
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on the
+     *     instance.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.extend(this, options);
+    },
+
+    /**
+     * Method: success
+     *
+     * Returns:
+     * {Boolean} - true on success, false otherwise
+     */
+    success: function() {
+        return this.code > 0;
+    },
+
+    CLASS_NAME: "OpenLayers.Protocol.Response"
+});
+
+OpenLayers.Protocol.Response.SUCCESS = 1;
+OpenLayers.Protocol.Response.FAILURE = 0;
+/* ======================================================================
+    OpenLayers/Request.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Events.js
+ */
+
+/**
+ * TODO: deprecate me
+ * Use OpenLayers.Request.proxy instead.
+ */
+OpenLayers.ProxyHost = "";
+
+/**
+ * Namespace: OpenLayers.Request
+ * The OpenLayers.Request namespace contains convenience methods for working
+ *     with XMLHttpRequests.  These methods work with a cross-browser
+ *     W3C compliant <OpenLayers.Request.XMLHttpRequest> class.
+ */
+OpenLayers.Request = {
+    
+    /**
+     * Constant: DEFAULT_CONFIG
+     * {Object} Default configuration for all requests.
+     */
+    DEFAULT_CONFIG: {
+        method: "GET",
+        url: window.location.href,
+        async: true,
+        user: undefined,
+        password: undefined,
+        params: null,
+        proxy: OpenLayers.ProxyHost,
+        headers: {},
+        data: null,
+        callback: function() {},
+        success: null,
+        failure: null,
+        scope: null
+    },
+    
+    /**
+     * Constant: URL_SPLIT_REGEX
+     */
+    URL_SPLIT_REGEX: /([^:]*:)\/\/([^:]*:?[^@]*@)?([^:\/\?]*):?([^\/\?]*)/,
+    
+    /**
+     * APIProperty: events
+     * {<OpenLayers.Events>} An events object that handles all 
+     *     events on the {<OpenLayers.Request>} object.
+     *
+     * All event listeners will receive an event object with three properties:
+     * request - {<OpenLayers.Request.XMLHttpRequest>} The request object.
+     * config - {Object} The config object sent to the specific request method.
+     * requestUrl - {String} The request url.
+     * 
+     * Supported event types:
+     * complete - Triggered when we have a response from the request, if a
+     *     listener returns false, no further response processing will take
+     *     place.
+     * success - Triggered when the HTTP response has a success code (200-299).
+     * failure - Triggered when the HTTP response does not have a success code.
+     */
+    events: new OpenLayers.Events(this),
+    
+    /**
+     * Method: makeSameOrigin
+     * Using the specified proxy, returns a same origin url of the provided url.
+     *
+     * Parameters:
+     * url - {String} An arbitrary url
+     * proxy {String|Function} The proxy to use to make the provided url a
+     *     same origin url.
+     *
+     * Returns
+     * {String} the same origin url. If no proxy is provided, the returned url
+     *     will be the same as the provided url.
+     */
+    makeSameOrigin: function(url, proxy) {
+        var sameOrigin = url.indexOf("http") !== 0;
+        var urlParts = !sameOrigin && url.match(this.URL_SPLIT_REGEX);
+        if (urlParts) {
+            var location = window.location;
+            sameOrigin =
+                urlParts[1] == location.protocol &&
+                urlParts[3] == location.hostname;
+            var uPort = urlParts[4], lPort = location.port;
+            if (uPort != 80 && uPort != "" || lPort != "80" && lPort != "") {
+                sameOrigin = sameOrigin && uPort == lPort;
+            }
+        }
+        if (!sameOrigin) {
+            if (proxy) {
+                if (typeof proxy == "function") {
+                    url = proxy(url);
+                } else {
+                    url = proxy + encodeURIComponent(url);
+                }
+            } else {
+                OpenLayers.Console.warn(
+                    OpenLayers.i18n("proxyNeeded"), {url: url});
+            }
+        }
+        return url;
+    },
+
+    /**
+     * APIMethod: issue
+     * Create a new XMLHttpRequest object, open it, set any headers, bind
+     *     a callback to done state, and send any data.  It is recommended that
+     *     you use one <GET>, <POST>, <PUT>, <DELETE>, <OPTIONS>, or <HEAD>.
+     *     This method is only documented to provide detail on the configuration
+     *     options available to all request methods.
+     *
+     * Parameters:
+     * config - {Object} Object containing properties for configuring the
+     *     request.  Allowed configuration properties are described below.
+     *     This object is modified and should not be reused.
+     *
+     * Allowed config properties:
+     * method - {String} One of GET, POST, PUT, DELETE, HEAD, or
+     *     OPTIONS.  Default is GET.
+     * url - {String} URL for the request.
+     * async - {Boolean} Open an asynchronous request.  Default is true.
+     * user - {String} User for relevant authentication scheme.  Set
+     *     to null to clear current user.
+     * password - {String} Password for relevant authentication scheme.
+     *     Set to null to clear current password.
+     * proxy - {String} Optional proxy.  Defaults to
+     *     <OpenLayers.ProxyHost>.
+     * params - {Object} Any key:value pairs to be appended to the
+     *     url as a query string.  Assumes url doesn't already include a query
+     *     string or hash.  Typically, this is only appropriate for <GET>
+     *     requests where the query string will be appended to the url.
+     *     Parameter values that are arrays will be
+     *     concatenated with a comma (note that this goes against form-encoding)
+     *     as is done with <OpenLayers.Util.getParameterString>.
+     * headers - {Object} Object with header:value pairs to be set on
+     *     the request.
+     * data - {String | Document} Optional data to send with the request.
+     *     Typically, this is only used with <POST> and <PUT> requests.
+     *     Make sure to provide the appropriate "Content-Type" header for your
+     *     data.  For <POST> and <PUT> requests, the content type defaults to
+     *     "application-xml".  If your data is a different content type, or
+     *     if you are using a different HTTP method, set the "Content-Type"
+     *     header to match your data type.
+     * callback - {Function} Function to call when request is done.
+     *     To determine if the request failed, check request.status (200
+     *     indicates success).
+     * success - {Function} Optional function to call if request status is in
+     *     the 200s.  This will be called in addition to callback above and
+     *     would typically only be used as an alternative.
+     * failure - {Function} Optional function to call if request status is not
+     *     in the 200s.  This will be called in addition to callback above and
+     *     would typically only be used as an alternative.
+     * scope - {Object} If callback is a public method on some object,
+     *     set the scope to that object.
+     *
+     * Returns:
+     * {XMLHttpRequest} Request object.  To abort the request before a response
+     *     is received, call abort() on the request object.
+     */
+    issue: function(config) {        
+        // apply default config - proxy host may have changed
+        var defaultConfig = OpenLayers.Util.extend(
+            this.DEFAULT_CONFIG,
+            {proxy: OpenLayers.ProxyHost}
+        );
+        config = OpenLayers.Util.applyDefaults(config, defaultConfig);
+        
+        // Always set the "X-Requested-With" header to signal that this request
+        // was issued through the XHR-object. Since header keys are case 
+        // insensitive and we want to allow overriding of the "X-Requested-With"
+        // header through the user we cannot use applyDefaults, but have to 
+        // check manually whether we were called with a "X-Requested-With"
+        // header.
+        var customRequestedWithHeader = false,
+            headerKey;
+        for(headerKey in config.headers) {
+            if (config.headers.hasOwnProperty( headerKey )) {
+                if (headerKey.toLowerCase() === 'x-requested-with') {
+                    customRequestedWithHeader = true;
+                }
+            }
+        }
+        if (customRequestedWithHeader === false) {
+            // we did not have a custom "X-Requested-With" header
+            config.headers['X-Requested-With'] = 'XMLHttpRequest';
+        }
+
+        // create request, open, and set headers
+        var request = new OpenLayers.Request.XMLHttpRequest();
+        var url = OpenLayers.Util.urlAppend(config.url, 
+            OpenLayers.Util.getParameterString(config.params || {}));
+        url = OpenLayers.Request.makeSameOrigin(url, config.proxy);
+        request.open(
+            config.method, url, config.async, config.user, config.password
+        );
+        for(var header in config.headers) {
+            request.setRequestHeader(header, config.headers[header]);
+        }
+
+        var events = this.events;
+
+        // we want to execute runCallbacks with "this" as the
+        // execution scope
+        var self = this;
+        
+        request.onreadystatechange = function() {
+            if(request.readyState == OpenLayers.Request.XMLHttpRequest.DONE) {
+                var proceed = events.triggerEvent(
+                    "complete",
+                    {request: request, config: config, requestUrl: url}
+                );
+                if(proceed !== false) {
+                    self.runCallbacks(
+                        {request: request, config: config, requestUrl: url}
+                    );
+                }
+            }
+        };
+        
+        // send request (optionally with data) and return
+        // call in a timeout for asynchronous requests so the return is
+        // available before readyState == 4 for cached docs
+        if(config.async === false) {
+            request.send(config.data);
+        } else {
+            window.setTimeout(function(){
+                if (request.readyState !== 0) { // W3C: 0-UNSENT
+                    request.send(config.data);
+                }
+            }, 0);
+        }
+        return request;
+    },
+    
+    /**
+     * Method: runCallbacks
+     * Calls the complete, success and failure callbacks. Application
+     *    can listen to the "complete" event, have the listener 
+     *    display a confirm window and always return false, and
+     *    execute OpenLayers.Request.runCallbacks if the user
+     *    hits "yes" in the confirm window.
+     *
+     * Parameters:
+     * options - {Object} Hash containing request, config and requestUrl keys
+     */
+    runCallbacks: function(options) {
+        var request = options.request;
+        var config = options.config;
+        
+        // bind callbacks to readyState 4 (done)
+        var complete = (config.scope) ?
+            OpenLayers.Function.bind(config.callback, config.scope) :
+            config.callback;
+        
+        // optional success callback
+        var success;
+        if(config.success) {
+            success = (config.scope) ?
+                OpenLayers.Function.bind(config.success, config.scope) :
+                config.success;
+        }
+
+        // optional failure callback
+        var failure;
+        if(config.failure) {
+            failure = (config.scope) ?
+                OpenLayers.Function.bind(config.failure, config.scope) :
+                config.failure;
+        }
+
+        if (OpenLayers.Util.createUrlObject(config.url).protocol == "file:" &&
+                                                        request.responseText) {
+            request.status = 200;
+        }
+        complete(request);
+
+        if (!request.status || (request.status >= 200 && request.status < 300)) {
+            this.events.triggerEvent("success", options);
+            if(success) {
+                success(request);
+            }
+        }
+        if(request.status && (request.status < 200 || request.status >= 300)) {                    
+            this.events.triggerEvent("failure", options);
+            if(failure) {
+                failure(request);
+            }
+        }
+    },
+    
+    /**
+     * APIMethod: GET
+     * Send an HTTP GET request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to GET.
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.
+     *     This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    GET: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "GET"});
+        return OpenLayers.Request.issue(config);
+    },
+    
+    /**
+     * APIMethod: POST
+     * Send a POST request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to POST and "Content-Type" header set to "application/xml".
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.  The
+     *     default "Content-Type" header will be set to "application-xml" if
+     *     none is provided.  This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    POST: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "POST"});
+        // set content type to application/xml if it isn't already set
+        config.headers = config.headers ? config.headers : {};
+        if(!("CONTENT-TYPE" in OpenLayers.Util.upperCaseObject(config.headers))) {
+            config.headers["Content-Type"] = "application/xml";
+        }
+        return OpenLayers.Request.issue(config);
+    },
+    
+    /**
+     * APIMethod: PUT
+     * Send an HTTP PUT request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to PUT and "Content-Type" header set to "application/xml".
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.  The
+     *     default "Content-Type" header will be set to "application-xml" if
+     *     none is provided.  This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    PUT: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "PUT"});
+        // set content type to application/xml if it isn't already set
+        config.headers = config.headers ? config.headers : {};
+        if(!("CONTENT-TYPE" in OpenLayers.Util.upperCaseObject(config.headers))) {
+            config.headers["Content-Type"] = "application/xml";
+        }
+        return OpenLayers.Request.issue(config);
+    },
+    
+    /**
+     * APIMethod: DELETE
+     * Send an HTTP DELETE request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to DELETE.
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.
+     *     This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    DELETE: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "DELETE"});
+        return OpenLayers.Request.issue(config);
+    },
+  
+    /**
+     * APIMethod: HEAD
+     * Send an HTTP HEAD request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to HEAD.
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.
+     *     This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    HEAD: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "HEAD"});
+        return OpenLayers.Request.issue(config);
+    },
+    
+    /**
+     * APIMethod: OPTIONS
+     * Send an HTTP OPTIONS request.  Additional configuration properties are
+     *     documented in the <issue> method, with the method property set
+     *     to OPTIONS.
+     *
+     * Parameters:
+     * config - {Object} Object with properties for configuring the request.
+     *     See the <issue> method for documentation of allowed properties.
+     *     This object is modified and should not be reused.
+     * 
+     * Returns:
+     * {XMLHttpRequest} Request object.
+     */
+    OPTIONS: function(config) {
+        config = OpenLayers.Util.extend(config, {method: "OPTIONS"});
+        return OpenLayers.Request.issue(config);
+    }
+
+};
+/* ======================================================================
+    OpenLayers/Request/XMLHttpRequest.js
+   ====================================================================== */
+
+// XMLHttpRequest.js Copyright (C) 2010 Sergey Ilinsky (http://www.ilinsky.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @requires OpenLayers/Request.js
+ */
+
+(function () {
+
+    // Save reference to earlier defined object implementation (if any)
+    var oXMLHttpRequest    = window.XMLHttpRequest;
+
+    // Define on browser type
+    var bGecko    = !!window.controllers,
+        bIE        = window.document.all && !window.opera,
+        bIE7    = bIE && window.navigator.userAgent.match(/MSIE 7.0/);
+
+    // Enables "XMLHttpRequest()" call next to "new XMLHttpReques()"
+    function fXMLHttpRequest() {
+        this._object    = oXMLHttpRequest && !bIE7 ? new oXMLHttpRequest : new window.ActiveXObject("Microsoft.XMLHTTP");
+        this._listeners    = [];
+    };
+
+    // Constructor
+    function cXMLHttpRequest() {
+        return new fXMLHttpRequest;
+    };
+    cXMLHttpRequest.prototype    = fXMLHttpRequest.prototype;
+
+    // BUGFIX: Firefox with Firebug installed would break pages if not executed
+    if (bGecko && oXMLHttpRequest.wrapped)
+        cXMLHttpRequest.wrapped    = oXMLHttpRequest.wrapped;
+
+    // Constants
+    cXMLHttpRequest.UNSENT                = 0;
+    cXMLHttpRequest.OPENED                = 1;
+    cXMLHttpRequest.HEADERS_RECEIVED    = 2;
+    cXMLHttpRequest.LOADING                = 3;
+    cXMLHttpRequest.DONE                = 4;
+
+    // Public Properties
+    cXMLHttpRequest.prototype.readyState    = cXMLHttpRequest.UNSENT;
+    cXMLHttpRequest.prototype.responseText    = '';
+    cXMLHttpRequest.prototype.responseXML    = null;
+    cXMLHttpRequest.prototype.status        = 0;
+    cXMLHttpRequest.prototype.statusText    = '';
+
+    // Priority proposal
+    cXMLHttpRequest.prototype.priority        = "NORMAL";
+
+    // Instance-level Events Handlers
+    cXMLHttpRequest.prototype.onreadystatechange    = null;
+
+    // Class-level Events Handlers
+    cXMLHttpRequest.onreadystatechange    = null;
+    cXMLHttpRequest.onopen                = null;
+    cXMLHttpRequest.onsend                = null;
+    cXMLHttpRequest.onabort                = null;
+
+    // Public Methods
+    cXMLHttpRequest.prototype.open    = function(sMethod, sUrl, bAsync, sUser, sPassword) {
+        // Delete headers, required when object is reused
+        delete this._headers;
+
+        // When bAsync parameter value is omitted, use true as default
+        if (arguments.length < 3)
+            bAsync    = true;
+
+        // Save async parameter for fixing Gecko bug with missing readystatechange in synchronous requests
+        this._async        = bAsync;
+
+        // Set the onreadystatechange handler
+        var oRequest    = this,
+            nState        = this.readyState,
+            fOnUnload;
+
+        // BUGFIX: IE - memory leak on page unload (inter-page leak)
+        if (bIE && bAsync) {
+            fOnUnload = function() {
+                if (nState != cXMLHttpRequest.DONE) {
+                    fCleanTransport(oRequest);
+                    // Safe to abort here since onreadystatechange handler removed
+                    oRequest.abort();
+                }
+            };
+            window.attachEvent("onunload", fOnUnload);
+        }
+
+        // Add method sniffer
+        if (cXMLHttpRequest.onopen)
+            cXMLHttpRequest.onopen.apply(this, arguments);
+
+        if (arguments.length > 4)
+            this._object.open(sMethod, sUrl, bAsync, sUser, sPassword);
+        else
+        if (arguments.length > 3)
+            this._object.open(sMethod, sUrl, bAsync, sUser);
+        else
+            this._object.open(sMethod, sUrl, bAsync);
+
+        this.readyState    = cXMLHttpRequest.OPENED;
+        fReadyStateChange(this);
+
+        this._object.onreadystatechange    = function() {
+            if (bGecko && !bAsync)
+                return;
+
+            // Synchronize state
+            oRequest.readyState        = oRequest._object.readyState;
+
+            //
+            fSynchronizeValues(oRequest);
+
+            // BUGFIX: Firefox fires unnecessary DONE when aborting
+            if (oRequest._aborted) {
+                // Reset readyState to UNSENT
+                oRequest.readyState    = cXMLHttpRequest.UNSENT;
+
+                // Return now
+                return;
+            }
+
+            if (oRequest.readyState == cXMLHttpRequest.DONE) {
+                // Free up queue
+                delete oRequest._data;
+/*                if (bAsync)
+                    fQueue_remove(oRequest);*/
+                //
+                fCleanTransport(oRequest);
+// Uncomment this block if you need a fix for IE cache
+/*
+                // BUGFIX: IE - cache issue
+                if (!oRequest._object.getResponseHeader("Date")) {
+                    // Save object to cache
+                    oRequest._cached    = oRequest._object;
+
+                    // Instantiate a new transport object
+                    cXMLHttpRequest.call(oRequest);
+
+                    // Re-send request
+                    if (sUser) {
+                         if (sPassword)
+                            oRequest._object.open(sMethod, sUrl, bAsync, sUser, sPassword);
+                        else
+                            oRequest._object.open(sMethod, sUrl, bAsync, sUser);
+                    }
+                    else
+                        oRequest._object.open(sMethod, sUrl, bAsync);
+                    oRequest._object.setRequestHeader("If-Modified-Since", oRequest._cached.getResponseHeader("Last-Modified") || new window.Date(0));
+                    // Copy headers set
+                    if (oRequest._headers)
+                        for (var sHeader in oRequest._headers)
+                            if (typeof oRequest._headers[sHeader] == "string")    // Some frameworks prototype objects with functions
+                                oRequest._object.setRequestHeader(sHeader, oRequest._headers[sHeader]);
+
+                    oRequest._object.onreadystatechange    = function() {
+                        // Synchronize state
+                        oRequest.readyState        = oRequest._object.readyState;
+
+                        if (oRequest._aborted) {
+                            //
+                            oRequest.readyState    = cXMLHttpRequest.UNSENT;
+
+                            // Return
+                            return;
+                        }
+
+                        if (oRequest.readyState == cXMLHttpRequest.DONE) {
+                            // Clean Object
+                            fCleanTransport(oRequest);
+
+                            // get cached request
+                            if (oRequest.status == 304)
+                                oRequest._object    = oRequest._cached;
+
+                            //
+                            delete oRequest._cached;
+
+                            //
+                            fSynchronizeValues(oRequest);
+
+                            //
+                            fReadyStateChange(oRequest);
+
+                            // BUGFIX: IE - memory leak in interrupted
+                            if (bIE && bAsync)
+                                window.detachEvent("onunload", fOnUnload);
+                        }
+                    };
+                    oRequest._object.send(null);
+
+                    // Return now - wait until re-sent request is finished
+                    return;
+                };
+*/
+                // BUGFIX: IE - memory leak in interrupted
+                if (bIE && bAsync)
+                    window.detachEvent("onunload", fOnUnload);
+            }
+
+            // BUGFIX: Some browsers (Internet Explorer, Gecko) fire OPEN readystate twice
+            if (nState != oRequest.readyState)
+                fReadyStateChange(oRequest);
+
+            nState    = oRequest.readyState;
+        }
+    };
+    function fXMLHttpRequest_send(oRequest) {
+        oRequest._object.send(oRequest._data);
+
+        // BUGFIX: Gecko - missing readystatechange calls in synchronous requests
+        if (bGecko && !oRequest._async) {
+            oRequest.readyState    = cXMLHttpRequest.OPENED;
+
+            // Synchronize state
+            fSynchronizeValues(oRequest);
+
+            // Simulate missing states
+            while (oRequest.readyState < cXMLHttpRequest.DONE) {
+                oRequest.readyState++;
+                fReadyStateChange(oRequest);
+                // Check if we are aborted
+                if (oRequest._aborted)
+                    return;
+            }
+        }
+    };
+    cXMLHttpRequest.prototype.send    = function(vData) {
+        // Add method sniffer
+        if (cXMLHttpRequest.onsend)
+            cXMLHttpRequest.onsend.apply(this, arguments);
+
+        if (!arguments.length)
+            vData    = null;
+
+        // BUGFIX: Safari - fails sending documents created/modified dynamically, so an explicit serialization required
+        // BUGFIX: IE - rewrites any custom mime-type to "text/xml" in case an XMLNode is sent
+        // BUGFIX: Gecko - fails sending Element (this is up to the implementation either to standard)
+        if (vData && vData.nodeType) {
+            vData    = window.XMLSerializer ? new window.XMLSerializer().serializeToString(vData) : vData.xml;
+            if (!this._headers["Content-Type"])
+                this._object.setRequestHeader("Content-Type", "application/xml");
+        }
+
+        this._data    = vData;
+/*
+        // Add to queue
+        if (this._async)
+            fQueue_add(this);
+        else*/
+            fXMLHttpRequest_send(this);
+    };
+    cXMLHttpRequest.prototype.abort    = function() {
+        // Add method sniffer
+        if (cXMLHttpRequest.onabort)
+            cXMLHttpRequest.onabort.apply(this, arguments);
+
+        // BUGFIX: Gecko - unnecessary DONE when aborting
+        if (this.readyState > cXMLHttpRequest.UNSENT)
+            this._aborted    = true;
+
+        this._object.abort();
+
+        // BUGFIX: IE - memory leak
+        fCleanTransport(this);
+
+        this.readyState    = cXMLHttpRequest.UNSENT;
+
+        delete this._data;
+/*        if (this._async)
+            fQueue_remove(this);*/
+    };
+    cXMLHttpRequest.prototype.getAllResponseHeaders    = function() {
+        return this._object.getAllResponseHeaders();
+    };
+    cXMLHttpRequest.prototype.getResponseHeader    = function(sName) {
+        return this._object.getResponseHeader(sName);
+    };
+    cXMLHttpRequest.prototype.setRequestHeader    = function(sName, sValue) {
+        // BUGFIX: IE - cache issue
+        if (!this._headers)
+            this._headers    = {};
+        this._headers[sName]    = sValue;
+
+        return this._object.setRequestHeader(sName, sValue);
+    };
+
+    // EventTarget interface implementation
+    cXMLHttpRequest.prototype.addEventListener    = function(sName, fHandler, bUseCapture) {
+        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
+            if (oListener[0] == sName && oListener[1] == fHandler && oListener[2] == bUseCapture)
+                return;
+        // Add listener
+        this._listeners.push([sName, fHandler, bUseCapture]);
+    };
+
+    cXMLHttpRequest.prototype.removeEventListener    = function(sName, fHandler, bUseCapture) {
+        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
+            if (oListener[0] == sName && oListener[1] == fHandler && oListener[2] == bUseCapture)
+                break;
+        // Remove listener
+        if (oListener)
+            this._listeners.splice(nIndex, 1);
+    };
+
+    cXMLHttpRequest.prototype.dispatchEvent    = function(oEvent) {
+        var oEventPseudo    = {
+            'type':            oEvent.type,
+            'target':        this,
+            'currentTarget':this,
+            'eventPhase':    2,
+            'bubbles':        oEvent.bubbles,
+            'cancelable':    oEvent.cancelable,
+            'timeStamp':    oEvent.timeStamp,
+            'stopPropagation':    function() {},    // There is no flow
+            'preventDefault':    function() {},    // There is no default action
+            'initEvent':        function() {}    // Original event object should be initialized
+        };
+
+        // Execute onreadystatechange
+        if (oEventPseudo.type == "readystatechange" && this.onreadystatechange)
+            (this.onreadystatechange.handleEvent || this.onreadystatechange).apply(this, [oEventPseudo]);
+
+        // Execute listeners
+        for (var nIndex = 0, oListener; oListener = this._listeners[nIndex]; nIndex++)
+            if (oListener[0] == oEventPseudo.type && !oListener[2])
+                (oListener[1].handleEvent || oListener[1]).apply(this, [oEventPseudo]);
+    };
+
+    //
+    cXMLHttpRequest.prototype.toString    = function() {
+        return '[' + "object" + ' ' + "XMLHttpRequest" + ']';
+    };
+
+    cXMLHttpRequest.toString    = function() {
+        return '[' + "XMLHttpRequest" + ']';
+    };
+
+    // Helper function
+    function fReadyStateChange(oRequest) {
+        // Sniffing code
+        if (cXMLHttpRequest.onreadystatechange)
+            cXMLHttpRequest.onreadystatechange.apply(oRequest);
+
+        // Fake event
+        oRequest.dispatchEvent({
+            'type':            "readystatechange",
+            'bubbles':        false,
+            'cancelable':    false,
+            'timeStamp':    new Date + 0
+        });
+    };
+
+    function fGetDocument(oRequest) {
+        var oDocument    = oRequest.responseXML,
+            sResponse    = oRequest.responseText;
+        // Try parsing responseText
+        if (bIE && sResponse && oDocument && !oDocument.documentElement && oRequest.getResponseHeader("Content-Type").match(/[^\/]+\/[^\+]+\+xml/)) {
+            oDocument    = new window.ActiveXObject("Microsoft.XMLDOM");
+            oDocument.async                = false;
+            oDocument.validateOnParse    = false;
+            oDocument.loadXML(sResponse);
+        }
+        // Check if there is no error in document
+        if (oDocument)
+            if ((bIE && oDocument.parseError != 0) || !oDocument.documentElement || (oDocument.documentElement && oDocument.documentElement.tagName == "parsererror"))
+                return null;
+        return oDocument;
+    };
+
+    function fSynchronizeValues(oRequest) {
+        try {    oRequest.responseText    = oRequest._object.responseText;    } catch (e) {}
+        try {    oRequest.responseXML    = fGetDocument(oRequest._object);    } catch (e) {}
+        try {    oRequest.status            = oRequest._object.status;            } catch (e) {}
+        try {    oRequest.statusText        = oRequest._object.statusText;        } catch (e) {}
+    };
+
+    function fCleanTransport(oRequest) {
+        // BUGFIX: IE - memory leak (on-page leak)
+        oRequest._object.onreadystatechange    = new window.Function;
+    };
+/*
+    // Queue manager
+    var oQueuePending    = {"CRITICAL":[],"HIGH":[],"NORMAL":[],"LOW":[],"LOWEST":[]},
+        aQueueRunning    = [];
+    function fQueue_add(oRequest) {
+        oQueuePending[oRequest.priority in oQueuePending ? oRequest.priority : "NORMAL"].push(oRequest);
+        //
+        setTimeout(fQueue_process);
+    };
+
+    function fQueue_remove(oRequest) {
+        for (var nIndex = 0, bFound    = false; nIndex < aQueueRunning.length; nIndex++)
+            if (bFound)
+                aQueueRunning[nIndex - 1]    = aQueueRunning[nIndex];
+            else
+            if (aQueueRunning[nIndex] == oRequest)
+                bFound    = true;
+        if (bFound)
+            aQueueRunning.length--;
+        //
+        setTimeout(fQueue_process);
+    };
+
+    function fQueue_process() {
+        if (aQueueRunning.length < 6) {
+            for (var sPriority in oQueuePending) {
+                if (oQueuePending[sPriority].length) {
+                    var oRequest    = oQueuePending[sPriority][0];
+                    oQueuePending[sPriority]    = oQueuePending[sPriority].slice(1);
+                    //
+                    aQueueRunning.push(oRequest);
+                    // Send request
+                    fXMLHttpRequest_send(oRequest);
+                    break;
+                }
+            }
+        }
+    };
+*/
+    // Internet Explorer 5.0 (missing apply)
+    if (!window.Function.prototype.apply) {
+        window.Function.prototype.apply    = function(oRequest, oArguments) {
+            if (!oArguments)
+                oArguments    = [];
+            oRequest.__func    = this;
+            oRequest.__func(oArguments[0], oArguments[1], oArguments[2], oArguments[3], oArguments[4]);
+            delete oRequest.__func;
+        };
+    };
+
+    // Register new object with window
+    /**
+     * Class: OpenLayers.Request.XMLHttpRequest
+     * Standard-compliant (W3C) cross-browser implementation of the
+     *     XMLHttpRequest object.  From
+     *     http://code.google.com/p/xmlhttprequest/.
+     */
+    OpenLayers.Request.XMLHttpRequest = cXMLHttpRequest;
+})();
+/* ======================================================================
+    OpenLayers/Protocol/HTTP.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Protocol.js
+ * @requires OpenLayers/Request/XMLHttpRequest.js
+ */
+
+/**
+ * if application uses the query string, for example, for BBOX parameters,
+ * OpenLayers/Format/QueryStringFilter.js should be included in the build config file
+ */
+
+/**
+ * Class: OpenLayers.Protocol.HTTP
+ * A basic HTTP protocol for vector layers.  Create a new instance with the
+ *     <OpenLayers.Protocol.HTTP> constructor.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Protocol>
+ */
+OpenLayers.Protocol.HTTP = OpenLayers.Class(OpenLayers.Protocol, {
+
+    /**
+     * Property: url
+     * {String} Service URL, read-only, set through the options
+     *     passed to constructor.
+     */
+    url: null,
+
+    /**
+     * Property: headers
+     * {Object} HTTP request headers, read-only, set through the options
+     *     passed to the constructor,
+     *     Example: {'Content-Type': 'plain/text'}
+     */
+    headers: null,
+
+    /**
+     * Property: params
+     * {Object} Parameters of GET requests, read-only, set through the options
+     *     passed to the constructor,
+     *     Example: {'bbox': '5,5,5,5'}
+     */
+    params: null,
+    
+    /**
+     * Property: callback
+     * {Object} Function to be called when the <read>, <create>,
+     *     <update>, <delete> or <commit> operation completes, read-only,
+     *     set through the options passed to the constructor.
+     */
+    callback: null,
+
+    /**
+     * Property: scope
+     * {Object} Callback execution scope, read-only, set through the
+     *     options passed to the constructor.
+     */
+    scope: null,
+
+    /**
+     * APIProperty: readWithPOST
+     * {Boolean} true if read operations are done with POST requests
+     *     instead of GET, defaults to false.
+     */
+    readWithPOST: false,
+
+    /**
+     * APIProperty: updateWithPOST
+     * {Boolean} true if update operations are done with POST requests
+     *     defaults to false.
+     */
+    updateWithPOST: false,
+    
+    /**
+     * APIProperty: deleteWithPOST
+     * {Boolean} true if delete operations are done with POST requests
+     *     defaults to false.
+     *     if true, POST data is set to output of format.write().
+     */
+    deleteWithPOST: false,
+
+    /**
+     * Property: wildcarded.
+     * {Boolean} If true percent signs are added around values
+     *     read from LIKE filters, for example if the protocol
+     *     read method is passed a LIKE filter whose property
+     *     is "foo" and whose value is "bar" the string
+     *     "foo__ilike=%bar%" will be sent in the query string;
+     *     defaults to false.
+     */
+    wildcarded: false,
+
+    /**
+     * APIProperty: srsInBBOX
+     * {Boolean} Include the SRS identifier in BBOX query string parameter.  
+     *     Default is false.  If true and the layer has a projection object set,
+     *     any BBOX filter will be serialized with a fifth item identifying the
+     *     projection.  E.g. bbox=-1000,-1000,1000,1000,EPSG:900913
+     */
+    srsInBBOX: false,
+
+    /**
+     * Constructor: OpenLayers.Protocol.HTTP
+     * A class for giving layers generic HTTP protocol.
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on the
+     *     instance.
+     *
+     * Valid options include:
+     * url - {String}
+     * headers - {Object} 
+     * params - {Object} URL parameters for GET requests
+     * format - {<OpenLayers.Format>}
+     * callback - {Function}
+     * scope - {Object}
+     */
+    initialize: function(options) {
+        options = options || {};
+        this.params = {};
+        this.headers = {};
+        OpenLayers.Protocol.prototype.initialize.apply(this, arguments);
+
+        if (!this.filterToParams && OpenLayers.Format.QueryStringFilter) {
+            var format = new OpenLayers.Format.QueryStringFilter({
+                wildcarded: this.wildcarded,
+                srsInBBOX: this.srsInBBOX
+            });
+            this.filterToParams = function(filter, params) {
+                return format.write(filter, params);
+            };
+        }
+    },
+    
+    /**
+     * APIMethod: destroy
+     * Clean up the protocol.
+     */
+    destroy: function() {
+        this.params = null;
+        this.headers = null;
+        OpenLayers.Protocol.prototype.destroy.apply(this);
+    },
+
+    /**
+     * APIMethod: filterToParams
+     * Optional method to translate an <OpenLayers.Filter> object into an object
+     *     that can be serialized as request query string provided.  If a custom
+     *     method is not provided, the filter will be serialized using the 
+     *     <OpenLayers.Format.QueryStringFilter> class.
+     *
+     * Parameters:
+     * filter - {<OpenLayers.Filter>} filter to convert.
+     * params - {Object} The parameters object.
+     *
+     * Returns:
+     * {Object} The resulting parameters object.
+     */
+    
+    /**
+     * APIMethod: read
+     * Construct a request for reading new features.
+     *
+     * Parameters:
+     * options - {Object} Optional object for configuring the request.
+     *     This object is modified and should not be reused.
+     *
+     * Valid options:
+     * url - {String} Url for the request.
+     * params - {Object} Parameters to get serialized as a query string.
+     * headers - {Object} Headers to be set on the request.
+     * filter - {<OpenLayers.Filter>} Filter to get serialized as a
+     *     query string.
+     * readWithPOST - {Boolean} If the request should be done with POST.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} A response object, whose "priv" property
+     *     references the HTTP request, this object is also passed to the
+     *     callback function when the request completes, its "features" property
+     *     is then populated with the features received from the server.
+     */
+    read: function(options) {
+        OpenLayers.Protocol.prototype.read.apply(this, arguments);
+        options = options || {};
+        options.params = OpenLayers.Util.applyDefaults(
+            options.params, this.options.params);
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+        if (options.filter && this.filterToParams) {
+            options.params = this.filterToParams(
+                options.filter, options.params
+            );
+        }
+        var readWithPOST = (options.readWithPOST !== undefined) ?
+                           options.readWithPOST : this.readWithPOST;
+        var resp = new OpenLayers.Protocol.Response({requestType: "read"});
+        if(readWithPOST) {
+            var headers = options.headers || {};
+            headers["Content-Type"] = "application/x-www-form-urlencoded";
+            resp.priv = OpenLayers.Request.POST({
+                url: options.url,
+                callback: this.createCallback(this.handleRead, resp, options),
+                data: OpenLayers.Util.getParameterString(options.params),
+                headers: headers
+            });
+        } else {
+            resp.priv = OpenLayers.Request.GET({
+                url: options.url,
+                callback: this.createCallback(this.handleRead, resp, options),
+                params: options.params,
+                headers: options.headers
+            });
+        }
+        return resp;
+    },
+
+    /**
+     * Method: handleRead
+     * Individual callbacks are created for read, create and update, should
+     *     a subclass need to override each one separately.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
+     *     the user callback.
+     * options - {Object} The user options passed to the read call.
+     */
+    handleRead: function(resp, options) {
+        this.handleResponse(resp, options);
+    },
+
+    /**
+     * APIMethod: create
+     * Construct a request for writing newly created features.
+     *
+     * Parameters:
+     * features - {Array({<OpenLayers.Feature.Vector>})} or
+     *     {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *     This object is modified and should not be reused.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     *     object, whose "priv" property references the HTTP request, this 
+     *     object is also passed to the callback function when the request
+     *     completes, its "features" property is then populated with the
+     *     the features received from the server.
+     */
+    create: function(features, options) {
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+
+        var resp = new OpenLayers.Protocol.Response({
+            reqFeatures: features,
+            requestType: "create"
+        });
+
+        resp.priv = OpenLayers.Request.POST({
+            url: options.url,
+            callback: this.createCallback(this.handleCreate, resp, options),
+            headers: options.headers,
+            data: this.format.write(features)
+        });
+
+        return resp;
+    },
+
+    /**
+     * Method: handleCreate
+     * Called the the request issued by <create> is complete.  May be overridden
+     *     by subclasses.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
+     *     any user callback.
+     * options - {Object} The user options passed to the create call.
+     */
+    handleCreate: function(resp, options) {
+        this.handleResponse(resp, options);
+    },
+
+    /**
+     * APIMethod: update
+     * Construct a request updating modified feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *     This object is modified and should not be reused.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     *     object, whose "priv" property references the HTTP request, this 
+     *     object is also passed to the callback function when the request
+     *     completes, its "features" property is then populated with the
+     *     the feature received from the server.
+     */
+    update: function(feature, options) {
+        options = options || {};
+        var url = options.url ||
+                  feature.url ||
+                  this.options.url + "/" + feature.fid;
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+
+        var resp = new OpenLayers.Protocol.Response({
+            reqFeatures: feature,
+            requestType: "update"
+        });
+
+        var method = this.updateWithPOST ? "POST" : "PUT";
+        resp.priv = OpenLayers.Request[method]({
+            url: url,
+            callback: this.createCallback(this.handleUpdate, resp, options),
+            headers: options.headers,
+            data: this.format.write(feature)
+        });
+
+        return resp;
+    },
+
+    /**
+     * Method: handleUpdate
+     * Called the the request issued by <update> is complete.  May be overridden
+     *     by subclasses.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
+     *     any user callback.
+     * options - {Object} The user options passed to the update call.
+     */
+    handleUpdate: function(resp, options) {
+        this.handleResponse(resp, options);
+    },
+
+    /**
+     * APIMethod: delete
+     * Construct a request deleting a removed feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>}
+     * options - {Object} Optional object for configuring the request.
+     *     This object is modified and should not be reused.
+     *
+     * Returns:
+     * {<OpenLayers.Protocol.Response>} An <OpenLayers.Protocol.Response>
+     *     object, whose "priv" property references the HTTP request, this 
+     *     object is also passed to the callback function when the request
+     *     completes.
+     */
+    "delete": function(feature, options) {
+        options = options || {};
+        var url = options.url ||
+                  feature.url ||
+                  this.options.url + "/" + feature.fid;
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+
+        var resp = new OpenLayers.Protocol.Response({
+            reqFeatures: feature,
+            requestType: "delete"
+        });
+
+        var method = this.deleteWithPOST ? "POST" : "DELETE";
+        var requestOptions = {
+            url: url,
+            callback: this.createCallback(this.handleDelete, resp, options),
+            headers: options.headers
+        };
+        if (this.deleteWithPOST) {
+            requestOptions.data = this.format.write(feature);
+        }
+        resp.priv = OpenLayers.Request[method](requestOptions);
+
+        return resp;
+    },
+
+    /**
+     * Method: handleDelete
+     * Called the the request issued by <delete> is complete.  May be overridden
+     *     by subclasses.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
+     *     any user callback.
+     * options - {Object} The user options passed to the delete call.
+     */
+    handleDelete: function(resp, options) {
+        this.handleResponse(resp, options);
+    },
+
+    /**
+     * Method: handleResponse
+     * Called by CRUD specific handlers.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>} The response object to pass to
+     *     any user callback.
+     * options - {Object} The user options passed to the create, read, update,
+     *     or delete call.
+     */
+    handleResponse: function(resp, options) {
+        var request = resp.priv;
+        if(options.callback) {
+            if(request.status >= 200 && request.status < 300) {
+                // success
+                if(resp.requestType != "delete") {
+                    resp.features = this.parseFeatures(request);
+                }
+                resp.code = OpenLayers.Protocol.Response.SUCCESS;
+            } else {
+                // failure
+                resp.code = OpenLayers.Protocol.Response.FAILURE;
+            }
+            options.callback.call(options.scope, resp);
+        }
+    },
+
+    /**
+     * Method: parseFeatures
+     * Read HTTP response body and return features.
+     *
+     * Parameters:
+     * request - {XMLHttpRequest} The request object
+     *
+     * Returns:
+     * {Array({<OpenLayers.Feature.Vector>})} or
+     *     {<OpenLayers.Feature.Vector>} Array of features or a single feature.
+     */
+    parseFeatures: function(request) {
+        var doc = request.responseXML;
+        if (!doc || !doc.documentElement) {
+            doc = request.responseText;
+        }
+        if (!doc || doc.length <= 0) {
+            return null;
+        }
+        return this.format.read(doc);
+    },
+
+    /**
+     * APIMethod: commit
+     * Iterate over each feature and take action based on the feature state.
+     *     Possible actions are create, update and delete.
+     *
+     * Parameters:
+     * features - {Array({<OpenLayers.Feature.Vector>})}
+     * options - {Object} Optional object for setting up intermediate commit
+     *     callbacks.
+     *
+     * Valid options:
+     * create - {Object} Optional object to be passed to the <create> method.
+     * update - {Object} Optional object to be passed to the <update> method.
+     * delete - {Object} Optional object to be passed to the <delete> method.
+     * callback - {Function} Optional function to be called when the commit
+     *     is complete.
+     * scope - {Object} Optional object to be set as the scope of the callback.
+     *
+     * Returns:
+     * {Array(<OpenLayers.Protocol.Response>)} An array of response objects,
+     *     one per request made to the server, each object's "priv" property
+     *     references the corresponding HTTP request.
+     */
+    commit: function(features, options) {
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+        var resp = [], nResponses = 0;
+        
+        // Divide up features before issuing any requests.  This properly
+        // counts requests in the event that any responses come in before
+        // all requests have been issued.
+        var types = {};
+        types[OpenLayers.State.INSERT] = [];
+        types[OpenLayers.State.UPDATE] = [];
+        types[OpenLayers.State.DELETE] = [];
+        var feature, list, requestFeatures = [];
+        for(var i=0, len=features.length; i<len; ++i) {
+            feature = features[i];
+            list = types[feature.state];
+            if(list) {
+                list.push(feature);
+                requestFeatures.push(feature); 
+            }
+        }
+        // tally up number of requests
+        var nRequests = (types[OpenLayers.State.INSERT].length > 0 ? 1 : 0) +
+            types[OpenLayers.State.UPDATE].length +
+            types[OpenLayers.State.DELETE].length;
+        
+        // This response will be sent to the final callback after all the others
+        // have been fired.
+        var success = true;
+        var finalResponse = new OpenLayers.Protocol.Response({
+            reqFeatures: requestFeatures        
+        });
+        
+        function insertCallback(response) {
+            var len = response.features ? response.features.length : 0;
+            var fids = new Array(len);
+            for(var i=0; i<len; ++i) {
+                fids[i] = response.features[i].fid;
+            }   
+            finalResponse.insertIds = fids;
+            callback.apply(this, [response]);
+        }
+ 
+        function callback(response) {
+            this.callUserCallback(response, options);
+            success = success && response.success();
+            nResponses++;
+            if (nResponses >= nRequests) {
+                if (options.callback) {
+                    finalResponse.code = success ? 
+                        OpenLayers.Protocol.Response.SUCCESS :
+                        OpenLayers.Protocol.Response.FAILURE;
+                    options.callback.apply(options.scope, [finalResponse]);
+                }    
+            }
+        }
+
+        // start issuing requests
+        var queue = types[OpenLayers.State.INSERT];
+        if(queue.length > 0) {
+            resp.push(this.create(
+                queue, OpenLayers.Util.applyDefaults(
+                    {callback: insertCallback, scope: this}, options.create
+                )
+            ));
+        }
+        queue = types[OpenLayers.State.UPDATE];
+        for(var i=queue.length-1; i>=0; --i) {
+            resp.push(this.update(
+                queue[i], OpenLayers.Util.applyDefaults(
+                    {callback: callback, scope: this}, options.update
+                ))
+            );
+        }
+        queue = types[OpenLayers.State.DELETE];
+        for(var i=queue.length-1; i>=0; --i) {
+            resp.push(this["delete"](
+                queue[i], OpenLayers.Util.applyDefaults(
+                    {callback: callback, scope: this}, options["delete"]
+                ))
+            );
+        }
+        return resp;
+    },
+
+    /**
+     * APIMethod: abort
+     * Abort an ongoing request, the response object passed to
+     * this method must come from this HTTP protocol (as a result
+     * of a create, read, update, delete or commit operation).
+     *
+     * Parameters:
+     * response - {<OpenLayers.Protocol.Response>}
+     */
+    abort: function(response) {
+        if (response) {
+            response.priv.abort();
+        }
+    },
+
+    /**
+     * Method: callUserCallback
+     * This method is used from within the commit method each time an
+     *     an HTTP response is received from the server, it is responsible
+     *     for calling the user-supplied callbacks.
+     *
+     * Parameters:
+     * resp - {<OpenLayers.Protocol.Response>}
+     * options - {Object} The map of options passed to the commit call.
+     */
+    callUserCallback: function(resp, options) {
+        var opt = options[resp.requestType];
+        if(opt && opt.callback) {
+            opt.callback.call(opt.scope, resp);
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Protocol.HTTP" 
+});
+/* ======================================================================
+    OpenLayers/Handler.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ * @requires OpenLayers/Events.js
+ */
+
+/**
+ * Class: OpenLayers.Handler
+ * Base class to construct a higher-level handler for event sequences.  All
+ *     handlers have activate and deactivate methods.  In addition, they have
+ *     methods named like browser events.  When a handler is activated, any
+ *     additional methods named like a browser event is registered as a
+ *     listener for the corresponding event.  When a handler is deactivated,
+ *     those same methods are unregistered as event listeners.
+ *
+ * Handlers also typically have a callbacks object with keys named like
+ *     the abstracted events or event sequences that they are in charge of
+ *     handling.  The controls that wrap handlers define the methods that
+ *     correspond to these abstract events - so instead of listening for
+ *     individual browser events, they only listen for the abstract events
+ *     defined by the handler.
+ *     
+ * Handlers are created by controls, which ultimately have the responsibility
+ *     of making changes to the the state of the application.  Handlers
+ *     themselves may make temporary changes, but in general are expected to
+ *     return the application in the same state that they found it.
+ */
+OpenLayers.Handler = OpenLayers.Class({
+
+    /**
+     * Property: id
+     * {String}
+     */
+    id: null,
+        
+    /**
+     * APIProperty: control
+     * {<OpenLayers.Control>}. The control that initialized this handler.  The
+     *     control is assumed to have a valid map property - that map is used
+     *     in the handler's own setMap method.
+     */
+    control: null,
+
+    /**
+     * Property: map
+     * {<OpenLayers.Map>}
+     */
+    map: null,
+
+    /**
+     * APIProperty: keyMask
+     * {Integer} Use bitwise operators and one or more of the OpenLayers.Handler
+     *     constants to construct a keyMask.  The keyMask is used by
+     *     <checkModifiers>.  If the keyMask matches the combination of keys
+     *     down on an event, checkModifiers returns true.
+     *
+     * Example:
+     * (code)
+     *     // handler only responds if the Shift key is down
+     *     handler.keyMask = OpenLayers.Handler.MOD_SHIFT;
+     *
+     *     // handler only responds if Ctrl-Shift is down
+     *     handler.keyMask = OpenLayers.Handler.MOD_SHIFT |
+     *                       OpenLayers.Handler.MOD_CTRL;
+     * (end)
+     */
+    keyMask: null,
+
+    /**
+     * Property: active
+     * {Boolean}
+     */
+    active: false,
+    
+    /**
+     * Property: evt
+     * {Event} This property references the last event handled by the handler.
+     *     Note that this property is not part of the stable API.  Use of the
+     *     evt property should be restricted to controls in the library
+     *     or other applications that are willing to update with changes to
+     *     the OpenLayers code.
+     */
+    evt: null,
+
+    /**
+     * Constructor: OpenLayers.Handler
+     * Construct a handler.
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} The control that initialized this
+     *     handler.  The control is assumed to have a valid map property; that
+     *     map is used in the handler's own setMap method.  If a map property
+     *     is present in the options argument it will be used instead.
+     * callbacks - {Object} An object whose properties correspond to abstracted
+     *     events or sequences of browser events.  The values for these
+     *     properties are functions defined by the control that get called by
+     *     the handler.
+     * options - {Object} An optional object whose properties will be set on
+     *     the handler.
+     */
+    initialize: function(control, callbacks, options) {
+        OpenLayers.Util.extend(this, options);
+        this.control = control;
+        this.callbacks = callbacks;
+
+        var map = this.map || control.map;
+        if (map) {
+            this.setMap(map); 
+        }
+        
+        this.id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
+    },
+    
+    /**
+     * Method: setMap
+     */
+    setMap: function (map) {
+        this.map = map;
+    },
+
+    /**
+     * Method: checkModifiers
+     * Check the keyMask on the handler.  If no <keyMask> is set, this always
+     *     returns true.  If a <keyMask> is set and it matches the combination
+     *     of keys down on an event, this returns true.
+     *
+     * Returns:
+     * {Boolean} The keyMask matches the keys down on an event.
+     */
+    checkModifiers: function (evt) {
+        if(this.keyMask == null) {
+            return true;
+        }
+        /* calculate the keyboard modifier mask for this event */
+        var keyModifiers =
+            (evt.shiftKey ? OpenLayers.Handler.MOD_SHIFT : 0) |
+            (evt.ctrlKey  ? OpenLayers.Handler.MOD_CTRL  : 0) |
+            (evt.altKey   ? OpenLayers.Handler.MOD_ALT   : 0);
+    
+        /* if it differs from the handler object's key mask,
+           bail out of the event handler */
+        return (keyModifiers == this.keyMask);
+    },
+
+    /**
+     * APIMethod: activate
+     * Turn on the handler.  Returns false if the handler was already active.
+     * 
+     * Returns: 
+     * {Boolean} The handler was activated.
+     */
+    activate: function() {
+        if(this.active) {
+            return false;
+        }
+        // register for event handlers defined on this class.
+        var events = OpenLayers.Events.prototype.BROWSER_EVENTS;
+        for (var i=0, len=events.length; i<len; i++) {
+            if (this[events[i]]) {
+                this.register(events[i], this[events[i]]); 
+            }
+        } 
+        this.active = true;
+        return true;
+    },
+    
+    /**
+     * APIMethod: deactivate
+     * Turn off the handler.  Returns false if the handler was already inactive.
+     * 
+     * Returns:
+     * {Boolean} The handler was deactivated.
+     */
+    deactivate: function() {
+        if(!this.active) {
+            return false;
+        }
+        // unregister event handlers defined on this class.
+        var events = OpenLayers.Events.prototype.BROWSER_EVENTS;
+        for (var i=0, len=events.length; i<len; i++) {
+            if (this[events[i]]) {
+                this.unregister(events[i], this[events[i]]); 
+            }
+        } 
+        this.active = false;
+        return true;
+    },
+
+    /**
+    * Method: callback
+    * Trigger the control's named callback with the given arguments
+    *
+    * Parameters:
+    * name - {String} The key for the callback that is one of the properties
+    *     of the handler's callbacks object.
+    * args - {Array(*)} An array of arguments (any type) with which to call 
+    *     the callback (defined by the control).
+    */
+    callback: function (name, args) {
+        if (name && this.callbacks[name]) {
+            this.callbacks[name].apply(this.control, args);
+        }
+    },
+
+    /**
+    * Method: register
+    * register an event on the map
+    */
+    register: function (name, method) {
+        // TODO: deal with registerPriority in 3.0
+        this.map.events.registerPriority(name, this, method);
+        this.map.events.registerPriority(name, this, this.setEvent);
+    },
+
+    /**
+    * Method: unregister
+    * unregister an event from the map
+    */
+    unregister: function (name, method) {
+        this.map.events.unregister(name, this, method);   
+        this.map.events.unregister(name, this, this.setEvent);
+    },
+    
+    /**
+     * Method: setEvent
+     * With each registered browser event, the handler sets its own evt
+     *     property.  This property can be accessed by controls if needed
+     *     to get more information about the event that the handler is
+     *     processing.
+     *
+     * This allows modifier keys on the event to be checked (alt, shift,
+     *     and ctrl cannot be checked with the keyboard handler).  For a
+     *     control to determine which modifier keys are associated with the
+     *     event that a handler is currently processing, it should access
+     *     (code)handler.evt.altKey || handler.evt.shiftKey ||
+     *     handler.evt.ctrlKey(end).
+     *
+     * Parameters:
+     * evt - {Event} The browser event.
+     */
+    setEvent: function(evt) {
+        this.evt = evt;
+        return true;
+    },
+
+    /**
+     * Method: destroy
+     * Deconstruct the handler.
+     */
+    destroy: function () {
+        // unregister event listeners
+        this.deactivate();
+        // eliminate circular references
+        this.control = this.map = null;        
+    },
+
+    CLASS_NAME: "OpenLayers.Handler"
+});
+
+/**
+ * Constant: OpenLayers.Handler.MOD_NONE
+ * If set as the <keyMask>, <checkModifiers> returns false if any key is down.
+ */
+OpenLayers.Handler.MOD_NONE  = 0;
+
+/**
+ * Constant: OpenLayers.Handler.MOD_SHIFT
+ * If set as the <keyMask>, <checkModifiers> returns false if Shift is down.
+ */
+OpenLayers.Handler.MOD_SHIFT = 1;
+
+/**
+ * Constant: OpenLayers.Handler.MOD_CTRL
+ * If set as the <keyMask>, <checkModifiers> returns false if Ctrl is down.
+ */
+OpenLayers.Handler.MOD_CTRL  = 2;
+
+/**
+ * Constant: OpenLayers.Handler.MOD_ALT
+ * If set as the <keyMask>, <checkModifiers> returns false if Alt is down.
+ */
+OpenLayers.Handler.MOD_ALT   = 4;
+
+
+/* ======================================================================
+    OpenLayers/Handler/Click.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Handler.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.Click
+ * A handler for mouse clicks.  The intention of this handler is to give
+ *     controls more flexibility with handling clicks.  Browsers trigger
+ *     click events twice for a double-click.  In addition, the mousedown,
+ *     mousemove, mouseup sequence fires a click event.  With this handler,
+ *     controls can decide whether to ignore clicks associated with a double
+ *     click.  By setting a <pixelTolerance>, controls can also ignore clicks
+ *     that include a drag.  Create a new instance with the
+ *     <OpenLayers.Handler.Click> constructor.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Handler> 
+ */
+OpenLayers.Handler.Click = OpenLayers.Class(OpenLayers.Handler, {
+    /**
+     * APIProperty: delay
+     * {Number} Number of milliseconds between clicks before the event is
+     *     considered a double-click.
+     */
+    delay: 300,
+    
+    /**
+     * APIProperty: single
+     * {Boolean} Handle single clicks.  Default is true.  If false, clicks
+     * will not be reported.  If true, single-clicks will be reported.
+     */
+    single: true,
+    
+    /**
+     * APIProperty: double
+     * {Boolean} Handle double-clicks.  Default is false.
+     */
+    'double': false,
+    
+    /**
+     * APIProperty: pixelTolerance
+     * {Number} Maximum number of pixels between mouseup and mousedown for an
+     *     event to be considered a click.  Default is 0.  If set to an
+     *     integer value, clicks with a drag greater than the value will be
+     *     ignored.  This property can only be set when the handler is
+     *     constructed.
+     */
+    pixelTolerance: 0,
+        
+    /**
+     * APIProperty: dblclickTolerance
+     * {Number} Maximum distance in pixels between clicks for a sequence of 
+     *     events to be considered a double click.  Default is 13.  If the
+     *     distance between two clicks is greater than this value, a double-
+     *     click will not be fired.
+     */
+    dblclickTolerance: 13,
+        
+    /**
+     * APIProperty: stopSingle
+     * {Boolean} Stop other listeners from being notified of clicks.  Default
+     *     is false.  If true, any listeners registered before this one for 
+     *     click or rightclick events will not be notified.
+     */
+    stopSingle: false,
+    
+    /**
+     * APIProperty: stopDouble
+     * {Boolean} Stop other listeners from being notified of double-clicks.
+     *     Default is false.  If true, any click listeners registered before
+     *     this one will not be notified of *any* double-click events.
+     * 
+     * The one caveat with stopDouble is that given a map with two click
+     *     handlers, one with stopDouble true and the other with stopSingle
+     *     true, the stopSingle handler should be activated last to get
+     *     uniform cross-browser performance.  Since IE triggers one click
+     *     with a dblclick and FF triggers two, if a stopSingle handler is
+     *     activated first, all it gets in IE is a single click when the
+     *     second handler stops propagation on the dblclick.
+     */
+    stopDouble: false,
+
+    /**
+     * Property: timerId
+     * {Number} The id of the timeout waiting to clear the <delayedCall>.
+     */
+    timerId: null,
+
+    /**
+     * Property: touch
+     * {Boolean} When a touchstart event is fired, touch will be true and all
+     *     mouse related listeners will do nothing.
+     */
+    touch: false,
+    
+    /**
+     * Property: down
+     * {Object} Object that store relevant information about the last
+     *     mousedown or touchstart. Its 'xy' OpenLayers.Pixel property gives
+     *     the average location of the mouse/touch event. Its 'touches'
+     *     property records clientX/clientY of each touches.
+     */
+    down: null,
+
+    /**
+     * Property: last
+     * {Object} Object that store relevant information about the last
+     *     mousemove or touchmove. Its 'xy' OpenLayers.Pixel property gives
+     *     the average location of the mouse/touch event. Its 'touches'
+     *     property records clientX/clientY of each touches.
+     */
+    last: null,
+
+    /** 
+     * Property: first
+     * {Object} When waiting for double clicks, this object will store 
+     *     information about the first click in a two click sequence.
+     */
+    first: null,
+
+    /**
+     * Property: rightclickTimerId
+     * {Number} The id of the right mouse timeout waiting to clear the 
+     *     <delayedEvent>.
+     */
+    rightclickTimerId: null,
+    
+    /**
+     * Constructor: OpenLayers.Handler.Click
+     * Create a new click handler.
+     * 
+     * Parameters:
+     * control - {<OpenLayers.Control>} The control that is making use of
+     *     this handler.  If a handler is being used without a control, the
+     *     handler's setMap method must be overridden to deal properly with
+     *     the map.
+     * callbacks - {Object} An object with keys corresponding to callbacks
+     *     that will be called by the handler. The callbacks should
+     *     expect to recieve a single argument, the click event.
+     *     Callbacks for 'click' and 'dblclick' are supported.
+     * options - {Object} Optional object whose properties will be set on the
+     *     handler.
+     */
+    
+    /**
+     * Method: touchstart
+     * Handle touchstart.
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    touchstart: function(evt) {
+        if (!this.touch) {
+            this.unregisterMouseListeners();
+            this.touch = true;
+        }
+        this.down = this.getEventInfo(evt);
+        this.last = this.getEventInfo(evt);
+        return true;
+    },
+    
+    /**
+     * Method: touchmove
+     *    Store position of last move, because touchend event can have
+     *    an empty "touches" property.
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    touchmove: function(evt) {
+        this.last = this.getEventInfo(evt);
+        return true;
+    },
+
+    /**
+     * Method: touchend
+     *   Correctly set event xy property, and add lastTouches to have
+     *   touches property from last touchstart or touchmove
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    touchend: function(evt) {
+        // touchstart may not have been allowed to propagate
+        if (this.down) {
+            evt.xy = this.last.xy;
+            evt.lastTouches = this.last.touches;
+            this.handleSingle(evt);
+            this.down = null;
+        }
+        return true;
+    },
+    
+    /**
+     * Method: unregisterMouseListeners
+     * In a touch environment, we don't want to handle mouse events.
+     */
+    unregisterMouseListeners: function() {
+        this.map.events.un({
+            mousedown: this.mousedown,
+            mouseup: this.mouseup,
+            click: this.click,
+            dblclick: this.dblclick,
+            scope: this
+        });
+    },
+
+    /**
+     * Method: mousedown
+     * Handle mousedown.
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    mousedown: function(evt) {
+        this.down = this.getEventInfo(evt);
+        this.last = this.getEventInfo(evt);
+        return true;
+    },
+
+    /**
+     * Method: mouseup
+     * Handle mouseup.  Installed to support collection of right mouse events.
+     * 
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    mouseup: function (evt) {
+        var propagate = true;
+
+        // Collect right mouse clicks from the mouseup
+        //  IE - ignores the second right click in mousedown so using
+        //  mouseup instead
+        if (this.checkModifiers(evt) && this.control.handleRightClicks &&
+           OpenLayers.Event.isRightClick(evt)) {
+            propagate = this.rightclick(evt);
+        }
+
+        return propagate;
+    },
+    
+    /**
+     * Method: rightclick
+     * Handle rightclick.  For a dblrightclick, we get two clicks so we need 
+     *     to always register for dblrightclick to properly handle single 
+     *     clicks.
+     *     
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    rightclick: function(evt) {
+        if(this.passesTolerance(evt)) {
+           if(this.rightclickTimerId != null) {
+                //Second click received before timeout this must be 
+                // a double click
+                this.clearTimer();
+                this.callback('dblrightclick', [evt]);
+                return !this.stopDouble;
+            } else { 
+                //Set the rightclickTimerId, send evt only if double is 
+                // true else trigger single
+                var clickEvent = this['double'] ?
+                    OpenLayers.Util.extend({}, evt) : 
+                    this.callback('rightclick', [evt]);
+
+                var delayedRightCall = OpenLayers.Function.bind(
+                    this.delayedRightCall, 
+                    this, 
+                    clickEvent
+                );
+                this.rightclickTimerId = window.setTimeout(
+                    delayedRightCall, this.delay
+                );
+            } 
+        }
+        return !this.stopSingle;
+    },
+    
+    /**
+     * Method: delayedRightCall
+     * Sets <rightclickTimerId> to null.  And optionally triggers the 
+     *     rightclick callback if evt is set.
+     */
+    delayedRightCall: function(evt) {
+        this.rightclickTimerId = null;
+        if (evt) {
+           this.callback('rightclick', [evt]);
+        }
+    },
+    
+    /**
+     * Method: click
+     * Handle click events from the browser.  This is registered as a listener
+     *     for click events and should not be called from other events in this
+     *     handler.
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    click: function(evt) {
+        if (!this.last) {
+            this.last = this.getEventInfo(evt);
+        }
+        this.handleSingle(evt);
+        return !this.stopSingle;
+    },
+
+    /**
+     * Method: dblclick
+     * Handle dblclick.  For a dblclick, we get two clicks in some browsers
+     *     (FF) and one in others (IE).  So we need to always register for
+     *     dblclick to properly handle single clicks.  This method is registered
+     *     as a listener for the dblclick browser event.  It should *not* be
+     *     called by other methods in this handler.
+     *     
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    dblclick: function(evt) {
+        this.handleDouble(evt);
+        return !this.stopDouble;
+    },
+    
+    /** 
+     * Method: handleDouble
+     * Handle double-click sequence.
+     */
+    handleDouble: function(evt) {
+        if (this.passesDblclickTolerance(evt)) {
+            if (this["double"]) {
+                this.callback("dblclick", [evt]);
+            }
+            // to prevent a dblclick from firing the click callback in IE
+            this.clearTimer();
+        }
+    },
+    
+    /** 
+     * Method: handleSingle
+     * Handle single click sequence.
+     */
+    handleSingle: function(evt) {
+        if (this.passesTolerance(evt)) {
+            if (this.timerId != null) {
+                // already received a click
+                if (this.last.touches && this.last.touches.length === 1) {
+                    // touch device, no dblclick event - this may be a double
+                    if (this["double"]) {
+                        // on Android don't let the browser zoom on the page
+                        OpenLayers.Event.stop(evt);
+                    }
+                    this.handleDouble(evt);
+                }
+                // if we're not in a touch environment we clear the click timer
+                // if we've got a second touch, we'll get two touchend events
+                if (!this.last.touches || this.last.touches.length !== 2) {
+                    this.clearTimer();
+                }
+            } else {
+                // remember the first click info so we can compare to the second
+                this.first = this.getEventInfo(evt);
+                // set the timer, send evt only if single is true
+                //use a clone of the event object because it will no longer 
+                //be a valid event object in IE in the timer callback
+                var clickEvent = this.single ?
+                    OpenLayers.Util.extend({}, evt) : null;
+                this.queuePotentialClick(clickEvent);
+            }
+        }
+    },
+    
+    /** 
+     * Method: queuePotentialClick
+     * This method is separated out largely to make testing easier (so we
+     *     don't have to override window.setTimeout)
+     */
+    queuePotentialClick: function(evt) {
+        this.timerId = window.setTimeout(
+            OpenLayers.Function.bind(this.delayedCall, this, evt),
+            this.delay
+        );
+    },
+
+    /**
+     * Method: passesTolerance
+     * Determine whether the event is within the optional pixel tolerance.  Note
+     *     that the pixel tolerance check only works if mousedown events get to
+     *     the listeners registered here.  If they are stopped by other elements,
+     *     the <pixelTolerance> will have no effect here (this method will always
+     *     return true).
+     *
+     * Returns:
+     * {Boolean} The click is within the pixel tolerance (if specified).
+     */
+    passesTolerance: function(evt) {
+        var passes = true;
+        if (this.pixelTolerance != null && this.down && this.down.xy) {
+            passes = this.pixelTolerance >= this.down.xy.distanceTo(evt.xy);
+            // for touch environments, we also enforce that all touches
+            // start and end within the given tolerance to be considered a click
+            if (passes && this.touch && 
+                this.down.touches.length === this.last.touches.length) {
+                // the touchend event doesn't come with touches, so we check
+                // down and last
+                for (var i=0, ii=this.down.touches.length; i<ii; ++i) {
+                    if (this.getTouchDistance(
+                            this.down.touches[i], 
+                            this.last.touches[i]
+                        ) > this.pixelTolerance) {
+                        passes = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return passes;
+    },
+    
+    /** 
+     * Method: getTouchDistance
+     *
+     * Returns:
+     * {Boolean} The pixel displacement between two touches.
+     */
+    getTouchDistance: function(from, to) {
+        return Math.sqrt(
+            Math.pow(from.clientX - to.clientX, 2) +
+            Math.pow(from.clientY - to.clientY, 2)
+        );
+    },
+    
+    /**
+     * Method: passesDblclickTolerance
+     * Determine whether the event is within the optional double-cick pixel 
+     *     tolerance.
+     *
+     * Returns:
+     * {Boolean} The click is within the double-click pixel tolerance.
+     */
+    passesDblclickTolerance: function(evt) {
+        var passes = true;
+        if (this.down && this.first) {
+            passes = this.down.xy.distanceTo(this.first.xy) <= this.dblclickTolerance;
+        }
+        return passes;
+    },
+
+    /**
+     * Method: clearTimer
+     * Clear the timer and set <timerId> to null.
+     */
+    clearTimer: function() {
+        if (this.timerId != null) {
+            window.clearTimeout(this.timerId);
+            this.timerId = null;
+        }
+        if (this.rightclickTimerId != null) {
+            window.clearTimeout(this.rightclickTimerId);
+            this.rightclickTimerId = null;
+        }
+    },
+    
+    /**
+     * Method: delayedCall
+     * Sets <timerId> to null.  And optionally triggers the click callback if
+     *     evt is set.
+     */
+    delayedCall: function(evt) {
+        this.timerId = null;
+        if (evt) {
+            this.callback("click", [evt]);
+        }
+    },
+
+    /**
+     * Method: getEventInfo
+     * This method allows us to store event information without storing the
+     *     actual event.  In touch devices (at least), the same event is 
+     *     modified between touchstart, touchmove, and touchend.
+     *
+     * Returns:
+     * {Object} An object with event related info.
+     */
+    getEventInfo: function(evt) {
+        var touches;
+        if (evt.touches) {
+            var len = evt.touches.length;
+            touches = new Array(len);
+            var touch;
+            for (var i=0; i<len; i++) {
+                touch = evt.touches[i];
+                touches[i] = {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                };
+            }
+        }
+        return {
+            xy: evt.xy,
+            touches: touches
+        };
+    },
+
+    /**
+     * APIMethod: deactivate
+     * Deactivate the handler.
+     *
+     * Returns:
+     * {Boolean} The handler was successfully deactivated.
+     */
+    deactivate: function() {
+        var deactivated = false;
+        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            this.clearTimer();
+            this.down = null;
+            this.first = null;
+            this.last = null;
+            this.touch = false;
+            deactivated = true;
+        }
+        return deactivated;
+    },
+
+    CLASS_NAME: "OpenLayers.Handler.Click"
+});
+/* ======================================================================
+    OpenLayers/Format.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ * @requires OpenLayers/Util.js
+ */
+
+/**
+ * Class: OpenLayers.Format
+ * Base class for format reading/writing a variety of formats.  Subclasses
+ *     of OpenLayers.Format are expected to have read and write methods.
+ */
+OpenLayers.Format = OpenLayers.Class({
+    
+    /**
+     * Property: options
+     * {Object} A reference to options passed to the constructor.
+     */
+    options: null,
+    
+    /**
+     * APIProperty: externalProjection
+     * {<OpenLayers.Projection>} When passed a externalProjection and
+     *     internalProjection, the format will reproject the geometries it
+     *     reads or writes. The externalProjection is the projection used by
+     *     the content which is passed into read or which comes out of write.
+     *     In order to reproject, a projection transformation function for the
+     *     specified projections must be available. This support may be 
+     *     provided via proj4js or via a custom transformation function. See
+     *     {<OpenLayers.Projection.addTransform>} for more information on
+     *     custom transformations.
+     */
+    externalProjection: null,
+
+    /**
+     * APIProperty: internalProjection
+     * {<OpenLayers.Projection>} When passed a externalProjection and
+     *     internalProjection, the format will reproject the geometries it
+     *     reads or writes. The internalProjection is the projection used by
+     *     the geometries which are returned by read or which are passed into
+     *     write.  In order to reproject, a projection transformation function
+     *     for the specified projections must be available. This support may be
+     *     provided via proj4js or via a custom transformation function. See
+     *     {<OpenLayers.Projection.addTransform>} for more information on
+     *     custom transformations.
+     */
+    internalProjection: null,
+
+    /**
+     * APIProperty: data
+     * {Object} When <keepData> is true, this is the parsed string sent to
+     *     <read>.
+     */
+    data: null,
+
+    /**
+     * APIProperty: keepData
+     * {Object} Maintain a reference (<data>) to the most recently read data.
+     *     Default is false.
+     */
+    keepData: false,
+
+    /**
+     * Constructor: OpenLayers.Format
+     * Instances of this class are not useful.  See one of the subclasses.
+     *
+     * Parameters:
+     * options - {Object} An optional object with properties to set on the
+     *           format
+     *
+     * Valid options:
+     * keepData - {Boolean} If true, upon <read>, the data property will be
+     *     set to the parsed object (e.g. the json or xml object).
+     *
+     * Returns:
+     * An instance of OpenLayers.Format
+     */
+    initialize: function(options) {
+        OpenLayers.Util.extend(this, options);
+        this.options = options;
+    },
+    
+    /**
+     * APIMethod: destroy
+     * Clean up.
+     */
+    destroy: function() {
+    },
+
+    /**
+     * Method: read
+     * Read data from a string, and return an object whose type depends on the
+     * subclass. 
+     * 
+     * Parameters:
+     * data - {string} Data to read/parse.
+     *
+     * Returns:
+     * Depends on the subclass
+     */
+    read: function(data) {
+        throw new Error('Read not implemented.');
+    },
+    
+    /**
+     * Method: write
+     * Accept an object, and return a string. 
+     *
+     * Parameters:
+     * object - {Object} Object to be serialized
+     *
+     * Returns:
+     * {String} A string representation of the object.
+     */
+    write: function(object) {
+        throw new Error('Write not implemented.');
+    },
+
+    CLASS_NAME: "OpenLayers.Format"
+});     
+/* ======================================================================
+    OpenLayers/Format/XML.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format.js
+ */
+
+/**
+ * Class: OpenLayers.Format.XML
+ * Read and write XML.  For cross-browser XML generation, use methods on an
+ *     instance of the XML format class instead of on <code>document<end>.
+ *     The DOM creation and traversing methods exposed here all mimic the
+ *     W3C XML DOM methods.  Create a new parser with the
+ *     <OpenLayers.Format.XML> constructor.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Format>
+ */
+OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
+    
+    /**
+     * Property: namespaces
+     * {Object} Mapping of namespace aliases to namespace URIs.  Properties
+     *     of this object should not be set individually.  Read-only.  All
+     *     XML subclasses should have their own namespaces object.  Use
+     *     <setNamespace> to add or set a namespace alias after construction.
+     */
+    namespaces: null,
+    
+    /**
+     * Property: namespaceAlias
+     * {Object} Mapping of namespace URI to namespace alias.  This object
+     *     is read-only.  Use <setNamespace> to add or set a namespace alias.
+     */
+    namespaceAlias: null,
+    
+    /**
+     * Property: defaultPrefix
+     * {String} The default namespace alias for creating element nodes.
+     */
+    defaultPrefix: null,
+    
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {},
+    
+    /**
+     * Property: writers
+     * As a compliment to the <readers> property, this structure contains public
+     *     writing functions grouped by namespace alias and named like the
+     *     node names they produce.
+     */
+    writers: {},
+
+    /**
+     * Property: xmldom
+     * {XMLDom} If this browser uses ActiveX, this will be set to a XMLDOM
+     *     object.  It is not intended to be a browser sniffing property.
+     *     Instead, the xmldom property is used instead of <code>document<end>
+     *     where namespaced node creation methods are not supported. In all
+     *     other browsers, this remains null.
+     */
+    xmldom: null,
+
+    /**
+     * Constructor: OpenLayers.Format.XML
+     * Construct an XML parser.  The parser is used to read and write XML.
+     *     Reading XML from a string returns a DOM element.  Writing XML from
+     *     a DOM element returns a string.
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        if(window.ActiveXObject) {
+            this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
+        }
+        OpenLayers.Format.prototype.initialize.apply(this, [options]);
+        // clone the namespace object and set all namespace aliases
+        this.namespaces = OpenLayers.Util.extend({}, this.namespaces);
+        this.namespaceAlias = {};
+        for(var alias in this.namespaces) {
+            this.namespaceAlias[this.namespaces[alias]] = alias;
+        }
+    },
+    
+    /**
+     * APIMethod: destroy
+     * Clean up.
+     */
+    destroy: function() {
+        this.xmldom = null;
+        OpenLayers.Format.prototype.destroy.apply(this, arguments);
+    },
+    
+    /**
+     * Method: setNamespace
+     * Set a namespace alias and URI for the format.
+     *
+     * Parameters:
+     * alias - {String} The namespace alias (prefix).
+     * uri - {String} The namespace URI.
+     */
+    setNamespace: function(alias, uri) {
+        this.namespaces[alias] = uri;
+        this.namespaceAlias[uri] = alias;
+    },
+
+    /**
+     * APIMethod: read
+     * Deserialize a XML string and return a DOM node.
+     *
+     * Parameters:
+     * text - {String} A XML string
+     
+     * Returns:
+     * {DOMElement} A DOM node
+     */
+    read: function(text) {
+        var index = text.indexOf('<');
+        if(index > 0) {
+            text = text.substring(index);
+        }
+        var node = OpenLayers.Util.Try(
+            OpenLayers.Function.bind((
+                function() {
+                    var xmldom;
+                    /**
+                     * Since we want to be able to call this method on the prototype
+                     * itself, this.xmldom may not exist even if in IE.
+                     */
+                    if(window.ActiveXObject && !this.xmldom) {
+                        xmldom = new ActiveXObject("Microsoft.XMLDOM");
+                    } else {
+                        xmldom = this.xmldom;
+                        
+                    }
+                    xmldom.loadXML(text);
+                    return xmldom;
+                }
+            ), this),
+            function() {
+                return new DOMParser().parseFromString(text, 'text/xml');
+            },
+            function() {
+                var req = new XMLHttpRequest();
+                req.open("GET", "data:" + "text/xml" +
+                         ";charset=utf-8," + encodeURIComponent(text), false);
+                if(req.overrideMimeType) {
+                    req.overrideMimeType("text/xml");
+                }
+                req.send(null);
+                return req.responseXML;
+            }
+        );
+
+        if(this.keepData) {
+            this.data = node;
+        }
+
+        return node;
+    },
+
+    /**
+     * APIMethod: write
+     * Serialize a DOM node into a XML string.
+     * 
+     * Parameters:
+     * node - {DOMElement} A DOM node.
+     *
+     * Returns:
+     * {String} The XML string representation of the input node.
+     */
+    write: function(node) {
+        var data;
+        if(this.xmldom) {
+            data = node.xml;
+        } else {
+            var serializer = new XMLSerializer();
+            if (node.nodeType == 1) {
+                // Add nodes to a document before serializing. Everything else
+                // is serialized as is. This may need more work. See #1218 .
+                var doc = document.implementation.createDocument("", "", null);
+                if (doc.importNode) {
+                    node = doc.importNode(node, true);
+                }
+                doc.appendChild(node);
+                data = serializer.serializeToString(doc);
+            } else {
+                data = serializer.serializeToString(node);
+            }
+        }
+        return data;
+    },
+
+    /**
+     * APIMethod: createElementNS
+     * Create a new element with namespace.  This node can be appended to
+     *     another node with the standard node.appendChild method.  For
+     *     cross-browser support, this method must be used instead of
+     *     document.createElementNS.
+     *
+     * Parameters:
+     * uri - {String} Namespace URI for the element.
+     * name - {String} The qualified name of the element (prefix:localname).
+     * 
+     * Returns:
+     * {Element} A DOM element with namespace.
+     */
+    createElementNS: function(uri, name) {
+        var element;
+        if(this.xmldom) {
+            if(typeof uri == "string") {
+                element = this.xmldom.createNode(1, name, uri);
+            } else {
+                element = this.xmldom.createNode(1, name, "");
+            }
+        } else {
+            element = document.createElementNS(uri, name);
+        }
+        return element;
+    },
+
+    /**
+     * APIMethod: createTextNode
+     * Create a text node.  This node can be appended to another node with
+     *     the standard node.appendChild method.  For cross-browser support,
+     *     this method must be used instead of document.createTextNode.
+     * 
+     * Parameters:
+     * text - {String} The text of the node.
+     * 
+     * Returns: 
+     * {DOMElement} A DOM text node.
+     */
+    createTextNode: function(text) {
+        var node;
+        if (typeof text !== "string") {
+            text = String(text);
+        }
+        if(this.xmldom) {
+            node = this.xmldom.createTextNode(text);
+        } else {
+            node = document.createTextNode(text);
+        }
+        return node;
+    },
+
+    /**
+     * APIMethod: getElementsByTagNameNS
+     * Get a list of elements on a node given the namespace URI and local name.
+     *     To return all nodes in a given namespace, use '*' for the name
+     *     argument.  To return all nodes of a given (local) name, regardless
+     *     of namespace, use '*' for the uri argument.
+     * 
+     * Parameters:
+     * node - {Element} Node on which to search for other nodes.
+     * uri - {String} Namespace URI.
+     * name - {String} Local name of the tag (without the prefix).
+     * 
+     * Returns:
+     * {NodeList} A node list or array of elements.
+     */
+    getElementsByTagNameNS: function(node, uri, name) {
+        var elements = [];
+        if(node.getElementsByTagNameNS) {
+            elements = node.getElementsByTagNameNS(uri, name);
+        } else {
+            // brute force method
+            var allNodes = node.getElementsByTagName("*");
+            var potentialNode, fullName;
+            for(var i=0, len=allNodes.length; i<len; ++i) {
+                potentialNode = allNodes[i];
+                fullName = (potentialNode.prefix) ?
+                           (potentialNode.prefix + ":" + name) : name;
+                if((name == "*") || (fullName == potentialNode.nodeName)) {
+                    if((uri == "*") || (uri == potentialNode.namespaceURI)) {
+                        elements.push(potentialNode);
+                    }
+                }
+            }
+        }
+        return elements;
+    },
+
+    /**
+     * APIMethod: getAttributeNodeNS
+     * Get an attribute node given the namespace URI and local name.
+     * 
+     * Parameters:
+     * node - {Element} Node on which to search for attribute nodes.
+     * uri - {String} Namespace URI.
+     * name - {String} Local name of the attribute (without the prefix).
+     * 
+     * Returns:
+     * {DOMElement} An attribute node or null if none found.
+     */
+    getAttributeNodeNS: function(node, uri, name) {
+        var attributeNode = null;
+        if(node.getAttributeNodeNS) {
+            attributeNode = node.getAttributeNodeNS(uri, name);
+        } else {
+            var attributes = node.attributes;
+            var potentialNode, fullName;
+            for(var i=0, len=attributes.length; i<len; ++i) {
+                potentialNode = attributes[i];
+                if(potentialNode.namespaceURI == uri) {
+                    fullName = (potentialNode.prefix) ?
+                               (potentialNode.prefix + ":" + name) : name;
+                    if(fullName == potentialNode.nodeName) {
+                        attributeNode = potentialNode;
+                        break;
+                    }
+                }
+            }
+        }
+        return attributeNode;
+    },
+
+    /**
+     * APIMethod: getAttributeNS
+     * Get an attribute value given the namespace URI and local name.
+     * 
+     * Parameters:
+     * node - {Element} Node on which to search for an attribute.
+     * uri - {String} Namespace URI.
+     * name - {String} Local name of the attribute (without the prefix).
+     * 
+     * Returns:
+     * {String} An attribute value or and empty string if none found.
+     */
+    getAttributeNS: function(node, uri, name) {
+        var attributeValue = "";
+        if(node.getAttributeNS) {
+            attributeValue = node.getAttributeNS(uri, name) || "";
+        } else {
+            var attributeNode = this.getAttributeNodeNS(node, uri, name);
+            if(attributeNode) {
+                attributeValue = attributeNode.nodeValue;
+            }
+        }
+        return attributeValue;
+    },
+    
+    /**
+     * APIMethod: getChildValue
+     * Get the textual value of the node if it exists, or return an
+     *     optional default string.  Returns an empty string if no first child
+     *     exists and no default value is supplied.
+     *
+     * Parameters:
+     * node - {DOMElement} The element used to look for a first child value.
+     * def - {String} Optional string to return in the event that no
+     *     first child value exists.
+     *
+     * Returns:
+     * {String} The value of the first child of the given node.
+     */
+    getChildValue: function(node, def) {
+        var value = def || "";
+        if(node) {
+            for(var child=node.firstChild; child; child=child.nextSibling) {
+                switch(child.nodeType) {
+                    case 3: // text node
+                    case 4: // cdata section
+                        value += child.nodeValue;
+                }
+            }
+        }
+        return value;
+    },
+
+    /**
+     * APIMethod: isSimpleContent
+     * Test if the given node has only simple content (i.e. no child element
+     *     nodes).
+     *
+     * Parameters:
+     * node - {DOMElement} An element node.
+     *
+     * Returns:
+     * {Boolean} The node has no child element nodes (nodes of type 1). 
+     */
+    isSimpleContent: function(node) {
+        var simple = true;
+        for(var child=node.firstChild; child; child=child.nextSibling) {
+            if(child.nodeType === 1) {
+                simple = false;
+                break;
+            }
+        }
+        return simple;
+    },
+    
+    /**
+     * APIMethod: contentType
+     * Determine the content type for a given node.
+     *
+     * Parameters:
+     * node - {DOMElement}
+     *
+     * Returns:
+     * {Integer} One of OpenLayers.Format.XML.CONTENT_TYPE.{EMPTY,SIMPLE,COMPLEX,MIXED}
+     *     if the node has no, simple, complex, or mixed content.
+     */
+    contentType: function(node) {
+        var simple = false,
+            complex = false;
+            
+        var type = OpenLayers.Format.XML.CONTENT_TYPE.EMPTY;
+
+        for(var child=node.firstChild; child; child=child.nextSibling) {
+            switch(child.nodeType) {
+                case 1: // element
+                    complex = true;
+                    break;
+                case 8: // comment
+                    break;
+                default:
+                    simple = true;
+            }
+            if(complex && simple) {
+                break;
+            }
+        }
+        
+        if(complex && simple) {
+            type = OpenLayers.Format.XML.CONTENT_TYPE.MIXED;
+        } else if(complex) {
+            return OpenLayers.Format.XML.CONTENT_TYPE.COMPLEX;
+        } else if(simple) {
+            return OpenLayers.Format.XML.CONTENT_TYPE.SIMPLE;
+        }
+        return type;
+    },
+
+    /**
+     * APIMethod: hasAttributeNS
+     * Determine whether a node has a particular attribute matching the given
+     *     name and namespace.
+     * 
+     * Parameters:
+     * node - {Element} Node on which to search for an attribute.
+     * uri - {String} Namespace URI.
+     * name - {String} Local name of the attribute (without the prefix).
+     * 
+     * Returns:
+     * {Boolean} The node has an attribute matching the name and namespace.
+     */
+    hasAttributeNS: function(node, uri, name) {
+        var found = false;
+        if(node.hasAttributeNS) {
+            found = node.hasAttributeNS(uri, name);
+        } else {
+            found = !!this.getAttributeNodeNS(node, uri, name);
+        }
+        return found;
+    },
+    
+    /**
+     * APIMethod: setAttributeNS
+     * Adds a new attribute or changes the value of an attribute with the given
+     *     namespace and name.
+     *
+     * Parameters:
+     * node - {Element} Element node on which to set the attribute.
+     * uri - {String} Namespace URI for the attribute.
+     * name - {String} Qualified name (prefix:localname) for the attribute.
+     * value - {String} Attribute value.
+     */
+    setAttributeNS: function(node, uri, name, value) {
+        if(node.setAttributeNS) {
+            node.setAttributeNS(uri, name, value);
+        } else {
+            if(this.xmldom) {
+                if(uri) {
+                    var attribute = node.ownerDocument.createNode(
+                        2, name, uri
+                    );
+                    attribute.nodeValue = value;
+                    node.setAttributeNode(attribute);
+                } else {
+                    node.setAttribute(name, value);
+                }
+            } else {
+                throw "setAttributeNS not implemented";
+            }
+        }
+    },
+
+    /**
+     * Method: createElementNSPlus
+     * Shorthand for creating namespaced elements with optional attributes and
+     *     child text nodes.
+     *
+     * Parameters:
+     * name - {String} The qualified node name.
+     * options - {Object} Optional object for node configuration.
+     *
+     * Valid options:
+     * uri - {String} Optional namespace uri for the element - supply a prefix
+     *     instead if the namespace uri is a property of the format's namespace
+     *     object.
+     * attributes - {Object} Optional attributes to be set using the
+     *     <setAttributes> method.
+     * value - {String} Optional text to be appended as a text node.
+     *
+     * Returns:
+     * {Element} An element node.
+     */
+    createElementNSPlus: function(name, options) {
+        options = options || {};
+        // order of prefix preference
+        // 1. in the uri option
+        // 2. in the prefix option
+        // 3. in the qualified name
+        // 4. from the defaultPrefix
+        var uri = options.uri || this.namespaces[options.prefix];
+        if(!uri) {
+            var loc = name.indexOf(":");
+            uri = this.namespaces[name.substring(0, loc)];
+        }
+        if(!uri) {
+            uri = this.namespaces[this.defaultPrefix];
+        }
+        var node = this.createElementNS(uri, name);
+        if(options.attributes) {
+            this.setAttributes(node, options.attributes);
+        }
+        var value = options.value;
+        if(value != null) {
+            node.appendChild(this.createTextNode(value));
+        }
+        return node;
+    },
+    
+    /**
+     * Method: setAttributes
+     * Set multiple attributes given key value pairs from an object.
+     *
+     * Parameters:
+     * node - {Element} An element node.
+     * obj - {Object || Array} An object whose properties represent attribute
+     *     names and values represent attribute values.  If an attribute name
+     *     is a qualified name ("prefix:local"), the prefix will be looked up
+     *     in the parsers {namespaces} object.  If the prefix is found,
+     *     setAttributeNS will be used instead of setAttribute.
+     */
+    setAttributes: function(node, obj) {
+        var value, uri;
+        for(var name in obj) {
+            if(obj[name] != null && obj[name].toString) {
+                value = obj[name].toString();
+                // check for qualified attribute name ("prefix:local")
+                uri = this.namespaces[name.substring(0, name.indexOf(":"))] || null;
+                this.setAttributeNS(node, uri, name, value);
+            }
+        }
+    },
+
+    /**
+     * Method: readNode
+     * Shorthand for applying one of the named readers given the node
+     *     namespace and local name.  Readers take two args (node, obj) and
+     *     generally extend or modify the second.
+     *
+     * Parameters:
+     * node - {DOMElement} The node to be read (required).
+     * obj - {Object} The object to be modified (optional).
+     *
+     * Returns:
+     * {Object} The input object, modified (or a new one if none was provided).
+     */
+    readNode: function(node, obj) {
+        if(!obj) {
+            obj = {};
+        }
+        var group = this.readers[node.namespaceURI ? this.namespaceAlias[node.namespaceURI]: this.defaultPrefix];
+        if(group) {
+            var local = node.localName || node.nodeName.split(":").pop();
+            var reader = group[local] || group["*"];
+            if(reader) {
+                reader.apply(this, [node, obj]);
+            }
+        }
+        return obj;
+    },
+
+    /**
+     * Method: readChildNodes
+     * Shorthand for applying the named readers to all children of a node.
+     *     For each child of type 1 (element), <readSelf> is called.
+     *
+     * Parameters:
+     * node - {DOMElement} The node to be read (required).
+     * obj - {Object} The object to be modified (optional).
+     *
+     * Returns:
+     * {Object} The input object, modified.
+     */
+    readChildNodes: function(node, obj) {
+        if(!obj) {
+            obj = {};
+        }
+        var children = node.childNodes;
+        var child;
+        for(var i=0, len=children.length; i<len; ++i) {
+            child = children[i];
+            if(child.nodeType == 1) {
+                this.readNode(child, obj);
+            }
+        }
+        return obj;
+    },
+
+    /**
+     * Method: writeNode
+     * Shorthand for applying one of the named writers and appending the
+     *     results to a node.  If a qualified name is not provided for the
+     *     second argument (and a local name is used instead), the namespace
+     *     of the parent node will be assumed.
+     *
+     * Parameters:
+     * name - {String} The name of a node to generate.  If a qualified name
+     *     (e.g. "pre:Name") is used, the namespace prefix is assumed to be
+     *     in the <writers> group.  If a local name is used (e.g. "Name") then
+     *     the namespace of the parent is assumed.  If a local name is used
+     *     and no parent is supplied, then the default namespace is assumed.
+     * obj - {Object} Structure containing data for the writer.
+     * parent - {DOMElement} Result will be appended to this node.  If no parent
+     *     is supplied, the node will not be appended to anything.
+     *
+     * Returns:
+     * {DOMElement} The child node.
+     */
+    writeNode: function(name, obj, parent) {
+        var prefix, local;
+        var split = name.indexOf(":");
+        if(split > 0) {
+            prefix = name.substring(0, split);
+            local = name.substring(split + 1);
+        } else {
+            if(parent) {
+                prefix = this.namespaceAlias[parent.namespaceURI];
+            } else {
+                prefix = this.defaultPrefix;
+            }
+            local = name;
+        }
+        var child = this.writers[prefix][local].apply(this, [obj]);
+        if(parent) {
+            parent.appendChild(child);
+        }
+        return child;
+    },
+
+    /**
+     * APIMethod: getChildEl
+     * Get the first child element.  Optionally only return the first child
+     *     if it matches the given name and namespace URI.
+     *
+     * Parameters:
+     * node - {DOMElement} The parent node.
+     * name - {String} Optional node name (local) to search for.
+     * uri - {String} Optional namespace URI to search for.
+     *
+     * Returns:
+     * {DOMElement} The first child.  Returns null if no element is found, if
+     *     something significant besides an element is found, or if the element
+     *     found does not match the optional name and uri.
+     */
+    getChildEl: function(node, name, uri) {
+        return node && this.getThisOrNextEl(node.firstChild, name, uri);
+    },
+    
+    /**
+     * APIMethod: getNextEl
+     * Get the next sibling element.  Optionally get the first sibling only
+     *     if it matches the given local name and namespace URI.
+     *
+     * Parameters:
+     * node - {DOMElement} The node.
+     * name - {String} Optional local name of the sibling to search for.
+     * uri - {String} Optional namespace URI of the sibling to search for.
+     *
+     * Returns:
+     * {DOMElement} The next sibling element.  Returns null if no element is
+     *     found, something significant besides an element is found, or the
+     *     found element does not match the optional name and uri.
+     */
+    getNextEl: function(node, name, uri) {
+        return node && this.getThisOrNextEl(node.nextSibling, name, uri);
+    },
+    
+    /**
+     * Method: getThisOrNextEl
+     * Return this node or the next element node.  Optionally get the first
+     *     sibling with the given local name or namespace URI.
+     *
+     * Parameters:
+     * node - {DOMElement} The node.
+     * name - {String} Optional local name of the sibling to search for.
+     * uri - {String} Optional namespace URI of the sibling to search for.
+     *
+     * Returns:
+     * {DOMElement} The next sibling element.  Returns null if no element is
+     *     found, something significant besides an element is found, or the
+     *     found element does not match the query.
+     */
+    getThisOrNextEl: function(node, name, uri) {
+        outer: for(var sibling=node; sibling; sibling=sibling.nextSibling) {
+            switch(sibling.nodeType) {
+                case 1: // Element
+                    if((!name || name === (sibling.localName || sibling.nodeName.split(":").pop())) &&
+                       (!uri || uri === sibling.namespaceURI)) {
+                        // matches
+                        break outer;
+                    }
+                    sibling = null;
+                    break outer;
+                case 3: // Text
+                    if(/^\s*$/.test(sibling.nodeValue)) {
+                        break;
+                    }
+                case 4: // CDATA
+                case 6: // ENTITY_NODE
+                case 12: // NOTATION_NODE
+                case 10: // DOCUMENT_TYPE_NODE
+                case 11: // DOCUMENT_FRAGMENT_NODE
+                    sibling = null;
+                    break outer;
+            } // ignore comments and processing instructions
+        }
+        return sibling || null;
+    },
+    
+    /**
+     * APIMethod: lookupNamespaceURI
+     * Takes a prefix and returns the namespace URI associated with it on the given
+     *     node if found (and null if not). Supplying null for the prefix will
+     *     return the default namespace.
+     *
+     * For browsers that support it, this calls the native lookupNamesapceURI
+     *     function.  In other browsers, this is an implementation of
+     *     http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-lookupNamespaceURI.
+     *
+     * For browsers that don't support the attribute.ownerElement property, this
+     *     method cannot be called on attribute nodes.
+     *     
+     * Parameters:
+     * node - {DOMElement} The node from which to start looking.
+     * prefix - {String} The prefix to lookup or null to lookup the default namespace.
+     * 
+     * Returns:
+     * {String} The namespace URI for the given prefix.  Returns null if the prefix
+     *     cannot be found or the node is the wrong type.
+     */
+    lookupNamespaceURI: function(node, prefix) {
+        var uri = null;
+        if(node) {
+            if(node.lookupNamespaceURI) {
+                uri = node.lookupNamespaceURI(prefix);
+            } else {
+                outer: switch(node.nodeType) {
+                    case 1: // ELEMENT_NODE
+                        if(node.namespaceURI !== null && node.prefix === prefix) {
+                            uri = node.namespaceURI;
+                            break outer;
+                        }
+                        var len = node.attributes.length;
+                        if(len) {
+                            var attr;
+                            for(var i=0; i<len; ++i) {
+                                attr = node.attributes[i];
+                                if(attr.prefix === "xmlns" && attr.name === "xmlns:" + prefix) {
+                                    uri = attr.value || null;
+                                    break outer;
+                                } else if(attr.name === "xmlns" && prefix === null) {
+                                    uri = attr.value || null;
+                                    break outer;
+                                }
+                            }
+                        }
+                        uri = this.lookupNamespaceURI(node.parentNode, prefix);
+                        break outer;
+                    case 2: // ATTRIBUTE_NODE
+                        uri = this.lookupNamespaceURI(node.ownerElement, prefix);
+                        break outer;
+                    case 9: // DOCUMENT_NODE
+                        uri = this.lookupNamespaceURI(node.documentElement, prefix);
+                        break outer;
+                    case 6: // ENTITY_NODE
+                    case 12: // NOTATION_NODE
+                    case 10: // DOCUMENT_TYPE_NODE
+                    case 11: // DOCUMENT_FRAGMENT_NODE
+                        break outer;
+                    default: 
+                        // TEXT_NODE (3), CDATA_SECTION_NODE (4), ENTITY_REFERENCE_NODE (5),
+                        // PROCESSING_INSTRUCTION_NODE (7), COMMENT_NODE (8)
+                        uri =  this.lookupNamespaceURI(node.parentNode, prefix);
+                        break outer;
+                }
+            }
+        }
+        return uri;
+    },
+    
+    /**
+     * Method: getXMLDoc
+     * Get an XML document for nodes that are not supported in HTML (e.g.
+     * createCDATASection). On IE, this will either return an existing or
+     * create a new <xmldom> on the instance. On other browsers, this will
+     * either return an existing or create a new shared document (see
+     * <OpenLayers.Format.XML.document>).
+     *
+     * Returns:
+     * {XMLDocument}
+     */
+    getXMLDoc: function() {
+        if (!OpenLayers.Format.XML.document && !this.xmldom) {
+            if (document.implementation && document.implementation.createDocument) {
+                OpenLayers.Format.XML.document =
+                    document.implementation.createDocument("", "", null);
+            } else if (!this.xmldom && window.ActiveXObject) {
+                this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
+            }
+        }
+        return OpenLayers.Format.XML.document || this.xmldom;
+    },
+
+    CLASS_NAME: "OpenLayers.Format.XML" 
+
+});     
+
+OpenLayers.Format.XML.CONTENT_TYPE = {EMPTY: 0, SIMPLE: 1, COMPLEX: 2, MIXED: 3};
+
+/**
+ * APIFunction: OpenLayers.Format.XML.lookupNamespaceURI
+ * Takes a prefix and returns the namespace URI associated with it on the given
+ *     node if found (and null if not). Supplying null for the prefix will
+ *     return the default namespace.
+ *
+ * For browsers that support it, this calls the native lookupNamesapceURI
+ *     function.  In other browsers, this is an implementation of
+ *     http://www.w3.org/TR/DOM-Level-3-Core/core.html#Node3-lookupNamespaceURI.
+ *
+ * For browsers that don't support the attribute.ownerElement property, this
+ *     method cannot be called on attribute nodes.
+ *     
+ * Parameters:
+ * node - {DOMElement} The node from which to start looking.
+ * prefix - {String} The prefix to lookup or null to lookup the default namespace.
+ * 
+ * Returns:
+ * {String} The namespace URI for the given prefix.  Returns null if the prefix
+ *     cannot be found or the node is the wrong type.
+ */
+OpenLayers.Format.XML.lookupNamespaceURI = OpenLayers.Function.bind(
+    OpenLayers.Format.XML.prototype.lookupNamespaceURI,
+    OpenLayers.Format.XML.prototype
+);
+
+/**
+ * Property: OpenLayers.Format.XML.document
+ * {XMLDocument} XML document to reuse for creating non-HTML compliant nodes,
+ * like document.createCDATASection.
+ */
+OpenLayers.Format.XML.document = null;
+/* ======================================================================
+    OpenLayers/Control.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ */
+
+/**
+ * Class: OpenLayers.Control
+ * Controls affect the display or behavior of the map. They allow everything
+ * from panning and zooming to displaying a scale indicator. Controls by 
+ * default are added to the map they are contained within however it is
+ * possible to add a control to an external div by passing the div in the
+ * options parameter.
+ * 
+ * Example:
+ * The following example shows how to add many of the common controls
+ * to a map.
+ * 
+ * > var map = new OpenLayers.Map('map', { controls: [] });
+ * >
+ * > map.addControl(new OpenLayers.Control.PanZoomBar());
+ * > map.addControl(new OpenLayers.Control.LayerSwitcher({'ascending':false}));
+ * > map.addControl(new OpenLayers.Control.Permalink());
+ * > map.addControl(new OpenLayers.Control.Permalink('permalink'));
+ * > map.addControl(new OpenLayers.Control.MousePosition());
+ * > map.addControl(new OpenLayers.Control.OverviewMap());
+ * > map.addControl(new OpenLayers.Control.KeyboardDefaults());
+ *
+ * The next code fragment is a quick example of how to intercept 
+ * shift-mouse click to display the extent of the bounding box
+ * dragged out by the user.  Usually controls are not created
+ * in exactly this manner.  See the source for a more complete 
+ * example:
+ *
+ * > var control = new OpenLayers.Control();
+ * > OpenLayers.Util.extend(control, {
+ * >     draw: function () {
+ * >         // this Handler.Box will intercept the shift-mousedown
+ * >         // before Control.MouseDefault gets to see it
+ * >         this.box = new OpenLayers.Handler.Box( control, 
+ * >             {"done": this.notice},
+ * >             {keyMask: OpenLayers.Handler.MOD_SHIFT});
+ * >         this.box.activate();
+ * >     },
+ * >
+ * >     notice: function (bounds) {
+ * >         OpenLayers.Console.userError(bounds);
+ * >     }
+ * > }); 
+ * > map.addControl(control);
+ * 
+ */
+OpenLayers.Control = OpenLayers.Class({
+
+    /** 
+     * Property: id 
+     * {String} 
+     */
+    id: null,
+    
+    /** 
+     * Property: map 
+     * {<OpenLayers.Map>} this gets set in the addControl() function in
+     * OpenLayers.Map 
+     */
+    map: null,
+
+    /** 
+     * APIProperty: div 
+     * {DOMElement} The element that contains the control, if not present the 
+     *     control is placed inside the map.
+     */
+    div: null,
+
+    /** 
+     * APIProperty: type 
+     * {Number} Controls can have a 'type'. The type determines the type of
+     * interactions which are possible with them when they are placed in an
+     * <OpenLayers.Control.Panel>. 
+     */
+    type: null, 
+
+    /** 
+     * Property: allowSelection
+     * {Boolean} By default, controls do not allow selection, because
+     * it may interfere with map dragging. If this is true, OpenLayers
+     * will not prevent selection of the control.
+     * Default is false.
+     */
+    allowSelection: false,  
+
+    /** 
+     * Property: displayClass 
+     * {string}  This property is used for CSS related to the drawing of the
+     * Control. 
+     */
+    displayClass: "",
+    
+    /**
+    * APIProperty: title  
+    * {string}  This property is used for showing a tooltip over the  
+    * Control.  
+    */ 
+    title: "",
+
+    /**
+     * APIProperty: autoActivate
+     * {Boolean} Activate the control when it is added to a map.  Default is
+     *     false.
+     */
+    autoActivate: false,
+
+    /** 
+     * APIProperty: active 
+     * {Boolean} The control is active (read-only).  Use <activate> and 
+     *     <deactivate> to change control state.
+     */
+    active: null,
+
+    /** 
+     * Property: handler 
+     * {<OpenLayers.Handler>} null
+     */
+    handler: null,
+
+    /**
+     * APIProperty: eventListeners
+     * {Object} If set as an option at construction, the eventListeners
+     *     object will be registered with <OpenLayers.Events.on>.  Object
+     *     structure must be a listeners object as shown in the example for
+     *     the events.on method.
+     */
+    eventListeners: null,
+
+    /** 
+     * APIProperty: events
+     * {<OpenLayers.Events>} Events instance for listeners and triggering
+     *     control specific events.
+     *
+     * Register a listener for a particular event with the following syntax:
+     * (code)
+     * control.events.register(type, obj, listener);
+     * (end)
+     *
+     * Listeners will be called with a reference to an event object.  The
+     *     properties of this event depends on exactly what happened.
+     *
+     * All event objects have at least the following properties:
+     * object - {Object} A reference to control.events.object (a reference
+     *      to the control).
+     * element - {DOMElement} A reference to control.events.element (which
+     *      will be null unless documented otherwise).
+     *
+     * Supported map event types:
+     * activate - Triggered when activated.
+     * deactivate - Triggered when deactivated.
+     */
+    events: null,
+
+    /**
+     * Constructor: OpenLayers.Control
+     * Create an OpenLayers Control.  The options passed as a parameter
+     * directly extend the control.  For example passing the following:
+     * 
+     * > var control = new OpenLayers.Control({div: myDiv});
+     *
+     * Overrides the default div attribute value of null.
+     * 
+     * Parameters:
+     * options - {Object} 
+     */
+    initialize: function (options) {
+        // We do this before the extend so that instances can override
+        // className in options.
+        this.displayClass = 
+            this.CLASS_NAME.replace("OpenLayers.", "ol").replace(/\./g, "");
+        
+        OpenLayers.Util.extend(this, options);
+        
+        this.events = new OpenLayers.Events(this);
+        if(this.eventListeners instanceof Object) {
+            this.events.on(this.eventListeners);
+        }
+        if (this.id == null) {
+            this.id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
+        }
+    },
+
+    /**
+     * Method: destroy
+     * The destroy method is used to perform any clean up before the control
+     * is dereferenced.  Typically this is where event listeners are removed
+     * to prevent memory leaks.
+     */
+    destroy: function () {
+        if(this.events) {
+            if(this.eventListeners) {
+                this.events.un(this.eventListeners);
+            }
+            this.events.destroy();
+            this.events = null;
+        }
+        this.eventListeners = null;
+
+        // eliminate circular references
+        if (this.handler) {
+            this.handler.destroy();
+            this.handler = null;
+        }
+        if(this.handlers) {
+            for(var key in this.handlers) {
+                if(this.handlers.hasOwnProperty(key) &&
+                   typeof this.handlers[key].destroy == "function") {
+                    this.handlers[key].destroy();
+                }
+            }
+            this.handlers = null;
+        }
+        if (this.map) {
+            this.map.removeControl(this);
+            this.map = null;
+        }
+        this.div = null;
+    },
+
+    /** 
+     * Method: setMap
+     * Set the map property for the control. This is done through an accessor
+     * so that subclasses can override this and take special action once 
+     * they have their map variable set. 
+     *
+     * Parameters:
+     * map - {<OpenLayers.Map>} 
+     */
+    setMap: function(map) {
+        this.map = map;
+        if (this.handler) {
+            this.handler.setMap(map);
+        }
+    },
+  
+    /**
+     * Method: draw
+     * The draw method is called when the control is ready to be displayed
+     * on the page.  If a div has not been created one is created.  Controls
+     * with a visual component will almost always want to override this method 
+     * to customize the look of control. 
+     *
+     * Parameters:
+     * px - {<OpenLayers.Pixel>} The top-left pixel position of the control
+     *      or null.
+     *
+     * Returns:
+     * {DOMElement} A reference to the DIV DOMElement containing the control
+     */
+    draw: function (px) {
+        if (this.div == null) {
+            this.div = OpenLayers.Util.createDiv(this.id);
+            this.div.className = this.displayClass;
+            if (!this.allowSelection) {
+                this.div.className += " olControlNoSelect";
+                this.div.setAttribute("unselectable", "on", 0);
+                this.div.onselectstart = OpenLayers.Function.False; 
+            }    
+            if (this.title != "") {
+                this.div.title = this.title;
+            }
+        }
+        if (px != null) {
+            this.position = px.clone();
+        }
+        this.moveTo(this.position);
+        return this.div;
+    },
+
+    /**
+     * Method: moveTo
+     * Sets the left and top style attributes to the passed in pixel 
+     * coordinates.
+     *
+     * Parameters:
+     * px - {<OpenLayers.Pixel>}
+     */
+    moveTo: function (px) {
+        if ((px != null) && (this.div != null)) {
+            this.div.style.left = px.x + "px";
+            this.div.style.top = px.y + "px";
+        }
+    },
+
+    /**
+     * APIMethod: activate
+     * Explicitly activates a control and it's associated
+     * handler if one has been set.  Controls can be
+     * deactivated by calling the deactivate() method.
+     * 
+     * Returns:
+     * {Boolean}  True if the control was successfully activated or
+     *            false if the control was already active.
+     */
+    activate: function () {
+        if (this.active) {
+            return false;
+        }
+        if (this.handler) {
+            this.handler.activate();
+        }
+        this.active = true;
+        if(this.map) {
+            OpenLayers.Element.addClass(
+                this.map.viewPortDiv,
+                this.displayClass.replace(/ /g, "") + "Active"
+            );
+        }
+        this.events.triggerEvent("activate");
+        return true;
+    },
+    
+    /**
+     * APIMethod: deactivate
+     * Deactivates a control and it's associated handler if any.  The exact
+     * effect of this depends on the control itself.
+     * 
+     * Returns:
+     * {Boolean} True if the control was effectively deactivated or false
+     *           if the control was already inactive.
+     */
+    deactivate: function () {
+        if (this.active) {
+            if (this.handler) {
+                this.handler.deactivate();
+            }
+            this.active = false;
+            if(this.map) {
+                OpenLayers.Element.removeClass(
+                    this.map.viewPortDiv,
+                    this.displayClass.replace(/ /g, "") + "Active"
+                );
+            }
+            this.events.triggerEvent("deactivate");
+            return true;
+        }
+        return false;
+    },
+
+    CLASS_NAME: "OpenLayers.Control"
+});
+
+/**
+ * Constant: OpenLayers.Control.TYPE_BUTTON
+ */
+OpenLayers.Control.TYPE_BUTTON = 1;
+
+/**
+ * Constant: OpenLayers.Control.TYPE_TOGGLE
+ */
+OpenLayers.Control.TYPE_TOGGLE = 2;
+
+/**
+ * Constant: OpenLayers.Control.TYPE_TOOL
+ */
+OpenLayers.Control.TYPE_TOOL   = 3;
+/* ======================================================================
+    OpenLayers/Handler/Drag.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Handler.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.Drag
+ * The drag handler is used to deal with sequences of browser events related
+ *     to dragging.  The handler is used by controls that want to know when
+ *     a drag sequence begins, when a drag is happening, and when it has
+ *     finished.
+ *
+ * Controls that use the drag handler typically construct it with callbacks
+ *     for 'down', 'move', and 'done'.  Callbacks for these keys are called
+ *     when the drag begins, with each move, and when the drag is done.  In
+ *     addition, controls can have callbacks keyed to 'up' and 'out' if they
+ *     care to differentiate between the types of events that correspond with
+ *     the end of a drag sequence.  If no drag actually occurs (no mouse move)
+ *     the 'down' and 'up' callbacks will be called, but not the 'done'
+ *     callback.
+ *
+ * Create a new drag handler with the <OpenLayers.Handler.Drag> constructor.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Handler>
+ */
+OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
+  
+    /** 
+     * Property: started
+     * {Boolean} When a mousedown or touchstart event is received, we want to
+     * record it, but not set 'dragging' until the mouse moves after starting.
+     */
+    started: false,
+
+    /**
+     * Property: stopDown
+     * {Boolean} Stop propagation of mousedown events from getting to listeners
+     *     on the same element.  Default is true.
+     */
+    stopDown: true,
+
+    /** 
+     * Property: dragging 
+     * {Boolean} 
+     */
+    dragging: false,
+
+    /**
+     * Property: touch
+     * {Boolean} When a touchstart event is fired, touch will be true and all
+     *     mouse related listeners will do nothing.
+     */
+    touch: false,
+
+    /** 
+     * Property: last
+     * {<OpenLayers.Pixel>} The last pixel location of the drag.
+     */
+    last: null,
+
+    /** 
+     * Property: start
+     * {<OpenLayers.Pixel>} The first pixel location of the drag.
+     */
+    start: null,
+
+    /**
+     * Property: lastMoveEvt
+     * {Object} The last mousemove event that occurred. Used to
+     *     position the map correctly when our "delay drag"
+     *     timeout expired.
+     */
+    lastMoveEvt: null,
+
+    /**
+     * Property: oldOnselectstart
+     * {Function}
+     */
+    oldOnselectstart: null,
+    
+    /**
+     * Property: interval
+     * {Integer} In order to increase performance, an interval (in 
+     *     milliseconds) can be set to reduce the number of drag events 
+     *     called. If set, a new drag event will not be set until the 
+     *     interval has passed. 
+     *     Defaults to 0, meaning no interval. 
+     */
+    interval: 0,
+    
+    /**
+     * Property: timeoutId
+     * {String} The id of the timeout used for the mousedown interval.
+     *     This is "private", and should be left alone.
+     */
+    timeoutId: null,
+    
+    /**
+     * APIProperty: documentDrag
+     * {Boolean} If set to true, the handler will also handle mouse moves when
+     *     the cursor has moved out of the map viewport. Default is false.
+     */
+    documentDrag: false,
+    
+    /**
+     * Property: documentEvents
+     * {Boolean} Are we currently observing document events?
+     */
+    documentEvents: null,
+
+    /**
+     * Constructor: OpenLayers.Handler.Drag
+     * Returns OpenLayers.Handler.Drag
+     * 
+     * Parameters:
+     * control - {<OpenLayers.Control>} The control that is making use of
+     *     this handler.  If a handler is being used without a control, the
+     *     handlers setMap method must be overridden to deal properly with
+     *     the map.
+     * callbacks - {Object} An object containing a single function to be
+     *     called when the drag operation is finished. The callback should
+     *     expect to recieve a single argument, the pixel location of the event.
+     *     Callbacks for 'move' and 'done' are supported. You can also speficy
+     *     callbacks for 'down', 'up', and 'out' to respond to those events.
+     * options - {Object} 
+     */
+    initialize: function(control, callbacks, options) {
+        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
+        
+        if (this.documentDrag === true) {
+            var me = this;
+            this._docMove = function(evt) {
+                me.mousemove({
+                    xy: {x: evt.clientX, y: evt.clientY},
+                    element: document
+                });
+            };
+            this._docUp = function(evt) {
+                me.mouseup({xy: {x: evt.clientX, y: evt.clientY}});
+            };
+        }
+    },
+
+    
+    /**
+     * Method: dragstart
+     * This private method is factorized from mousedown and touchstart methods
+     *
+     * Parameters:
+     * evt - {Event} The event
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    dragstart: function (evt) {
+        var propagate = true;
+        this.dragging = false;
+        if (this.checkModifiers(evt) &&
+               (OpenLayers.Event.isLeftClick(evt) ||
+                OpenLayers.Event.isSingleTouch(evt))) {
+            this.started = true;
+            this.start = evt.xy;
+            this.last = evt.xy;
+            OpenLayers.Element.addClass(
+                this.map.viewPortDiv, "olDragDown"
+            );
+            this.down(evt);
+            this.callback("down", [evt.xy]);
+
+            OpenLayers.Event.stop(evt);
+
+            if(!this.oldOnselectstart) {
+                this.oldOnselectstart = document.onselectstart ?
+                    document.onselectstart : OpenLayers.Function.True;
+            }
+            document.onselectstart = OpenLayers.Function.False;
+
+            propagate = !this.stopDown;
+        } else {
+            this.started = false;
+            this.start = null;
+            this.last = null;
+        }
+        return propagate;
+    },
+
+    /**
+     * Method: dragmove
+     * This private method is factorized from mousemove and touchmove methods
+     *
+     * Parameters:
+     * evt - {Event} The event
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    dragmove: function (evt) {
+        this.lastMoveEvt = evt;
+        if (this.started && !this.timeoutId && (evt.xy.x != this.last.x ||
+                                                evt.xy.y != this.last.y)) {
+            if(this.documentDrag === true && this.documentEvents) {
+                if(evt.element === document) {
+                    this.adjustXY(evt);
+                    // do setEvent manually because the documentEvents are not
+                    // registered with the map
+                    this.setEvent(evt);
+                } else {
+                    this.removeDocumentEvents();
+                }
+            }
+            if (this.interval > 0) {
+                this.timeoutId = setTimeout(
+                    OpenLayers.Function.bind(this.removeTimeout, this),
+                    this.interval);
+            }
+            this.dragging = true;
+
+            this.move(evt);
+            this.callback("move", [evt.xy]);
+            if(!this.oldOnselectstart) {
+                this.oldOnselectstart = document.onselectstart;
+                document.onselectstart = OpenLayers.Function.False;
+            }
+            this.last = evt.xy;
+        }
+        return true;
+    },
+
+    /**
+     * Method: dragend
+     * This private method is factorized from mouseup and touchend methods
+     *
+     * Parameters:
+     * evt - {Event} The event
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    dragend: function (evt) {
+        if (this.started) {
+            if(this.documentDrag === true && this.documentEvents) {
+                this.adjustXY(evt);
+                this.removeDocumentEvents();
+            }
+            var dragged = (this.start != this.last);
+            this.started = false;
+            this.dragging = false;
+            OpenLayers.Element.removeClass(
+                this.map.viewPortDiv, "olDragDown"
+            );
+            this.up(evt);
+            this.callback("up", [evt.xy]);
+            if(dragged) {
+                this.callback("done", [evt.xy]);
+            }
+            document.onselectstart = this.oldOnselectstart;
+        }
+        return true;
+    },
+
+    /**
+     * The four methods below (down, move, up, and out) are used by subclasses
+     *     to do their own processing related to these mouse events.
+     */
+
+    /**
+     * Method: down
+     * This method is called during the handling of the mouse down event.
+     *     Subclasses can do their own processing here.
+     *
+     * Parameters:
+     * evt - {Event} The mouse down event
+     */
+    down: function(evt) {
+    },
+
+    /**
+     * Method: move
+     * This method is called during the handling of the mouse move event.
+     *     Subclasses can do their own processing here.
+     *
+     * Parameters:
+     * evt - {Event} The mouse move event
+     *
+     */
+    move: function(evt) {
+    },
+
+    /**
+     * Method: up
+     * This method is called during the handling of the mouse up event.
+     *     Subclasses can do their own processing here.
+     *
+     * Parameters:
+     * evt - {Event} The mouse up event
+     */
+    up: function(evt) {
+    },
+
+    /**
+     * Method: out
+     * This method is called during the handling of the mouse out event.
+     *     Subclasses can do their own processing here.
+     *
+     * Parameters:
+     * evt - {Event} The mouse out event
+     */
+    out: function(evt) {
+    },
+
+    /**
+     * The methods below are part of the magic of event handling.  Because
+     *     they are named like browser events, they are registered as listeners
+     *     for the events they represent.
+     */
+
+    /**
+     * Method: mousedown
+     * Handle mousedown events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    mousedown: function(evt) {
+        return this.dragstart(evt);
+    },
+
+    /**
+     * Method: touchstart
+     * Handle touchstart events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    touchstart: function(evt) {
+        if (!this.touch) {
+            this.touch = true;
+            // unregister mouse listeners
+            this.map.events.un({
+                mousedown: this.mousedown,
+                mouseup: this.mouseup,
+                mousemove: this.mousemove,
+                click: this.click,
+                scope: this
+            });
+        }
+        return this.dragstart(evt);
+    },
+
+    /**
+     * Method: mousemove
+     * Handle mousemove events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    mousemove: function(evt) {
+        return this.dragmove(evt);
+    },
+
+    /**
+     * Method: touchmove
+     * Handle touchmove events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    touchmove: function(evt) {
+        return this.dragmove(evt);
+    },
+
+    /**
+     * Method: removeTimeout
+     * Private. Called by mousemove() to remove the drag timeout.
+     */
+    removeTimeout: function() {
+        this.timeoutId = null;
+        // if timeout expires while we're still dragging (mouseup
+        // hasn't occurred) then call mousemove to move to the
+        // correct position
+        if(this.dragging) {
+            this.mousemove(this.lastMoveEvt);
+        }
+    },
+
+    /**
+     * Method: mouseup
+     * Handle mouseup events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    mouseup: function(evt) {
+        return this.dragend(evt);
+    },
+
+    /**
+     * Method: touchend
+     * Handle touchend events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    touchend: function(evt) {
+        // override evt.xy with last position since touchend does not have
+        // any touch position
+        evt.xy = this.last;
+        return this.dragend(evt);
+    },
+
+    /**
+     * Method: mouseout
+     * Handle mouseout events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    mouseout: function (evt) {
+        if (this.started && OpenLayers.Util.mouseLeft(evt, this.map.viewPortDiv)) {
+            if(this.documentDrag === true) {
+                this.addDocumentEvents();
+            } else {
+                var dragged = (this.start != this.last);
+                this.started = false; 
+                this.dragging = false;
+                OpenLayers.Element.removeClass(
+                    this.map.viewPortDiv, "olDragDown"
+                );
+                this.out(evt);
+                this.callback("out", []);
+                if(dragged) {
+                    this.callback("done", [evt.xy]);
+                }
+                if(document.onselectstart) {
+                    document.onselectstart = this.oldOnselectstart;
+                }
+            }
+        }
+        return true;
+    },
+
+    /**
+     * Method: click
+     * The drag handler captures the click event.  If something else registers
+     *     for clicks on the same element, its listener will not be called 
+     *     after a drag.
+     * 
+     * Parameters: 
+     * evt - {Event} 
+     * 
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    click: function (evt) {
+        // let the click event propagate only if the mouse moved
+        return (this.start == this.last);
+    },
+
+    /**
+     * Method: activate
+     * Activate the handler.
+     * 
+     * Returns:
+     * {Boolean} The handler was successfully activated.
+     */
+    activate: function() {
+        var activated = false;
+        if(OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
+            this.dragging = false;
+            activated = true;
+        }
+        return activated;
+    },
+
+    /**
+     * Method: deactivate 
+     * Deactivate the handler.
+     * 
+     * Returns:
+     * {Boolean} The handler was successfully deactivated.
+     */
+    deactivate: function() {
+        var deactivated = false;
+        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            this.touch = false;
+            this.started = false;
+            this.dragging = false;
+            this.start = null;
+            this.last = null;
+            deactivated = true;
+            OpenLayers.Element.removeClass(
+                this.map.viewPortDiv, "olDragDown"
+            );
+        }
+        return deactivated;
+    },
+    
+    /**
+     * Method: adjustXY
+     * Converts event coordinates that are relative to the document body to
+     * ones that are relative to the map viewport. The latter is the default in
+     * OpenLayers.
+     * 
+     * Parameters:
+     * evt - {Object}
+     */
+    adjustXY: function(evt) {
+        var pos = OpenLayers.Util.pagePosition(this.map.viewPortDiv);
+        evt.xy.x -= pos[0];
+        evt.xy.y -= pos[1];
+    },
+    
+    /**
+     * Method: addDocumentEvents
+     * Start observing document events when documentDrag is true and the mouse
+     * cursor leaves the map viewport while dragging.
+     */
+    addDocumentEvents: function() {
+        OpenLayers.Element.addClass(document.body, "olDragDown");
+        this.documentEvents = true;
+        OpenLayers.Event.observe(document, "mousemove", this._docMove);
+        OpenLayers.Event.observe(document, "mouseup", this._docUp);
+    },
+    
+    /**
+     * Method: removeDocumentEvents
+     * Stops observing document events when documentDrag is true and the mouse
+     * cursor re-enters the map viewport while dragging.
+     */
+    removeDocumentEvents: function() {
+        OpenLayers.Element.removeClass(document.body, "olDragDown");
+        this.documentEvents = false;
+        OpenLayers.Event.stopObserving(document, "mousemove", this._docMove);
+        OpenLayers.Event.stopObserving(document, "mouseup", this._docUp);
+    },
+
+    CLASS_NAME: "OpenLayers.Handler.Drag"
+});
+/* ======================================================================
+    OpenLayers/Handler/Feature.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+
+/**
+ * @requires OpenLayers/Handler.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.Feature 
+ * Handler to respond to mouse events related to a drawn feature.  Callbacks
+ *     with the following keys will be notified of the following events
+ *     associated with features: click, clickout, over, out, and dblclick.
+ *
+ * This handler stops event propagation for mousedown and mouseup if those
+ *     browser events target features that can be selected.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Handler>
+ */
+OpenLayers.Handler.Feature = OpenLayers.Class(OpenLayers.Handler, {
+
+    /**
+     * Property: EVENTMAP
+     * {Object} A object mapping the browser events to objects with callback
+     *     keys for in and out.
+     */
+    EVENTMAP: {
+        'click': {'in': 'click', 'out': 'clickout'},
+        'mousemove': {'in': 'over', 'out': 'out'},
+        'dblclick': {'in': 'dblclick', 'out': null},
+        'mousedown': {'in': null, 'out': null},
+        'mouseup': {'in': null, 'out': null},
+        'touchstart': {'in': 'click', 'out': 'clickout'}
+    },
+
+    /**
+     * Property: feature
+     * {<OpenLayers.Feature.Vector>} The last feature that was hovered.
+     */
+    feature: null,
+
+    /**
+     * Property: lastFeature
+     * {<OpenLayers.Feature.Vector>} The last feature that was handled.
+     */
+    lastFeature: null,
+
+    /**
+     * Property: down
+     * {<OpenLayers.Pixel>} The location of the last mousedown.
+     */
+    down: null,
+
+    /**
+     * Property: up
+     * {<OpenLayers.Pixel>} The location of the last mouseup.
+     */
+    up: null,
+
+    /**
+     * Property: touch
+     * {Boolean} When a touchstart event is fired, touch will be true and all
+     *     mouse related listeners will do nothing.
+     */
+    touch: false,
+    
+    /**
+     * Property: clickTolerance
+     * {Number} The number of pixels the mouse can move between mousedown
+     *     and mouseup for the event to still be considered a click.
+     *     Dragging the map should not trigger the click and clickout callbacks
+     *     unless the map is moved by less than this tolerance. Defaults to 4.
+     */
+    clickTolerance: 4,
+
+    /**
+     * Property: geometryTypes
+     * To restrict dragging to a limited set of geometry types, send a list
+     * of strings corresponding to the geometry class names.
+     * 
+     * @type Array(String)
+     */
+    geometryTypes: null,
+
+    /**
+     * Property: stopClick
+     * {Boolean} If stopClick is set to true, handled clicks do not
+     *      propagate to other click listeners. Otherwise, handled clicks
+     *      do propagate. Unhandled clicks always propagate, whatever the
+     *      value of stopClick. Defaults to true.
+     */
+    stopClick: true,
+
+    /**
+     * Property: stopDown
+     * {Boolean} If stopDown is set to true, handled mousedowns do not
+     *      propagate to other mousedown listeners. Otherwise, handled
+     *      mousedowns do propagate. Unhandled mousedowns always propagate,
+     *      whatever the value of stopDown. Defaults to true.
+     */
+    stopDown: true,
+
+    /**
+     * Property: stopUp
+     * {Boolean} If stopUp is set to true, handled mouseups do not
+     *      propagate to other mouseup listeners. Otherwise, handled mouseups
+     *      do propagate. Unhandled mouseups always propagate, whatever the
+     *      value of stopUp. Defaults to false.
+     */
+    stopUp: false,
+    
+    /**
+     * Constructor: OpenLayers.Handler.Feature
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} 
+     * layer - {<OpenLayers.Layer.Vector>}
+     * callbacks - {Object} An object with a 'over' property whos value is
+     *     a function to be called when the mouse is over a feature. The 
+     *     callback should expect to recieve a single argument, the feature.
+     * options - {Object} 
+     */
+    initialize: function(control, layer, callbacks, options) {
+        OpenLayers.Handler.prototype.initialize.apply(this, [control, callbacks, options]);
+        this.layer = layer;
+    },
+
+    /**
+     * Method: touchstart
+     * Handle touchstart events
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} Let the event propagate.
+     */
+    touchstart: function(evt) {
+        if(!this.touch) {
+            this.touch =  true;
+            this.map.events.un({
+                mousedown: this.mousedown,
+                mouseup: this.mouseup,
+                mousemove: this.mousemove,
+                click: this.click,
+                dblclick: this.dblclick,
+                scope: this
+            });
+        }
+        return OpenLayers.Event.isMultiTouch(evt) ?
+                true : this.mousedown(evt);
+    },
+
+    /**
+     * Method: touchmove
+     * Handle touchmove events. We just prevent the browser default behavior,
+     *    for Android Webkit not to select text when moving the finger after
+     *    selecting a feature.
+     *
+     * Parameters:
+     * evt - {Event}
+     */
+    touchmove: function(evt) {
+        OpenLayers.Event.stop(evt);
+    },
+
+    /**
+     * Method: mousedown
+     * Handle mouse down.  Stop propagation if a feature is targeted by this
+     *     event (stops map dragging during feature selection).
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    mousedown: function(evt) {
+        // Feature selection is only done with a left click. Other handlers may stop the
+        // propagation of left-click mousedown events but not right-click mousedown events.
+        // This mismatch causes problems when comparing the location of the down and up
+        // events in the click function so it is important ignore right-clicks.
+        if (OpenLayers.Event.isLeftClick(evt) || OpenLayers.Event.isSingleTouch(evt)) {
+            this.down = evt.xy;
+        }
+        return this.handle(evt) ? !this.stopDown : true;
+    },
+    
+    /**
+     * Method: mouseup
+     * Handle mouse up.  Stop propagation if a feature is targeted by this
+     *     event.
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    mouseup: function(evt) {
+        this.up = evt.xy;
+        return this.handle(evt) ? !this.stopUp : true;
+    },
+
+    /**
+     * Method: click
+     * Handle click.  Call the "click" callback if click on a feature,
+     *     or the "clickout" callback if click outside any feature.
+     * 
+     * Parameters:
+     * evt - {Event} 
+     *
+     * Returns:
+     * {Boolean}
+     */
+    click: function(evt) {
+        return this.handle(evt) ? !this.stopClick : true;
+    },
+        
+    /**
+     * Method: mousemove
+     * Handle mouse moves.  Call the "over" callback if moving in to a feature,
+     *     or the "out" callback if moving out of a feature.
+     * 
+     * Parameters:
+     * evt - {Event} 
+     *
+     * Returns:
+     * {Boolean}
+     */
+    mousemove: function(evt) {
+        if (!this.callbacks['over'] && !this.callbacks['out']) {
+            return true;
+        }     
+        this.handle(evt);
+        return true;
+    },
+    
+    /**
+     * Method: dblclick
+     * Handle dblclick.  Call the "dblclick" callback if dblclick on a feature.
+     *
+     * Parameters:
+     * evt - {Event} 
+     *
+     * Returns:
+     * {Boolean}
+     */
+    dblclick: function(evt) {
+        return !this.handle(evt);
+    },
+
+    /**
+     * Method: geometryTypeMatches
+     * Return true if the geometry type of the passed feature matches
+     *     one of the geometry types in the geometryTypes array.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Vector.Feature>}
+     *
+     * Returns:
+     * {Boolean}
+     */
+    geometryTypeMatches: function(feature) {
+        return this.geometryTypes == null ||
+            OpenLayers.Util.indexOf(this.geometryTypes,
+                                    feature.geometry.CLASS_NAME) > -1;
+    },
+
+    /**
+     * Method: handle
+     *
+     * Parameters:
+     * evt - {Event}
+     *
+     * Returns:
+     * {Boolean} The event occurred over a relevant feature.
+     */
+    handle: function(evt) {
+        if(this.feature && !this.feature.layer) {
+            // feature has been destroyed
+            this.feature = null;
+        }
+        var type = evt.type;
+        var handled = false;
+        var previouslyIn = !!(this.feature); // previously in a feature
+        var click = (type == "click" || type == "dblclick" || type == "touchstart");
+        this.feature = this.layer.getFeatureFromEvent(evt);
+        if(this.feature && !this.feature.layer) {
+            // feature has been destroyed
+            this.feature = null;
+        }
+        if(this.lastFeature && !this.lastFeature.layer) {
+            // last feature has been destroyed
+            this.lastFeature = null;
+        }
+        if(this.feature) {
+            if(type === "touchstart") {
+                // stop the event to prevent Android Webkit from
+                // "flashing" the map div
+                OpenLayers.Event.stop(evt);
+            }
+            var inNew = (this.feature != this.lastFeature);
+            if(this.geometryTypeMatches(this.feature)) {
+                // in to a feature
+                if(previouslyIn && inNew) {
+                    // out of last feature and in to another
+                    if(this.lastFeature) {
+                        this.triggerCallback(type, 'out', [this.lastFeature]);
+                    }
+                    this.triggerCallback(type, 'in', [this.feature]);
+                } else if(!previouslyIn || click) {
+                    // in feature for the first time
+                    this.triggerCallback(type, 'in', [this.feature]);
+                }
+                this.lastFeature = this.feature;
+                handled = true;
+            } else {
+                // not in to a feature
+                if(this.lastFeature && (previouslyIn && inNew || click)) {
+                    // out of last feature for the first time
+                    this.triggerCallback(type, 'out', [this.lastFeature]);
+                }
+                // next time the mouse goes in a feature whose geometry type
+                // doesn't match we don't want to call the 'out' callback
+                // again, so let's set this.feature to null so that
+                // previouslyIn will evaluate to false the next time
+                // we enter handle. Yes, a bit hackish...
+                this.feature = null;
+            }
+        } else {
+            if(this.lastFeature && (previouslyIn || click)) {
+                this.triggerCallback(type, 'out', [this.lastFeature]);
+            }
+        }
+        return handled;
+    },
+    
+    /**
+     * Method: triggerCallback
+     * Call the callback keyed in the event map with the supplied arguments.
+     *     For click and clickout, the <clickTolerance> is checked first.
+     *
+     * Parameters:
+     * type - {String}
+     */
+    triggerCallback: function(type, mode, args) {
+        var key = this.EVENTMAP[type][mode];
+        if(key) {
+            if(type == 'click' && this.up && this.down) {
+                // for click/clickout, only trigger callback if tolerance is met
+                var dpx = Math.sqrt(
+                    Math.pow(this.up.x - this.down.x, 2) +
+                    Math.pow(this.up.y - this.down.y, 2)
+                );
+                if(dpx <= this.clickTolerance) {
+                    this.callback(key, args);
+                }
+            } else {
+                this.callback(key, args);
+            }
+        }
+    },
+
+    /**
+     * Method: activate 
+     * Turn on the handler.  Returns false if the handler was already active.
+     *
+     * Returns:
+     * {Boolean}
+     */
+    activate: function() {
+        var activated = false;
+        if(OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
+            this.moveLayerToTop();
+            this.map.events.on({
+                "removelayer": this.handleMapEvents,
+                "changelayer": this.handleMapEvents,
+                scope: this
+            });
+            activated = true;
+        }
+        return activated;
+    },
+    
+    /**
+     * Method: deactivate 
+     * Turn off the handler.  Returns false if the handler was already active.
+     *
+     * Returns: 
+     * {Boolean}
+     */
+    deactivate: function() {
+        var deactivated = false;
+        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            this.moveLayerBack();
+            this.feature = null;
+            this.lastFeature = null;
+            this.down = null;
+            this.up = null;
+            this.touch = false;
+            this.map.events.un({
+                "removelayer": this.handleMapEvents,
+                "changelayer": this.handleMapEvents,
+                scope: this
+            });
+            deactivated = true;
+        }
+        return deactivated;
+    },
+    
+    /**
+     * Method: handleMapEvents
+     * 
+     * Parameters:
+     * evt - {Object}
+     */
+    handleMapEvents: function(evt) {
+        if (evt.type == "removelayer" || evt.property == "order") {
+            this.moveLayerToTop();
+        }
+    },
+    
+    /**
+     * Method: moveLayerToTop
+     * Moves the layer for this handler to the top, so mouse events can reach
+     * it.
+     */
+    moveLayerToTop: function() {
+        var index = Math.max(this.map.Z_INDEX_BASE['Feature'] - 1,
+            this.layer.getZIndex()) + 1;
+        this.layer.setZIndex(index);
+        
+    },
+    
+    /**
+     * Method: moveLayerBack
+     * Moves the layer back to the position determined by the map's layers
+     * array.
+     */
+    moveLayerBack: function() {
+        var index = this.layer.getZIndex() - 1;
+        if (index >= this.map.Z_INDEX_BASE['Feature']) {
+            this.layer.setZIndex(index);
+        } else {
+            this.map.setLayerZIndex(this.layer,
+                this.map.getLayerIndex(this.layer));
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Handler.Feature"
+});
+/* ======================================================================
+    OpenLayers/Control/DragFeature.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+
+/**
+ * @requires OpenLayers/Control.js
+ * @requires OpenLayers/Handler/Drag.js
+ * @requires OpenLayers/Handler/Feature.js
+ */
+
+/**
+ * Class: OpenLayers.Control.DragFeature
+ * The DragFeature control moves a feature with a drag of the mouse. Create a
+ * new control with the <OpenLayers.Control.DragFeature> constructor.
+ *
+ * Inherits From:
+ *  - <OpenLayers.Control>
+ */
+OpenLayers.Control.DragFeature = OpenLayers.Class(OpenLayers.Control, {
+
+    /**
+     * APIProperty: geometryTypes
+     * {Array(String)} To restrict dragging to a limited set of geometry types,
+     *     send a list of strings corresponding to the geometry class names.
+     */
+    geometryTypes: null,
+    
+    /**
+     * APIProperty: onStart
+     * {Function} Define this function if you want to know when a drag starts.
+     *     The function should expect to receive two arguments: the feature
+     *     that is about to be dragged and the pixel location of the mouse.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that is about to be
+     *     dragged.
+     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
+     */
+    onStart: function(feature, pixel) {},
+
+    /**
+     * APIProperty: onDrag
+     * {Function} Define this function if you want to know about each move of a
+     *     feature. The function should expect to receive two arguments: the
+     *     feature that is being dragged and the pixel location of the mouse.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
+     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
+     */
+    onDrag: function(feature, pixel) {},
+
+    /**
+     * APIProperty: onComplete
+     * {Function} Define this function if you want to know when a feature is
+     *     done dragging. The function should expect to receive two arguments:
+     *     the feature that is being dragged and the pixel location of the
+     *     mouse.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
+     * pixel - {<OpenLayers.Pixel>} The pixel location of the mouse.
+     */
+    onComplete: function(feature, pixel) {},
+
+    /**
+     * APIProperty: onEnter
+     * {Function} Define this function if you want to know when the mouse
+     *     goes over a feature and thereby makes this feature a candidate
+     *     for dragging.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that is ready
+     *     to be dragged.
+     */
+    onEnter: function(feature) {},
+
+    /**
+     * APIProperty: onLeave
+     * {Function} Define this function if you want to know when the mouse
+     *     goes out of the feature that was dragged.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that was dragged.
+     */
+    onLeave: function(feature) {},
+
+    /**
+     * APIProperty: documentDrag
+     * {Boolean} If set to true, mouse dragging will continue even if the
+     *     mouse cursor leaves the map viewport. Default is false.
+     */
+    documentDrag: false,
+    
+    /**
+     * Property: layer
+     * {<OpenLayers.Layer.Vector>}
+     */
+    layer: null,
+    
+    /**
+     * Property: feature
+     * {<OpenLayers.Feature.Vector>}
+     */
+    feature: null,
+
+    /**
+     * Property: dragCallbacks
+     * {Object} The functions that are sent to the drag handler for callback.
+     */
+    dragCallbacks: {},
+
+    /**
+     * Property: featureCallbacks
+     * {Object} The functions that are sent to the feature handler for callback.
+     */
+    featureCallbacks: {},
+    
+    /**
+     * Property: lastPixel
+     * {<OpenLayers.Pixel>}
+     */
+    lastPixel: null,
+
+    /**
+     * Constructor: OpenLayers.Control.DragFeature
+     * Create a new control to drag features.
+     *
+     * Parameters:
+     * layer - {<OpenLayers.Layer.Vector>} The layer containing features to be
+     *     dragged.
+     * options - {Object} Optional object whose properties will be set on the
+     *     control.
+     */
+    initialize: function(layer, options) {
+        OpenLayers.Control.prototype.initialize.apply(this, [options]);
+        this.layer = layer;
+        this.handlers = {
+            drag: new OpenLayers.Handler.Drag(
+                this, OpenLayers.Util.extend({
+                    down: this.downFeature,
+                    move: this.moveFeature,
+                    up: this.upFeature,
+                    out: this.cancel,
+                    done: this.doneDragging
+                }, this.dragCallbacks), {
+                    documentDrag: this.documentDrag
+                }
+            ),
+            feature: new OpenLayers.Handler.Feature(
+                this, this.layer, OpenLayers.Util.extend({
+                    // 'click' and 'clickout' callback are for the mobile
+                    // support: no 'over' or 'out' in touch based browsers.
+                    click: this.clickFeature,
+                    clickout: this.clickoutFeature,
+                    over: this.overFeature,
+                    out: this.outFeature
+                }, this.featureCallbacks),
+                {geometryTypes: this.geometryTypes}
+            )
+        };
+    },
+
+    /**
+     * Method: clickFeature
+     * Called when the feature handler detects a click-in on a feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>}
+     */
+    clickFeature: function(feature) {
+        if (this.handlers.feature.touch && !this.over && this.overFeature(feature)) {
+            this.handlers.drag.dragstart(this.handlers.feature.evt);
+            // to let the events propagate to the feature handler (click callback)
+            this.handlers.drag.stopDown = false;
+        }
+    },
+
+    /**
+     * Method: clickoutFeature
+     * Called when the feature handler detects a click-out on a feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>}
+     */
+    clickoutFeature: function(feature) {
+        if (this.handlers.feature.touch && this.over) {
+            this.outFeature(feature);
+            this.handlers.drag.stopDown = true;
+        }
+    },
+
+    /**
+     * APIMethod: destroy
+     * Take care of things that are not handled in superclass
+     */
+    destroy: function() {
+        this.layer = null;
+        OpenLayers.Control.prototype.destroy.apply(this, []);
+    },
+
+    /**
+     * APIMethod: activate
+     * Activate the control and the feature handler.
+     * 
+     * Returns:
+     * {Boolean} Successfully activated the control and feature handler.
+     */
+    activate: function() {
+        return (this.handlers.feature.activate() &&
+                OpenLayers.Control.prototype.activate.apply(this, arguments));
+    },
+
+    /**
+     * APIMethod: deactivate
+     * Deactivate the control and all handlers.
+     * 
+     * Returns:
+     * {Boolean} Successfully deactivated the control.
+     */
+    deactivate: function() {
+        // the return from the handlers is unimportant in this case
+        this.handlers.drag.deactivate();
+        this.handlers.feature.deactivate();
+        this.feature = null;
+        this.dragging = false;
+        this.lastPixel = null;
+        OpenLayers.Element.removeClass(
+            this.map.viewPortDiv, this.displayClass + "Over"
+        );
+        return OpenLayers.Control.prototype.deactivate.apply(this, arguments);
+    },
+
+    /**
+     * Method: overFeature
+     * Called when the feature handler detects a mouse-over on a feature.
+     *     This activates the drag handler.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The selected feature.
+     *
+     * Returns:
+     * {Boolean} Successfully activated the drag handler.
+     */
+    overFeature: function(feature) {
+        var activated = false;
+        if(!this.handlers.drag.dragging) {
+            this.feature = feature;
+            this.handlers.drag.activate();
+            activated = true;
+            this.over = true;
+            OpenLayers.Element.addClass(this.map.viewPortDiv, this.displayClass + "Over");
+            this.onEnter(feature);
+        } else {
+            if(this.feature.id == feature.id) {
+                this.over = true;
+            } else {
+                this.over = false;
+            }
+        }
+        return activated;
+    },
+
+    /**
+     * Method: downFeature
+     * Called when the drag handler detects a mouse-down.
+     *
+     * Parameters:
+     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
+     */
+    downFeature: function(pixel) {
+        this.lastPixel = pixel;
+        this.onStart(this.feature, pixel);
+    },
+
+    /**
+     * Method: moveFeature
+     * Called when the drag handler detects a mouse-move.  Also calls the
+     *     optional onDrag method.
+     * 
+     * Parameters:
+     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
+     */
+    moveFeature: function(pixel) {
+        var res = this.map.getResolution();
+        this.feature.geometry.move(res * (pixel.x - this.lastPixel.x),
+                                   res * (this.lastPixel.y - pixel.y));
+        this.layer.drawFeature(this.feature);
+        this.lastPixel = pixel;
+        this.onDrag(this.feature, pixel);
+    },
+
+    /**
+     * Method: upFeature
+     * Called when the drag handler detects a mouse-up.
+     * 
+     * Parameters:
+     * pixel - {<OpenLayers.Pixel>} Location of the mouse event.
+     */
+    upFeature: function(pixel) {
+        if(!this.over) {
+            this.handlers.drag.deactivate();
+        }
+    },
+
+    /**
+     * Method: doneDragging
+     * Called when the drag handler is done dragging.
+     *
+     * Parameters:
+     * pixel - {<OpenLayers.Pixel>} The last event pixel location.  If this event
+     *     came from a mouseout, this may not be in the map viewport.
+     */
+    doneDragging: function(pixel) {
+        this.onComplete(this.feature, pixel);
+    },
+
+    /**
+     * Method: outFeature
+     * Called when the feature handler detects a mouse-out on a feature.
+     *
+     * Parameters:
+     * feature - {<OpenLayers.Feature.Vector>} The feature that the mouse left.
+     */
+    outFeature: function(feature) {
+        if(!this.handlers.drag.dragging) {
+            this.over = false;
+            this.handlers.drag.deactivate();
+            OpenLayers.Element.removeClass(
+                this.map.viewPortDiv, this.displayClass + "Over"
+            );
+            this.onLeave(feature);
+            this.feature = null;
+        } else {
+            if(this.feature.id == feature.id) {
+                this.over = false;
+            }
+        }
+    },
+        
+    /**
+     * Method: cancel
+     * Called when the drag handler detects a mouse-out (from the map viewport).
+     */
+    cancel: function() {
+        this.handlers.drag.deactivate();
+        this.over = false;
+    },
+
+    /**
+     * Method: setMap
+     * Set the map property for the control and all handlers.
+     *
+     * Parameters: 
+     * map - {<OpenLayers.Map>} The control's map.
+     */
+    setMap: function(map) {
+        this.handlers.drag.setMap(map);
+        this.handlers.feature.setMap(map);
+        OpenLayers.Control.prototype.setMap.apply(this, arguments);
+    },
+
+    CLASS_NAME: "OpenLayers.Control.DragFeature"
+});
+/* ======================================================================
+    OpenLayers/Handler/Box.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Handler.js
+ * @requires OpenLayers/Handler/Drag.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.Box
+ * Handler for dragging a rectangle across the map.  Box is displayed 
+ * on mouse down, moves on mouse move, and is finished on mouse up.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Handler> 
+ */
+OpenLayers.Handler.Box = OpenLayers.Class(OpenLayers.Handler, {
+
+    /** 
+     * Property: dragHandler 
+     * {<OpenLayers.Handler.Drag>} 
+     */
+    dragHandler: null,
+
+    /**
+     * APIProperty: boxDivClassName
+     * {String} The CSS class to use for drawing the box. Default is
+     *     olHandlerBoxZoomBox
+     */
+    boxDivClassName: 'olHandlerBoxZoomBox',
+    
+    /**
+     * Property: boxOffsets
+     * {Object} Caches box offsets from css. This is used by the getBoxOffsets
+     * method.
+     */
+    boxOffsets: null,
+
+    /**
+     * Constructor: OpenLayers.Handler.Box
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} 
+     * callbacks - {Object} An object with a properties whose values are
+     *     functions.  Various callbacks described below.
+     * options - {Object} 
+     *
+     * Named callbacks:
+     * start - Called when the box drag operation starts.
+     * done - Called when the box drag operation is finished.
+     *     The callback should expect to receive a single argument, the box 
+     *     bounds or a pixel. If the box dragging didn't span more than a 5 
+     *     pixel distance, a pixel will be returned instead of a bounds object.
+     */
+    initialize: function(control, callbacks, options) {
+        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
+        this.dragHandler = new OpenLayers.Handler.Drag(
+            this, 
+            {
+                down: this.startBox, 
+                move: this.moveBox, 
+                out: this.removeBox,
+                up: this.endBox
+            }, 
+            {keyMask: this.keyMask}
+        );
+    },
+
+    /**
+     * Method: destroy
+     */
+    destroy: function() {
+        OpenLayers.Handler.prototype.destroy.apply(this, arguments);
+        if (this.dragHandler) {
+            this.dragHandler.destroy();
+            this.dragHandler = null;
+        }            
+    },
+
+    /**
+     * Method: setMap
+     */
+    setMap: function (map) {
+        OpenLayers.Handler.prototype.setMap.apply(this, arguments);
+        if (this.dragHandler) {
+            this.dragHandler.setMap(map);
+        }
+    },
+
+    /**
+    * Method: startBox
+    *
+    * Parameters:
+    * xy - {<OpenLayers.Pixel>}
+    */
+    startBox: function (xy) {
+        this.callback("start", []);
+        this.zoomBox = OpenLayers.Util.createDiv('zoomBox', {
+            x: -9999, y: -9999
+        });
+        this.zoomBox.className = this.boxDivClassName;                                         
+        this.zoomBox.style.zIndex = this.map.Z_INDEX_BASE["Popup"] - 1;
+        
+        this.map.viewPortDiv.appendChild(this.zoomBox);
+        
+        OpenLayers.Element.addClass(
+            this.map.viewPortDiv, "olDrawBox"
+        );
+    },
+
+    /**
+    * Method: moveBox
+    */
+    moveBox: function (xy) {
+        var startX = this.dragHandler.start.x;
+        var startY = this.dragHandler.start.y;
+        var deltaX = Math.abs(startX - xy.x);
+        var deltaY = Math.abs(startY - xy.y);
+
+        var offset = this.getBoxOffsets();
+        this.zoomBox.style.width = (deltaX + offset.width + 1) + "px";
+        this.zoomBox.style.height = (deltaY + offset.height + 1) + "px";
+        this.zoomBox.style.left = (xy.x < startX ?
+            startX - deltaX - offset.left : startX - offset.left) + "px";
+        this.zoomBox.style.top = (xy.y < startY ?
+            startY - deltaY - offset.top : startY - offset.top) + "px";
+    },
+
+    /**
+    * Method: endBox
+    */
+    endBox: function(end) {
+        var result;
+        if (Math.abs(this.dragHandler.start.x - end.x) > 5 ||    
+            Math.abs(this.dragHandler.start.y - end.y) > 5) {   
+            var start = this.dragHandler.start;
+            var top = Math.min(start.y, end.y);
+            var bottom = Math.max(start.y, end.y);
+            var left = Math.min(start.x, end.x);
+            var right = Math.max(start.x, end.x);
+            result = new OpenLayers.Bounds(left, bottom, right, top);
+        } else {
+            result = this.dragHandler.start.clone(); // i.e. OL.Pixel
+        } 
+        this.removeBox();
+
+        this.callback("done", [result]);
+    },
+
+    /**
+     * Method: removeBox
+     * Remove the zoombox from the screen and nullify our reference to it.
+     */
+    removeBox: function() {
+        this.map.viewPortDiv.removeChild(this.zoomBox);
+        this.zoomBox = null;
+        this.boxOffsets = null;
+        OpenLayers.Element.removeClass(
+            this.map.viewPortDiv, "olDrawBox"
+        );
+
+    },
+
+    /**
+     * Method: activate
+     */
+    activate: function () {
+        if (OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
+            this.dragHandler.activate();
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * Method: deactivate
+     */
+    deactivate: function () {
+        if (OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            if (this.dragHandler.deactivate()) {
+                if (this.zoomBox) {
+                    this.removeBox();
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    /**
+     * Method: getBoxOffsets
+     * Determines border offsets for a box, according to the box model.
+     * 
+     * Returns:
+     * {Object} an object with the following offsets:
+     *     - left
+     *     - right
+     *     - top
+     *     - bottom
+     *     - width
+     *     - height
+     */
+    getBoxOffsets: function() {
+        if (!this.boxOffsets) {
+            // Determine the box model. If the testDiv's clientWidth is 3, then
+            // the borders are outside and we are dealing with the w3c box
+            // model. Otherwise, the browser uses the traditional box model and
+            // the borders are inside the box bounds, leaving us with a
+            // clientWidth of 1.
+            var testDiv = document.createElement("div");
+            //testDiv.style.visibility = "hidden";
+            testDiv.style.position = "absolute";
+            testDiv.style.border = "1px solid black";
+            testDiv.style.width = "3px";
+            document.body.appendChild(testDiv);
+            var w3cBoxModel = testDiv.clientWidth == 3;
+            document.body.removeChild(testDiv);
+            
+            var left = parseInt(OpenLayers.Element.getStyle(this.zoomBox,
+                "border-left-width"));
+            var right = parseInt(OpenLayers.Element.getStyle(
+                this.zoomBox, "border-right-width"));
+            var top = parseInt(OpenLayers.Element.getStyle(this.zoomBox,
+                "border-top-width"));
+            var bottom = parseInt(OpenLayers.Element.getStyle(
+                this.zoomBox, "border-bottom-width"));
+            this.boxOffsets = {
+                left: left,
+                right: right,
+                top: top,
+                bottom: bottom,
+                width: w3cBoxModel === false ? left + right : 0,
+                height: w3cBoxModel === false ? top + bottom : 0
+            };
+        }
+        return this.boxOffsets;
+    },
+  
+    CLASS_NAME: "OpenLayers.Handler.Box"
+});
+/* ======================================================================
+    OpenLayers/Control/ZoomBox.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Control.js
+ * @requires OpenLayers/Handler/Box.js
+ */
+
+/**
+ * Class: OpenLayers.Control.ZoomBox
+ * The ZoomBox control enables zooming directly to a given extent, by drawing 
+ * a box on the map. The box is drawn by holding down shift, whilst dragging 
+ * the mouse.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Control>
+ */
+OpenLayers.Control.ZoomBox = OpenLayers.Class(OpenLayers.Control, {
+    /**
+     * Property: type
+     * {OpenLayers.Control.TYPE}
+     */
+    type: OpenLayers.Control.TYPE_TOOL,
+
+    /**
+     * Property: out
+     * {Boolean} Should the control be used for zooming out?
+     */
+    out: false,
+
+    /**
+     * APIProperty: keyMask
+     * {Integer} Zoom only occurs if the keyMask matches the combination of 
+     *     keys down. Use bitwise operators and one or more of the
+     *     <OpenLayers.Handler> constants to construct a keyMask. Leave null if 
+     *     not used mask. Default is null.
+     */
+    keyMask: null,
+
+    /**
+     * APIProperty: alwaysZoom
+     * {Boolean} Always zoom in/out, when box drawed 
+     */
+    alwaysZoom: false,
+
+    /**
+     * Method: draw
+     */    
+    draw: function() {
+        this.handler = new OpenLayers.Handler.Box( this,
+                            {done: this.zoomBox}, {keyMask: this.keyMask} );
+    },
+
+    /**
+     * Method: zoomBox
+     *
+     * Parameters:
+     * position - {<OpenLayers.Bounds>} or {<OpenLayers.Pixel>}
+     */
+    zoomBox: function (position) {
+        if (position instanceof OpenLayers.Bounds) {
+            var bounds;
+            if (!this.out) {
+                var minXY = this.map.getLonLatFromPixel({
+                    x: position.left,
+                    y: position.bottom
+                });
+                var maxXY = this.map.getLonLatFromPixel({
+                    x: position.right,
+                    y: position.top
+                });
+                bounds = new OpenLayers.Bounds(minXY.lon, minXY.lat,
+                                               maxXY.lon, maxXY.lat);
+            } else {
+                var pixWidth = Math.abs(position.right-position.left);
+                var pixHeight = Math.abs(position.top-position.bottom);
+                var zoomFactor = Math.min((this.map.size.h / pixHeight),
+                    (this.map.size.w / pixWidth));
+                var extent = this.map.getExtent();
+                var center = this.map.getLonLatFromPixel(
+                    position.getCenterPixel());
+                var xmin = center.lon - (extent.getWidth()/2)*zoomFactor;
+                var xmax = center.lon + (extent.getWidth()/2)*zoomFactor;
+                var ymin = center.lat - (extent.getHeight()/2)*zoomFactor;
+                var ymax = center.lat + (extent.getHeight()/2)*zoomFactor;
+                bounds = new OpenLayers.Bounds(xmin, ymin, xmax, ymax);
+            }
+            // always zoom in/out 
+            var lastZoom = this.map.getZoom(); 
+            this.map.zoomToExtent(bounds);
+            if (lastZoom == this.map.getZoom() && this.alwaysZoom == true){ 
+                this.map.zoomTo(lastZoom + (this.out ? -1 : 1)); 
+            }
+        } else { // it's a pixel
+            if (!this.out) {
+                this.map.setCenter(this.map.getLonLatFromPixel(position),
+                               this.map.getZoom() + 1);
+            } else {
+                this.map.setCenter(this.map.getLonLatFromPixel(position),
+                               this.map.getZoom() - 1);
+            }
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Control.ZoomBox"
+});
+/* ======================================================================
+    OpenLayers/Control/DragPan.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Control.js
+ * @requires OpenLayers/Handler/Drag.js
+ */
+
+/**
+ * Class: OpenLayers.Control.DragPan
+ * The DragPan control pans the map with a drag of the mouse.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Control>
+ */
+OpenLayers.Control.DragPan = OpenLayers.Class(OpenLayers.Control, {
+
+    /** 
+     * Property: type
+     * {OpenLayers.Control.TYPES}
+     */
+    type: OpenLayers.Control.TYPE_TOOL,
+    
+    /**
+     * Property: panned
+     * {Boolean} The map moved.
+     */
+    panned: false,
+    
+    /**
+     * Property: interval
+     * {Integer} The number of milliseconds that should ellapse before
+     *     panning the map again. Defaults to 1 millisecond. In most cases
+     *     you won't want to change this value. For slow machines/devices
+     *     larger values can be tried out.
+     */
+    interval: 1,
+    
+    /**
+     * APIProperty: documentDrag
+     * {Boolean} If set to true, mouse dragging will continue even if the
+     *     mouse cursor leaves the map viewport. Default is false.
+     */
+    documentDrag: false,
+
+    /**
+     * Property: kinetic
+     * {<OpenLayers.Kinetic>} The OpenLayers.Kinetic object.
+     */
+    kinetic: null,
+
+    /**
+     * APIProperty: enableKinetic
+     * {Boolean} Set this option to enable "kinetic dragging". Can be
+     *     set to true or to an object. If set to an object this
+     *     object will be passed to the {<OpenLayers.Kinetic>}
+     *     constructor. Defaults to false.
+     *     If you set this property, you should ensure that 
+     *     OpenLayers/Kinetic.js is included in your build config
+     */
+    enableKinetic: false,
+
+    /**
+     * APIProperty: kineticInterval
+     * {Integer} Interval in milliseconds between 2 steps in the "kinetic
+     *     scrolling". Applies only if enableKinetic is set. Defaults
+     *     to 10 milliseconds.
+     */
+    kineticInterval: 10,
+
+
+    /**
+     * Method: draw
+     * Creates a Drag handler, using <panMap> and
+     * <panMapDone> as callbacks.
+     */    
+    draw: function() {
+        if(this.enableKinetic) {
+            var config = {interval: this.kineticInterval};
+            if(typeof this.enableKinetic === "object") {
+                config = OpenLayers.Util.extend(config, this.enableKinetic);
+            }
+            this.kinetic = new OpenLayers.Kinetic(config);
+        }
+        this.handler = new OpenLayers.Handler.Drag(this, {
+                "move": this.panMap,
+                "done": this.panMapDone,
+                "down": this.panMapStart
+            }, {
+                interval: this.interval,
+                documentDrag: this.documentDrag
+            }
+        );
+    },
+
+    /**
+     * Method: panMapStart
+     */
+    panMapStart: function() {
+        if(this.kinetic) {
+            this.kinetic.begin();
+        }
+    },
+
+    /**
+    * Method: panMap
+    *
+    * Parameters:
+    * xy - {<OpenLayers.Pixel>} Pixel of the mouse position
+    */
+    panMap: function(xy) {
+        if(this.kinetic) {
+            this.kinetic.update(xy);
+        }
+        this.panned = true;
+        this.map.pan(
+            this.handler.last.x - xy.x,
+            this.handler.last.y - xy.y,
+            {dragging: true, animate: false}
+        );
+    },
+    
+    /**
+     * Method: panMapDone
+     * Finish the panning operation.  Only call setCenter (through <panMap>)
+     *     if the map has actually been moved.
+     *
+     * Parameters:
+     * xy - {<OpenLayers.Pixel>} Pixel of the mouse position
+     */
+    panMapDone: function(xy) {
+        if(this.panned) {
+            var res = null;
+            if (this.kinetic) {
+                res = this.kinetic.end(xy);
+            }
+            this.map.pan(
+                this.handler.last.x - xy.x,
+                this.handler.last.y - xy.y,
+                {dragging: !!res, animate: false}
+            );
+            if (res) {
+                var self = this;
+                this.kinetic.move(res, function(x, y, end) {
+                    self.map.pan(x, y, {dragging: !end, animate: false});
+                });
+            }
+            this.panned = false;
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Control.DragPan"
+});
+/* ======================================================================
+    OpenLayers/Handler/MouseWheel.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Handler.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.MouseWheel
+ * Handler for wheel up/down events.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Handler>
+ */
+OpenLayers.Handler.MouseWheel = OpenLayers.Class(OpenLayers.Handler, {
+    /** 
+     * Property: wheelListener 
+     * {function} 
+     */
+    wheelListener: null,
+
+    /** 
+     * Property: mousePosition
+     * {<OpenLayers.Pixel>} mousePosition is necessary because
+     * evt.clientX/Y is buggy in Moz on wheel events, so we cache and use the
+     * value from the last mousemove.
+     */
+    mousePosition: null,
+
+    /**
+     * Property: interval
+     * {Integer} In order to increase server performance, an interval (in 
+     *     milliseconds) can be set to reduce the number of up/down events 
+     *     called. If set, a new up/down event will not be set until the 
+     *     interval has passed. 
+     *     Defaults to 0, meaning no interval. 
+     */
+    interval: 0,
+    
+    /**
+     * Property: delta
+     * {Integer} When interval is set, delta collects the mousewheel z-deltas
+     *     of the events that occur within the interval.
+     *      See also the cumulative option
+     */
+    delta: 0,
+    
+    /**
+     * Property: cumulative
+     * {Boolean} When interval is set: true to collect all the mousewheel 
+     *     z-deltas, false to only record the delta direction (positive or
+     *     negative)
+     */
+    cumulative: true,
+
+    /**
+     * Constructor: OpenLayers.Handler.MouseWheel
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} 
+     * callbacks - {Object} An object containing a single function to be
+     *                          called when the drag operation is finished.
+     *                          The callback should expect to recieve a single
+     *                          argument, the point geometry.
+     * options - {Object} 
+     */
+    initialize: function(control, callbacks, options) {
+        OpenLayers.Handler.prototype.initialize.apply(this, arguments);
+        this.wheelListener = OpenLayers.Function.bindAsEventListener(
+            this.onWheelEvent, this
+        );
+    },
+
+    /**
+     * Method: destroy
+     */    
+    destroy: function() {
+        OpenLayers.Handler.prototype.destroy.apply(this, arguments);
+        this.wheelListener = null;
+    },
+
+    /**
+     *  Mouse ScrollWheel code thanks to http://adomas.org/javascript-mouse-wheel/
+     */
+
+    /** 
+     * Method: onWheelEvent
+     * Catch the wheel event and handle it xbrowserly
+     * 
+     * Parameters:
+     * e - {Event} 
+     */
+    onWheelEvent: function(e){
+        
+        // make sure we have a map and check keyboard modifiers
+        if (!this.map || !this.checkModifiers(e)) {
+            return;
+        }
+        
+        // Ride up the element's DOM hierarchy to determine if it or any of 
+        //  its ancestors was: 
+        //   * specifically marked as scrollable
+        //   * one of our layer divs
+        //   * the map div
+        //
+        var overScrollableDiv = false;
+        var overLayerDiv = false;
+        var overMapDiv = false;
+        
+        var elem = OpenLayers.Event.element(e);
+        while((elem != null) && !overMapDiv && !overScrollableDiv) {
+
+            if (!overScrollableDiv) {
+                try {
+                    if (elem.currentStyle) {
+                        overflow = elem.currentStyle["overflow"];
+                    } else {
+                        var style = 
+                            document.defaultView.getComputedStyle(elem, null);
+                        var overflow = style.getPropertyValue("overflow");
+                    }
+                    overScrollableDiv = ( overflow && 
+                        (overflow == "auto") || (overflow == "scroll") );
+                } catch(err) {
+                    //sometimes when scrolling in a popup, this causes 
+                    // obscure browser error
+                }
+            }
+
+            if (!overLayerDiv) {
+                for(var i=0, len=this.map.layers.length; i<len; i++) {
+                    // Are we in the layer div? Note that we have two cases
+                    // here: one is to catch EventPane layers, which have a 
+                    // pane above the layer (layer.pane)
+                    if (elem == this.map.layers[i].div 
+                        || elem == this.map.layers[i].pane) { 
+                        overLayerDiv = true;
+                        break;
+                    }
+                }
+            }
+            overMapDiv = (elem == this.map.div);
+
+            elem = elem.parentNode;
+        }
+        
+        // Logic below is the following:
+        //
+        // If we are over a scrollable div or not over the map div:
+        //  * do nothing (let the browser handle scrolling)
+        //
+        //    otherwise 
+        // 
+        //    If we are over the layer div: 
+        //     * zoom/in out
+        //     then
+        //     * kill event (so as not to also scroll the page after zooming)
+        //
+        //       otherwise
+        //
+        //       Kill the event (dont scroll the page if we wheel over the 
+        //        layerswitcher or the pan/zoom control)
+        //
+        if (!overScrollableDiv && overMapDiv) {
+            if (overLayerDiv) {
+                var delta = 0;
+                if (!e) {
+                    e = window.event;
+                }
+                if (e.wheelDelta) {
+                    delta = e.wheelDelta/120; 
+                    if (window.opera && window.opera.version() < 9.2) {
+                        delta = -delta;
+                    }
+                } else if (e.detail) {
+                    delta = -e.detail / 3;
+                }
+                this.delta = this.delta + delta;
+
+                if(this.interval) {
+                    window.clearTimeout(this._timeoutId);
+                    this._timeoutId = window.setTimeout(
+                        OpenLayers.Function.bind(function(){
+                            this.wheelZoom(e);
+                        }, this),
+                        this.interval
+                    );
+                } else {
+                    this.wheelZoom(e);
+                }
+            }
+            OpenLayers.Event.stop(e);
+        }
+    },
+
+    /**
+     * Method: wheelZoom
+     * Given the wheel event, we carry out the appropriate zooming in or out,
+     *     based on the 'wheelDelta' or 'detail' property of the event.
+     * 
+     * Parameters:
+     * e - {Event}
+     */
+    wheelZoom: function(e) {
+        var delta = this.delta;
+        this.delta = 0;
+        
+        if (delta) {
+            // add the mouse position to the event because mozilla has 
+            // a bug with clientX and clientY (see 
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=352179)
+            // getLonLatFromViewPortPx(e) returns wrong values
+            if (this.mousePosition) {
+                e.xy = this.mousePosition;
+            } 
+            if (!e.xy) {
+                // If the mouse hasn't moved over the map yet, then
+                // we don't have a mouse position (in FF), so we just
+                // act as if the mouse was at the center of the map.
+                // Note that we can tell we are in the map -- and 
+                // this.map is ensured to be true above.
+                e.xy = this.map.getPixelFromLonLat(
+                    this.map.getCenter()
+                );
+            }
+            if (delta < 0) {
+                this.callback("down", [e, this.cumulative ? delta : -1]);
+            } else {
+                this.callback("up", [e, this.cumulative ? delta : 1]);
+            }
+        }
+    },
+    
+    /**
+     * Method: mousemove
+     * Update the stored mousePosition on every move.
+     * 
+     * Parameters:
+     * evt - {Event} The browser event
+     *
+     * Returns: 
+     * {Boolean} Allow event propagation
+     */
+    mousemove: function (evt) {
+        this.mousePosition = evt.xy;
+    },
+
+    /**
+     * Method: activate 
+     */
+    activate: function (evt) {
+        if (OpenLayers.Handler.prototype.activate.apply(this, arguments)) {
+            //register mousewheel events specifically on the window and document
+            var wheelListener = this.wheelListener;
+            OpenLayers.Event.observe(window, "DOMMouseScroll", wheelListener);
+            OpenLayers.Event.observe(window, "mousewheel", wheelListener);
+            OpenLayers.Event.observe(document, "mousewheel", wheelListener);
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * Method: deactivate 
+     */
+    deactivate: function (evt) {
+        if (OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            // unregister mousewheel events specifically on the window and document
+            var wheelListener = this.wheelListener;
+            OpenLayers.Event.stopObserving(window, "DOMMouseScroll", wheelListener);
+            OpenLayers.Event.stopObserving(window, "mousewheel", wheelListener);
+            OpenLayers.Event.stopObserving(document, "mousewheel", wheelListener);
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Handler.MouseWheel"
+});
+/* ======================================================================
+    OpenLayers/Control/Navigation.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Control/ZoomBox.js
+ * @requires OpenLayers/Control/DragPan.js
+ * @requires OpenLayers/Handler/MouseWheel.js
+ * @requires OpenLayers/Handler/Click.js
+ */
+
+/**
+ * Class: OpenLayers.Control.Navigation
+ * The navigation control handles map browsing with mouse events (dragging,
+ *     double-clicking, and scrolling the wheel).  Create a new navigation 
+ *     control with the <OpenLayers.Control.Navigation> control.  
+ * 
+ *     Note that this control is added to the map by default (if no controls 
+ *     array is sent in the options object to the <OpenLayers.Map> 
+ *     constructor).
+ * 
+ * Inherits:
+ *  - <OpenLayers.Control>
+ */
+OpenLayers.Control.Navigation = OpenLayers.Class(OpenLayers.Control, {
+
+    /** 
+     * Property: dragPan
+     * {<OpenLayers.Control.DragPan>} 
+     */
+    dragPan: null,
+
+    /**
+     * APIProperty: dragPanOptions
+     * {Object} Options passed to the DragPan control.
+     */
+    dragPanOptions: null,
+
+    /**
+     * Property: pinchZoom
+     * {<OpenLayers.Control.PinchZoom>}
+     */
+    pinchZoom: null,
+
+    /**
+     * APIProperty: pinchZoomOptions
+     * {Object} Options passed to the PinchZoom control.
+     */
+    pinchZoomOptions: null,
+
+    /**
+     * APIProperty: documentDrag
+     * {Boolean} Allow panning of the map by dragging outside map viewport.
+     *     Default is false.
+     */
+    documentDrag: false,
+
+    /** 
+     * Property: zoomBox
+     * {<OpenLayers.Control.ZoomBox>}
+     */
+    zoomBox: null,
+
+    /**
+     * APIProperty: zoomBoxEnabled
+     * {Boolean} Whether the user can draw a box to zoom
+     */
+    zoomBoxEnabled: true, 
+
+    /**
+     * APIProperty: zoomWheelEnabled
+     * {Boolean} Whether the mousewheel should zoom the map
+     */
+    zoomWheelEnabled: true,
+    
+    /**
+     * Property: mouseWheelOptions
+     * {Object} Options passed to the MouseWheel control (only useful if
+     *     <zoomWheelEnabled> is set to true)
+     */
+    mouseWheelOptions: null,
+
+    /**
+     * APIProperty: handleRightClicks
+     * {Boolean} Whether or not to handle right clicks. Default is false.
+     */
+    handleRightClicks: false,
+
+    /**
+     * APIProperty: zoomBoxKeyMask
+     * {Integer} <OpenLayers.Handler> key code of the key, which has to be
+     *    pressed, while drawing the zoom box with the mouse on the screen. 
+     *    You should probably set handleRightClicks to true if you use this
+     *    with MOD_CTRL, to disable the context menu for machines which use
+     *    CTRL-Click as a right click.
+     * Default: <OpenLayers.Handler.MOD_SHIFT>
+     */
+    zoomBoxKeyMask: OpenLayers.Handler.MOD_SHIFT,
+    
+    /**
+     * APIProperty: autoActivate
+     * {Boolean} Activate the control when it is added to a map.  Default is
+     *     true.
+     */
+    autoActivate: true,
+
+    /**
+     * Constructor: OpenLayers.Control.Navigation
+     * Create a new navigation control
+     * 
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *                    the control
+     */
+    initialize: function(options) {
+        this.handlers = {};
+        OpenLayers.Control.prototype.initialize.apply(this, arguments);
+    },
+
+    /**
+     * Method: destroy
+     * The destroy method is used to perform any clean up before the control
+     * is dereferenced.  Typically this is where event listeners are removed
+     * to prevent memory leaks.
+     */
+    destroy: function() {
+        this.deactivate();
+
+        if (this.dragPan) {
+            this.dragPan.destroy();
+        }
+        this.dragPan = null;
+
+        if (this.zoomBox) {
+            this.zoomBox.destroy();
+        }
+        this.zoomBox = null;
+
+        if (this.pinchZoom) {
+            this.pinchZoom.destroy();
+        }
+        this.pinchZoom = null;
+
+        OpenLayers.Control.prototype.destroy.apply(this,arguments);
+    },
+    
+    /**
+     * Method: activate
+     */
+    activate: function() {
+        this.dragPan.activate();
+        if (this.zoomWheelEnabled) {
+            this.handlers.wheel.activate();
+        }    
+        this.handlers.click.activate();
+        if (this.zoomBoxEnabled) {
+            this.zoomBox.activate();
+        }
+        if (this.pinchZoom) {
+            this.pinchZoom.activate();
+        }
+        return OpenLayers.Control.prototype.activate.apply(this,arguments);
+    },
+
+    /**
+     * Method: deactivate
+     */
+    deactivate: function() {
+        if (this.pinchZoom) {
+            this.pinchZoom.deactivate();
+        }
+        this.zoomBox.deactivate();
+        this.dragPan.deactivate();
+        this.handlers.click.deactivate();
+        this.handlers.wheel.deactivate();
+        return OpenLayers.Control.prototype.deactivate.apply(this,arguments);
+    },
+    
+    /**
+     * Method: draw
+     */
+    draw: function() {
+        // disable right mouse context menu for support of right click events
+        if (this.handleRightClicks) {
+            this.map.viewPortDiv.oncontextmenu = OpenLayers.Function.False;
+        }
+
+        var clickCallbacks = { 
+            'click': this.defaultClick,
+            'dblclick': this.defaultDblClick, 
+            'dblrightclick': this.defaultDblRightClick 
+        };
+        var clickOptions = {
+            'double': true, 
+            'stopDouble': true
+        };
+        this.handlers.click = new OpenLayers.Handler.Click(
+            this, clickCallbacks, clickOptions
+        );
+        this.dragPan = new OpenLayers.Control.DragPan(
+            OpenLayers.Util.extend({
+                map: this.map,
+                documentDrag: this.documentDrag
+            }, this.dragPanOptions)
+        );
+        this.zoomBox = new OpenLayers.Control.ZoomBox(
+                    {map: this.map, keyMask: this.zoomBoxKeyMask});
+        this.dragPan.draw();
+        this.zoomBox.draw();
+        this.handlers.wheel = new OpenLayers.Handler.MouseWheel(
+                                    this, {"up"  : this.wheelUp,
+                                           "down": this.wheelDown},
+                                    this.mouseWheelOptions );
+        if (OpenLayers.Control.PinchZoom) {
+            this.pinchZoom = new OpenLayers.Control.PinchZoom(
+                OpenLayers.Util.extend(
+                    {map: this.map}, this.pinchZoomOptions));
+        }
+    },
+
+    /**
+     * Method: defaultClick
+     *
+     * Parameters:
+     * evt - {Event}
+     */
+    defaultClick: function (evt) {
+        if (evt.lastTouches && evt.lastTouches.length == 2) {
+            this.map.zoomOut();
+        }
+    },
+
+    /**
+     * Method: defaultDblClick 
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    defaultDblClick: function (evt) {
+        var newCenter = this.map.getLonLatFromViewPortPx( evt.xy ); 
+        this.map.setCenter(newCenter, this.map.zoom + 1);
+    },
+
+    /**
+     * Method: defaultDblRightClick 
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    defaultDblRightClick: function (evt) {
+        var newCenter = this.map.getLonLatFromViewPortPx( evt.xy ); 
+        this.map.setCenter(newCenter, this.map.zoom - 1);
+    },
+    
+    /**
+     * Method: wheelChange  
+     *
+     * Parameters:
+     * evt - {Event}
+     * deltaZ - {Integer}
+     */
+    wheelChange: function(evt, deltaZ) {
+        var currentZoom = this.map.getZoom();
+        var newZoom = this.map.getZoom() + Math.round(deltaZ);
+        newZoom = Math.max(newZoom, 0);
+        newZoom = Math.min(newZoom, this.map.getNumZoomLevels());
+        if (newZoom === currentZoom) {
+            return;
+        }
+        var size    = this.map.getSize();
+        var deltaX  = size.w/2 - evt.xy.x;
+        var deltaY  = evt.xy.y - size.h/2;
+        var newRes  = this.map.baseLayer.getResolutionForZoom(newZoom);
+        var zoomPoint = this.map.getLonLatFromPixel(evt.xy);
+        var newCenter = new OpenLayers.LonLat(
+                            zoomPoint.lon + deltaX * newRes,
+                            zoomPoint.lat + deltaY * newRes );
+        this.map.setCenter( newCenter, newZoom );
+    },
+
+    /** 
+     * Method: wheelUp
+     * User spun scroll wheel up
+     * 
+     * Parameters:
+     * evt - {Event}
+     * delta - {Integer}
+     */
+    wheelUp: function(evt, delta) {
+        this.wheelChange(evt, delta || 1);
+    },
+
+    /** 
+     * Method: wheelDown
+     * User spun scroll wheel down
+     * 
+     * Parameters:
+     * evt - {Event}
+     * delta - {Integer}
+     */
+    wheelDown: function(evt, delta) {
+        this.wheelChange(evt, delta || -1);
+    },
+    
+    /**
+     * Method: disableZoomBox
+     */
+    disableZoomBox : function() {
+        this.zoomBoxEnabled = false;
+        this.zoomBox.deactivate();       
+    },
+    
+    /**
+     * Method: enableZoomBox
+     */
+    enableZoomBox : function() {
+        this.zoomBoxEnabled = true;
+        if (this.active) {
+            this.zoomBox.activate();
+        }    
+    },
+    
+    /**
+     * Method: disableZoomWheel
+     */
+    
+    disableZoomWheel : function() {
+        this.zoomWheelEnabled = false;
+        this.handlers.wheel.deactivate();       
+    },
+    
+    /**
+     * Method: enableZoomWheel
+     */
+    
+    enableZoomWheel : function() {
+        this.zoomWheelEnabled = true;
+        if (this.active) {
+            this.handlers.wheel.activate();
+        }    
+    },
+
+    CLASS_NAME: "OpenLayers.Control.Navigation"
+});
+/* ======================================================================
+    OpenLayers/Handler/Hover.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Handler.js
+ */
+
+/**
+ * Class: OpenLayers.Handler.Hover
+ * The hover handler is to be used to emulate mouseovers on objects
+ *      on the map that aren't DOM elements. For example one can use
+ *      this handler to send WMS/GetFeatureInfo requests as the user
+ *      moves the mouve over the map.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Handler> 
+ */
+OpenLayers.Handler.Hover = OpenLayers.Class(OpenLayers.Handler, {
+
+    /**
+     * APIProperty: delay
+     * {Integer} - Number of milliseconds between mousemoves before
+     *      the event is considered a hover. Default is 500.
+     */
+    delay: 500,
+    
+    /**
+     * APIProperty: pixelTolerance
+     * {Integer} - Maximum number of pixels between mousemoves for
+     *      an event to be considered a hover. Default is null.
+     */
+    pixelTolerance: null,
+
+    /**
+     * APIProperty: stopMove
+     * {Boolean} - Stop other listeners from being notified on mousemoves.
+     *      Default is false.
+     */
+    stopMove: false,
+
+    /**
+     * Property: px
+     * {<OpenLayers.Pixel>} - The location of the last mousemove, expressed
+     *      in pixels.
+     */
+    px: null,
+
+    /**
+     * Property: timerId
+     * {Number} - The id of the timer.
+     */
+    timerId: null,
+ 
+    /**
+     * Constructor: OpenLayers.Handler.Hover
+     * Construct a hover handler.
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} The control that initialized this
+     *     handler.  The control is assumed to have a valid map property; that
+     *     map is used in the handler's own setMap method.
+     * callbacks - {Object} An object with keys corresponding to callbacks
+     *     that will be called by the handler. The callbacks should
+     *     expect to receive a single argument, the event. Callbacks for
+     *     'move', the mouse is moving, and 'pause', the mouse is pausing,
+     *     are supported.
+     * options - {Object} An optional object whose properties will be set on
+     *     the handler.
+     */
+
+    /**
+     * Method: mousemove
+     * Called when the mouse moves on the map.
+     *
+     * Parameters:
+     * evt - {<OpenLayers.Event>}
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    mousemove: function(evt) {
+        if(this.passesTolerance(evt.xy)) {
+            this.clearTimer();
+            this.callback('move', [evt]);
+            this.px = evt.xy;
+            // clone the evt so original properties can be accessed even
+            // if the browser deletes them during the delay
+            evt = OpenLayers.Util.extend({}, evt);
+            this.timerId = window.setTimeout(
+                OpenLayers.Function.bind(this.delayedCall, this, evt),
+                this.delay
+            );
+        }
+        return !this.stopMove;
+    },
+
+    /**
+     * Method: mouseout
+     * Called when the mouse goes out of the map.
+     *
+     * Parameters:
+     * evt - {<OpenLayers.Event>}
+     *
+     * Returns:
+     * {Boolean} Continue propagating this event.
+     */
+    mouseout: function(evt) {
+        if (OpenLayers.Util.mouseLeft(evt, this.map.viewPortDiv)) {
+            this.clearTimer();
+            this.callback('move', [evt]);
+        }
+        return true;
+    },
+
+    /**
+     * Method: passesTolerance
+     * Determine whether the mouse move is within the optional pixel tolerance.
+     *
+     * Parameters:
+     * px - {<OpenLayers.Pixel>}
+     *
+     * Returns:
+     * {Boolean} The mouse move is within the pixel tolerance.
+     */
+    passesTolerance: function(px) {
+        var passes = true;
+        if(this.pixelTolerance && this.px) {
+            var dpx = Math.sqrt(
+                Math.pow(this.px.x - px.x, 2) +
+                Math.pow(this.px.y - px.y, 2)
+            );
+            if(dpx < this.pixelTolerance) {
+                passes = false;
+            }
+        }
+        return passes;
+    },
+
+    /**
+     * Method: clearTimer
+     * Clear the timer and set <timerId> to null.
+     */
+    clearTimer: function() {
+        if(this.timerId != null) {
+            window.clearTimeout(this.timerId);
+            this.timerId = null;
+        }
+    },
+
+    /**
+     * Method: delayedCall
+     * Triggers pause callback.
+     *
+     * Parameters:
+     * evt - {<OpenLayers.Event>}
+     */
+    delayedCall: function(evt) {
+        this.callback('pause', [evt]);
+    },
+
+    /**
+     * APIMethod: deactivate
+     * Deactivate the handler.
+     *
+     * Returns:
+     * {Boolean} The handler was successfully deactivated.
+     */
+    deactivate: function() {
+        var deactivated = false;
+        if(OpenLayers.Handler.prototype.deactivate.apply(this, arguments)) {
+            this.clearTimer();
+            deactivated = true;
+        }
+        return deactivated;
+    },
+
+    CLASS_NAME: "OpenLayers.Handler.Hover"
+});
+/* ======================================================================
+    OpenLayers/Format/WKT.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format.js
+ * @requires OpenLayers/Feature/Vector.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WKT
+ * Class for reading and writing Well-Known Text.  Create a new instance
+ * with the <OpenLayers.Format.WKT> constructor.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format>
+ */
+OpenLayers.Format.WKT = OpenLayers.Class(OpenLayers.Format, {
+    
+    /**
+     * Constructor: OpenLayers.Format.WKT
+     * Create a new parser for WKT
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *           this instance
+     *
+     * Returns:
+     * {<OpenLayers.Format.WKT>} A new WKT parser.
+     */
+    initialize: function(options) {
+        this.regExes = {
+            'typeStr': /^\s*(\w+)\s*\(\s*(.*)\s*\)\s*$/,
+            'spaces': /\s+/,
+            'parenComma': /\)\s*,\s*\(/,
+            'doubleParenComma': /\)\s*\)\s*,\s*\(\s*\(/,  // can't use {2} here
+            'trimParens': /^\s*\(?(.*?)\)?\s*$/
+        };
+        OpenLayers.Format.prototype.initialize.apply(this, [options]);
+    },
+
+    /**
+     * Method: read
+     * Deserialize a WKT string and return a vector feature or an
+     * array of vector features.  Supports WKT for POINT, MULTIPOINT,
+     * LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON, and
+     * GEOMETRYCOLLECTION.
+     *
+     * Parameters:
+     * wkt - {String} A WKT string
+     *
+     * Returns:
+     * {<OpenLayers.Feature.Vector>|Array} A feature or array of features for
+     * GEOMETRYCOLLECTION WKT.
+     */
+    read: function(wkt) {
+        var features, type, str;
+        wkt = wkt.replace(/[\n\r]/g, " ");
+        var matches = this.regExes.typeStr.exec(wkt);
+        if(matches) {
+            type = matches[1].toLowerCase();
+            str = matches[2];
+            if(this.parse[type]) {
+                features = this.parse[type].apply(this, [str]);
+            }
+            if (this.internalProjection && this.externalProjection) {
+                if (features && 
+                    features.CLASS_NAME == "OpenLayers.Feature.Vector") {
+                    features.geometry.transform(this.externalProjection,
+                                                this.internalProjection);
+                } else if (features &&
+                           type != "geometrycollection" &&
+                           typeof features == "object") {
+                    for (var i=0, len=features.length; i<len; i++) {
+                        var component = features[i];
+                        component.geometry.transform(this.externalProjection,
+                                                     this.internalProjection);
+                    }
+                }
+            }
+        }    
+        return features;
+    },
+
+    /**
+     * Method: write
+     * Serialize a feature or array of features into a WKT string.
+     *
+     * Parameters:
+     * features - {<OpenLayers.Feature.Vector>|Array} A feature or array of
+     *            features
+     *
+     * Returns:
+     * {String} The WKT string representation of the input geometries
+     */
+    write: function(features) {
+        var collection, geometry, type, data, isCollection;
+        if (features.constructor == Array) {
+            collection = features;
+            isCollection = true;
+        } else {
+            collection = [features];
+            isCollection = false;
+        }
+        var pieces = [];
+        if (isCollection) {
+            pieces.push('GEOMETRYCOLLECTION(');
+        }
+        for (var i=0, len=collection.length; i<len; ++i) {
+            if (isCollection && i>0) {
+                pieces.push(',');
+            }
+            geometry = collection[i].geometry;
+            pieces.push(this.extractGeometry(geometry));
+        }
+        if (isCollection) {
+            pieces.push(')');
+        }
+        return pieces.join('');
+    },
+
+    /**
+     * Method: extractGeometry
+     * Entry point to construct the WKT for a single Geometry object.
+     *
+     * Parameters:
+     * geometry - {<OpenLayers.Geometry.Geometry>}
+     *
+     * Returns:
+     * {String} A WKT string of representing the geometry
+     */
+    extractGeometry: function(geometry) {
+        var type = geometry.CLASS_NAME.split('.')[2].toLowerCase();
+        if (!this.extract[type]) {
+            return null;
+        }
+        if (this.internalProjection && this.externalProjection) {
+            geometry = geometry.clone();
+            geometry.transform(this.internalProjection, this.externalProjection);
+        }                       
+        var wktType = type == 'collection' ? 'GEOMETRYCOLLECTION' : type.toUpperCase();
+        var data = wktType + '(' + this.extract[type].apply(this, [geometry]) + ')';
+        return data;
+    },
+    
+    /**
+     * Object with properties corresponding to the geometry types.
+     * Property values are functions that do the actual data extraction.
+     */
+    extract: {
+        /**
+         * Return a space delimited string of point coordinates.
+         * @param {OpenLayers.Geometry.Point} point
+         * @returns {String} A string of coordinates representing the point
+         */
+        'point': function(point) {
+            return point.x + ' ' + point.y;
+        },
+
+        /**
+         * Return a comma delimited string of point coordinates from a multipoint.
+         * @param {OpenLayers.Geometry.MultiPoint} multipoint
+         * @returns {String} A string of point coordinate strings representing
+         *                  the multipoint
+         */
+        'multipoint': function(multipoint) {
+            var array = [];
+            for(var i=0, len=multipoint.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.point.apply(this, [multipoint.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+        
+        /**
+         * Return a comma delimited string of point coordinates from a line.
+         * @param {OpenLayers.Geometry.LineString} linestring
+         * @returns {String} A string of point coordinate strings representing
+         *                  the linestring
+         */
+        'linestring': function(linestring) {
+            var array = [];
+            for(var i=0, len=linestring.components.length; i<len; ++i) {
+                array.push(this.extract.point.apply(this, [linestring.components[i]]));
+            }
+            return array.join(',');
+        },
+
+        /**
+         * Return a comma delimited string of linestring strings from a multilinestring.
+         * @param {OpenLayers.Geometry.MultiLineString} multilinestring
+         * @returns {String} A string of of linestring strings representing
+         *                  the multilinestring
+         */
+        'multilinestring': function(multilinestring) {
+            var array = [];
+            for(var i=0, len=multilinestring.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.linestring.apply(this, [multilinestring.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+        
+        /**
+         * Return a comma delimited string of linear ring arrays from a polygon.
+         * @param {OpenLayers.Geometry.Polygon} polygon
+         * @returns {String} An array of linear ring arrays representing the polygon
+         */
+        'polygon': function(polygon) {
+            var array = [];
+            for(var i=0, len=polygon.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.linestring.apply(this, [polygon.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+
+        /**
+         * Return an array of polygon arrays from a multipolygon.
+         * @param {OpenLayers.Geometry.MultiPolygon} multipolygon
+         * @returns {String} An array of polygon arrays representing
+         *                  the multipolygon
+         */
+        'multipolygon': function(multipolygon) {
+            var array = [];
+            for(var i=0, len=multipolygon.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.polygon.apply(this, [multipolygon.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+
+        /**
+         * Return the WKT portion between 'GEOMETRYCOLLECTION(' and ')' for an <OpenLayers.Geometry.Collection>
+         * @param {OpenLayers.Geometry.Collection} collection
+         * @returns {String} internal WKT representation of the collection
+         */
+        'collection': function(collection) {
+            var array = [];
+            for(var i=0, len=collection.components.length; i<len; ++i) {
+                array.push(this.extractGeometry.apply(this, [collection.components[i]]));
+            }
+            return array.join(',');
+        }
+
+    },
+
+    /**
+     * Object with properties corresponding to the geometry types.
+     * Property values are functions that do the actual parsing.
+     */
+    parse: {
+        /**
+         * Return point feature given a point WKT fragment.
+         * @param {String} str A WKT fragment representing the point
+         * @returns {OpenLayers.Feature.Vector} A point feature
+         * @private
+         */
+        'point': function(str) {
+            var coords = OpenLayers.String.trim(str).split(this.regExes.spaces);
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.Point(coords[0], coords[1])
+            );
+        },
+
+        /**
+         * Return a multipoint feature given a multipoint WKT fragment.
+         * @param {String} str A WKT fragment representing the multipoint
+         * @returns {OpenLayers.Feature.Vector} A multipoint feature
+         * @private
+         */
+        'multipoint': function(str) {
+            var point;
+            var points = OpenLayers.String.trim(str).split(',');
+            var components = [];
+            for(var i=0, len=points.length; i<len; ++i) {
+                point = points[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.point.apply(this, [point]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiPoint(components)
+            );
+        },
+        
+        /**
+         * Return a linestring feature given a linestring WKT fragment.
+         * @param {String} str A WKT fragment representing the linestring
+         * @returns {OpenLayers.Feature.Vector} A linestring feature
+         * @private
+         */
+        'linestring': function(str) {
+            var points = OpenLayers.String.trim(str).split(',');
+            var components = [];
+            for(var i=0, len=points.length; i<len; ++i) {
+                components.push(this.parse.point.apply(this, [points[i]]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.LineString(components)
+            );
+        },
+
+        /**
+         * Return a multilinestring feature given a multilinestring WKT fragment.
+         * @param {String} str A WKT fragment representing the multilinestring
+         * @returns {OpenLayers.Feature.Vector} A multilinestring feature
+         * @private
+         */
+        'multilinestring': function(str) {
+            var line;
+            var lines = OpenLayers.String.trim(str).split(this.regExes.parenComma);
+            var components = [];
+            for(var i=0, len=lines.length; i<len; ++i) {
+                line = lines[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.linestring.apply(this, [line]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiLineString(components)
+            );
+        },
+        
+        /**
+         * Return a polygon feature given a polygon WKT fragment.
+         * @param {String} str A WKT fragment representing the polygon
+         * @returns {OpenLayers.Feature.Vector} A polygon feature
+         * @private
+         */
+        'polygon': function(str) {
+            var ring, linestring, linearring;
+            var rings = OpenLayers.String.trim(str).split(this.regExes.parenComma);
+            var components = [];
+            for(var i=0, len=rings.length; i<len; ++i) {
+                ring = rings[i].replace(this.regExes.trimParens, '$1');
+                linestring = this.parse.linestring.apply(this, [ring]).geometry;
+                linearring = new OpenLayers.Geometry.LinearRing(linestring.components);
+                components.push(linearring);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.Polygon(components)
+            );
+        },
+
+        /**
+         * Return a multipolygon feature given a multipolygon WKT fragment.
+         * @param {String} str A WKT fragment representing the multipolygon
+         * @returns {OpenLayers.Feature.Vector} A multipolygon feature
+         * @private
+         */
+        'multipolygon': function(str) {
+            var polygon;
+            var polygons = OpenLayers.String.trim(str).split(this.regExes.doubleParenComma);
+            var components = [];
+            for(var i=0, len=polygons.length; i<len; ++i) {
+                polygon = polygons[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.polygon.apply(this, [polygon]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiPolygon(components)
+            );
+        },
+
+        /**
+         * Return an array of features given a geometrycollection WKT fragment.
+         * @param {String} str A WKT fragment representing the geometrycollection
+         * @returns {Array} An array of OpenLayers.Feature.Vector
+         * @private
+         */
+        'geometrycollection': function(str) {
+            // separate components of the collection with |
+            str = str.replace(/,\s*([A-Za-z])/g, '|$1');
+            var wktArray = OpenLayers.String.trim(str).split('|');
+            var components = [];
+            for(var i=0, len=wktArray.length; i<len; ++i) {
+                components.push(OpenLayers.Format.WKT.prototype.read.apply(this,[wktArray[i]]));
+            }
+            return components;
+        }
+
+    },
+
+    CLASS_NAME: "OpenLayers.Format.WKT" 
+});     
 /* ======================================================================
     OpenLayers/Layer/WMS.js
    ====================================================================== */
@@ -32876,131 +32681,6 @@ OpenLayers.Control.ModifyFeature.ROTATE = 4;
  */
 OpenLayers.Control.ModifyFeature.DRAG = 8;
 /* ======================================================================
-    OpenLayers/Strategy.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- */
-
-/**
- * Class: OpenLayers.Strategy
- * Abstract vector layer strategy class.  Not to be instantiated directly.  Use
- *     one of the strategy subclasses instead.
- */
-OpenLayers.Strategy = OpenLayers.Class({
-    
-    /**
-     * Property: layer
-     * {<OpenLayers.Layer.Vector>} The layer this strategy belongs to.
-     */
-    layer: null,
-    
-    /**
-     * Property: options
-     * {Object} Any options sent to the constructor.
-     */
-    options: null,
-
-    /** 
-     * Property: active 
-     * {Boolean} The control is active.
-     */
-    active: null,
-
-    /**
-     * Property: autoActivate
-     * {Boolean} The creator of the strategy can set autoActivate to false
-     *      to fully control when the protocol is activated and deactivated.
-     *      Defaults to true.
-     */
-    autoActivate: true,
-
-    /**
-     * Property: autoDestroy
-     * {Boolean} The creator of the strategy can set autoDestroy to false
-     *      to fully control when the strategy is destroyed. Defaults to
-     *      true.
-     */
-    autoDestroy: true,
-
-    /**
-     * Constructor: OpenLayers.Strategy
-     * Abstract class for vector strategies.  Create instances of a subclass.
-     *
-     * Parameters:
-     * options - {Object} Optional object whose properties will be set on the
-     *     instance.
-     */
-    initialize: function(options) {
-        OpenLayers.Util.extend(this, options);
-        this.options = options;
-        // set the active property here, so that user cannot override it
-        this.active = false;
-    },
-    
-    /**
-     * APIMethod: destroy
-     * Clean up the strategy.
-     */
-    destroy: function() {
-        this.deactivate();
-        this.layer = null;
-        this.options = null;
-    },
-
-    /**
-     * Method: setLayer
-     * Called to set the <layer> property.
-     *
-     * Parameters:
-     * layer - {<OpenLayers.Layer.Vector>}
-     */
-    setLayer: function(layer) {
-        this.layer = layer;
-    },
-    
-    /**
-     * Method: activate
-     * Activate the strategy.  Register any listeners, do appropriate setup.
-     *
-     * Returns:
-     * {Boolean} True if the strategy was successfully activated or false if
-     *      the strategy was already active.
-     */
-    activate: function() {
-        if (!this.active) {
-            this.active = true;
-            return true;
-        }
-        return false;
-    },
-    
-    /**
-     * Method: deactivate
-     * Deactivate the strategy.  Unregister any listeners, do appropriate
-     *     tear-down.
-     *
-     * Returns:
-     * {Boolean} True if the strategy was successfully deactivated or false if
-     *      the strategy was already inactive.
-     */
-    deactivate: function() {
-        if (this.active) {
-            this.active = false;
-            return true;
-        }
-        return false;
-    },
-   
-    CLASS_NAME: "OpenLayers.Strategy" 
-});
-/* ======================================================================
     OpenLayers/Geometry/MultiLineString.js
    ====================================================================== */
 
@@ -34236,6 +33916,408 @@ OpenLayers.Format.GML = OpenLayers.Class(OpenLayers.Format.XML, {
     CLASS_NAME: "OpenLayers.Format.GML" 
 });
 /* ======================================================================
+    OpenLayers/Format/JSON.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * Note:
+ * This work draws heavily from the public domain JSON serializer/deserializer
+ *     at http://www.json.org/json.js. Rewritten so that it doesn't modify
+ *     basic data prototypes.
+ */
+
+/**
+ * @requires OpenLayers/Format.js
+ */
+
+/**
+ * Class: OpenLayers.Format.JSON
+ * A parser to read/write JSON safely.  Create a new instance with the
+ *     <OpenLayers.Format.JSON> constructor.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Format>
+ */
+OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
+    
+    /**
+     * APIProperty: indent
+     * {String} For "pretty" printing, the indent string will be used once for
+     *     each indentation level.
+     */
+    indent: "    ",
+    
+    /**
+     * APIProperty: space
+     * {String} For "pretty" printing, the space string will be used after
+     *     the ":" separating a name/value pair.
+     */
+    space: " ",
+    
+    /**
+     * APIProperty: newline
+     * {String} For "pretty" printing, the newline string will be used at the
+     *     end of each name/value pair or array item.
+     */
+    newline: "\n",
+    
+    /**
+     * Property: level
+     * {Integer} For "pretty" printing, this is incremented/decremented during
+     *     serialization.
+     */
+    level: 0,
+
+    /**
+     * Property: pretty
+     * {Boolean} Serialize with extra whitespace for structure.  This is set
+     *     by the <write> method.
+     */
+    pretty: false,
+
+    /**
+     * Property: nativeJSON
+     * {Boolean} Does the browser support native json?
+     */
+    nativeJSON: (function() {
+        return !!(window.JSON && typeof JSON.parse == "function" && typeof JSON.stringify == "function");
+    })(),
+
+    /**
+     * Constructor: OpenLayers.Format.JSON
+     * Create a new parser for JSON.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * APIMethod: read
+     * Deserialize a json string.
+     *
+     * Parameters:
+     * json - {String} A JSON string
+     * filter - {Function} A function which will be called for every key and
+     *     value at every level of the final result. Each value will be
+     *     replaced by the result of the filter function. This can be used to
+     *     reform generic objects into instances of classes, or to transform
+     *     date strings into Date objects.
+     *     
+     * Returns:
+     * {Object} An object, array, string, or number .
+     */
+    read: function(json, filter) {
+        var object;
+        if (this.nativeJSON) {
+            object = JSON.parse(json, filter);
+        } else try {
+            /**
+             * Parsing happens in three stages. In the first stage, we run the
+             *     text against a regular expression which looks for non-JSON
+             *     characters. We are especially concerned with '()' and 'new'
+             *     because they can cause invocation, and '=' because it can
+             *     cause mutation. But just to be safe, we will reject all
+             *     unexpected characters.
+             */
+            if (/^[\],:{}\s]*$/.test(json.replace(/\\["\\\/bfnrtu]/g, '@').
+                                replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+                                replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+                /**
+                 * In the second stage we use the eval function to compile the
+                 *     text into a JavaScript structure. The '{' operator is
+                 *     subject to a syntactic ambiguity in JavaScript - it can
+                 *     begin a block or an object literal. We wrap the text in
+                 *     parens to eliminate the ambiguity.
+                 */
+                object = eval('(' + json + ')');
+
+                /**
+                 * In the optional third stage, we recursively walk the new
+                 *     structure, passing each name/value pair to a filter
+                 *     function for possible transformation.
+                 */
+                if(typeof filter === 'function') {
+                    function walk(k, v) {
+                        if(v && typeof v === 'object') {
+                            for(var i in v) {
+                                if(v.hasOwnProperty(i)) {
+                                    v[i] = walk(i, v[i]);
+                                }
+                            }
+                        }
+                        return filter(k, v);
+                    }
+                    object = walk('', object);
+                }
+            }
+        } catch(e) {
+            // Fall through if the regexp test fails.
+        }
+
+        if(this.keepData) {
+            this.data = object;
+        }
+
+        return object;
+    },
+
+    /**
+     * APIMethod: write
+     * Serialize an object into a JSON string.
+     *
+     * Parameters:
+     * value - {String} The object, array, string, number, boolean or date
+     *     to be serialized.
+     * pretty - {Boolean} Structure the output with newlines and indentation.
+     *     Default is false.
+     *
+     * Returns:
+     * {String} The JSON string representation of the input value.
+     */
+    write: function(value, pretty) {
+        this.pretty = !!pretty;
+        var json = null;
+        var type = typeof value;
+        if(this.serialize[type]) {
+            try {
+                json = (!this.pretty && this.nativeJSON) ?
+                    JSON.stringify(value) :
+                    this.serialize[type].apply(this, [value]);
+            } catch(err) {
+                OpenLayers.Console.error("Trouble serializing: " + err);
+            }
+        }
+        return json;
+    },
+    
+    /**
+     * Method: writeIndent
+     * Output an indentation string depending on the indentation level.
+     *
+     * Returns:
+     * {String} An appropriate indentation string.
+     */
+    writeIndent: function() {
+        var pieces = [];
+        if(this.pretty) {
+            for(var i=0; i<this.level; ++i) {
+                pieces.push(this.indent);
+            }
+        }
+        return pieces.join('');
+    },
+    
+    /**
+     * Method: writeNewline
+     * Output a string representing a newline if in pretty printing mode.
+     *
+     * Returns:
+     * {String} A string representing a new line.
+     */
+    writeNewline: function() {
+        return (this.pretty) ? this.newline : '';
+    },
+    
+    /**
+     * Method: writeSpace
+     * Output a string representing a space if in pretty printing mode.
+     *
+     * Returns:
+     * {String} A space.
+     */
+    writeSpace: function() {
+        return (this.pretty) ? this.space : '';
+    },
+
+    /**
+     * Property: serialize
+     * Object with properties corresponding to the serializable data types.
+     *     Property values are functions that do the actual serializing.
+     */
+    serialize: {
+        /**
+         * Method: serialize.object
+         * Transform an object into a JSON string.
+         *
+         * Parameters:
+         * object - {Object} The object to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the object.
+         */
+        'object': function(object) {
+            // three special objects that we want to treat differently
+            if(object == null) {
+                return "null";
+            }
+            if(object.constructor == Date) {
+                return this.serialize.date.apply(this, [object]);
+            }
+            if(object.constructor == Array) {
+                return this.serialize.array.apply(this, [object]);
+            }
+            var pieces = ['{'];
+            this.level += 1;
+            var key, keyJSON, valueJSON;
+            
+            var addComma = false;
+            for(key in object) {
+                if(object.hasOwnProperty(key)) {
+                    // recursive calls need to allow for sub-classing
+                    keyJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [key, this.pretty]);
+                    valueJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [object[key], this.pretty]);
+                    if(keyJSON != null && valueJSON != null) {
+                        if(addComma) {
+                            pieces.push(',');
+                        }
+                        pieces.push(this.writeNewline(), this.writeIndent(),
+                                    keyJSON, ':', this.writeSpace(), valueJSON);
+                        addComma = true;
+                    }
+                }
+            }
+            
+            this.level -= 1;
+            pieces.push(this.writeNewline(), this.writeIndent(), '}');
+            return pieces.join('');
+        },
+        
+        /**
+         * Method: serialize.array
+         * Transform an array into a JSON string.
+         *
+         * Parameters:
+         * array - {Array} The array to be serialized
+         * 
+         * Returns:
+         * {String} A JSON string representing the array.
+         */
+        'array': function(array) {
+            var json;
+            var pieces = ['['];
+            this.level += 1;
+    
+            for(var i=0, len=array.length; i<len; ++i) {
+                // recursive calls need to allow for sub-classing
+                json = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [array[i], this.pretty]);
+                if(json != null) {
+                    if(i > 0) {
+                        pieces.push(',');
+                    }
+                    pieces.push(this.writeNewline(), this.writeIndent(), json);
+                }
+            }
+
+            this.level -= 1;    
+            pieces.push(this.writeNewline(), this.writeIndent(), ']');
+            return pieces.join('');
+        },
+        
+        /**
+         * Method: serialize.string
+         * Transform a string into a JSON string.
+         *
+         * Parameters:
+         * string - {String} The string to be serialized
+         * 
+         * Returns:
+         * {String} A JSON string representing the string.
+         */
+        'string': function(string) {
+            // If the string contains no control characters, no quote characters, and no
+            // backslash characters, then we can simply slap some quotes around it.
+            // Otherwise we must also replace the offending characters with safe
+            // sequences.    
+            var m = {
+                '\b': '\\b',
+                '\t': '\\t',
+                '\n': '\\n',
+                '\f': '\\f',
+                '\r': '\\r',
+                '"' : '\\"',
+                '\\': '\\\\'
+            };
+            if(/["\\\x00-\x1f]/.test(string)) {
+                return '"' + string.replace(/([\x00-\x1f\\"])/g, function(a, b) {
+                    var c = m[b];
+                    if(c) {
+                        return c;
+                    }
+                    c = b.charCodeAt();
+                    return '\\u00' +
+                        Math.floor(c / 16).toString(16) +
+                        (c % 16).toString(16);
+                }) + '"';
+            }
+            return '"' + string + '"';
+        },
+
+        /**
+         * Method: serialize.number
+         * Transform a number into a JSON string.
+         *
+         * Parameters:
+         * number - {Number} The number to be serialized.
+         *
+         * Returns:
+         * {String} A JSON string representing the number.
+         */
+        'number': function(number) {
+            return isFinite(number) ? String(number) : "null";
+        },
+        
+        /**
+         * Method: serialize.boolean
+         * Transform a boolean into a JSON string.
+         *
+         * Parameters:
+         * bool - {Boolean} The boolean to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the boolean.
+         */
+        'boolean': function(bool) {
+            return String(bool);
+        },
+        
+        /**
+         * Method: serialize.object
+         * Transform a date into a JSON string.
+         *
+         * Parameters:
+         * date - {Date} The date to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the date.
+         */
+        'date': function(date) {    
+            function format(number) {
+                // Format integers to have at least two digits.
+                return (number < 10) ? '0' + number : number;
+            }
+            return '"' + date.getFullYear() + '-' +
+                    format(date.getMonth() + 1) + '-' +
+                    format(date.getDate()) + 'T' +
+                    format(date.getHours()) + ':' +
+                    format(date.getMinutes()) + ':' +
+                    format(date.getSeconds()) + '"';
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Format.JSON" 
+
+});     
+/* ======================================================================
     OpenLayers/Format/GeoJSON.js
    ====================================================================== */
 
@@ -34956,7 +35038,7 @@ OpenLayers.Format.GeoJSON = OpenLayers.Class(OpenLayers.Format.JSON, {
 
 });     
 /* ======================================================================
-    OpenLayers/Icon.js
+    OpenLayers/Events/buttonclick.js
    ====================================================================== */
 
 /* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
@@ -34965,242 +35047,178 @@ OpenLayers.Format.GeoJSON = OpenLayers.Class(OpenLayers.Format.JSON, {
  * full text of the license. */
 
 /**
- * @requires OpenLayers/BaseTypes/Class.js
+ * @requires OpenLayers/Events.js
  */
 
 /**
- * Class: OpenLayers.Icon
- * 
- * The icon represents a graphical icon on the screen.  Typically used in
- * conjunction with a <OpenLayers.Marker> to represent markers on a screen.
+ * Class: OpenLayers.Events.buttonclick
+ * Extension event type for handling buttons on top of a dom element. This
+ *     event type fires "buttonclick" on its <target> when a button was
+ *     clicked. Buttons are detected by the "olButton" class.
  *
- * An icon has a url, size and position.  It also contains an offset which 
- * allows the center point to be represented correctly.  This can be
- * provided either as a fixed offset or a function provided to calculate
- * the desired offset. 
- * 
+ * This event type makes sure that button clicks do not interfere with other
+ *     events that are registered on the same <element>.
+ *
+ * Event types provided by this extension:
+ * - *buttonclick* Triggered when a button is clicked. Listeners receive an
+ *     object with a *buttonElement* property referencing the dom element of
+ *     the clicked button, and an *buttonXY* property with the click position
+ *     relative to the button.
  */
-OpenLayers.Icon = OpenLayers.Class({
+OpenLayers.Events.buttonclick = OpenLayers.Class({
     
-    /** 
-     * Property: url 
-     * {String}  image url
+    /**
+     * Property: target
+     * {<OpenLayers.Events>} The events instance that the buttonclick event will
+     * be triggered on.
      */
-    url: null,
+    target: null,
     
-    /** 
-     * Property: size 
-     * {<OpenLayers.Size>|Object} An OpenLayers.Size or
-     * an object with a 'w' and 'h' properties.
+    /**
+     * Property: events
+     * {Array} Events to observe and conditionally stop from propagating when
+     *     an element with the olButton class (or its olAlphaImg child) is
+     *     clicked.
      */
-    size: null,
+    events: [
+        'mousedown', 'mouseup', 'click', 'dblclick',
+        'touchstart', 'touchmove', 'touchend', 'keydown'
+    ],
+    
+    /**
+     * Property: startRegEx
+     * {RegExp} Regular expression to test Event.type for events that start
+     *     a buttonclick sequence.
+     */
+    startRegEx: /^mousedown|touchstart$/,
 
-    /** 
-     * Property: offset 
-     * {<OpenLayers.Pixel>|Object} distance in pixels to offset the
-     * image when being rendered. An OpenLayers.Pixel or an object
-     * with a 'x' and 'y' properties.
+    /**
+     * Property: cancelRegEx
+     * {RegExp} Regular expression to test Event.type for events that cancel
+     *     a buttonclick sequence.
      */
-    offset: null,    
-    
-    /** 
-     * Property: calculateOffset 
-     * {Function} Function to calculate the offset (based on the size)
-     */
-    calculateOffset: null,    
-    
-    /** 
-     * Property: imageDiv 
-     * {DOMElement} 
-     */
-    imageDiv: null,
+    cancelRegEx: /^touchmove$/,
 
-    /** 
-     * Property: px 
-     * {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an object
-     * with a 'x' and 'y' properties.
+    /**
+     * Property: completeRegEx
+     * {RegExp} Regular expression to test Event.type for events that complete
+     *     a buttonclick sequence.
      */
-    px: null,
+    completeRegEx: /^mouseup|touchend$/,
     
-    /** 
-     * Constructor: OpenLayers.Icon
-     * Creates an icon, which is an image tag in a div.  
+    /**
+     * Property: startEvt
+     * {Event} The event that started the click sequence
+     */
+    
+    /**
+     * Constructor: OpenLayers.Events.buttonclick
+     * Construct a buttonclick event type. Applications are not supposed to
+     *     create instances of this class - they are created on demand by
+     *     <OpenLayers.Events> instances.
      *
-     * url - {String} 
-     * size - {<OpenLayers.Size>|Object} An OpenLayers.Size or an
-     *                                   object with a 'w' and 'h'
-     *                                   properties.
-     * offset - {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an
-     *                                      object with a 'x' and 'y'
-     *                                      properties.
-     * calculateOffset - {Function} 
+     * Parameters:
+     * target - {<OpenLayers.Events>} The events instance that the buttonclick
+     *     event will be triggered on.
      */
-    initialize: function(url, size, offset, calculateOffset) {
-        this.url = url;
-        this.size = size || {w: 20, h: 20};
-        this.offset = offset || {x: -(this.size.w/2), y: -(this.size.h/2)};
-        this.calculateOffset = calculateOffset;
-
-        var id = OpenLayers.Util.createUniqueID("OL_Icon_");
-        this.imageDiv = OpenLayers.Util.createAlphaImageDiv(id);
+    initialize: function(target) {
+        this.target = target;
+        for (var i=this.events.length-1; i>=0; --i) {
+            this.target.register(this.events[i], this, this.buttonClick, {
+                extension: true
+            });
+        }
     },
     
-    /** 
+    /**
      * Method: destroy
-     * Nullify references and remove event listeners to prevent circular 
-     * references and memory leaks
      */
     destroy: function() {
-        // erase any drawn elements
-        this.erase();
-
-        OpenLayers.Event.stopObservingElement(this.imageDiv.firstChild); 
-        this.imageDiv.innerHTML = "";
-        this.imageDiv = null;
+        for (var i=this.events.length-1; i>=0; --i) {
+            this.target.unregister(this.events[i], this, this.buttonClick);
+        }
+        delete this.target;
     },
 
-    /** 
-     * Method: clone
-     * 
-     * Returns:
-     * {<OpenLayers.Icon>} A fresh copy of the icon.
-     */
-    clone: function() {
-        return new OpenLayers.Icon(this.url, 
-                                   this.size, 
-                                   this.offset, 
-                                   this.calculateOffset);
-    },
-    
     /**
-     * Method: setSize
-     * 
-     * Parameters:
-     * size - {<OpenLayers.Size>|Object} An OpenLayers.Size or
-     * an object with a 'w' and 'h' properties.
-     */
-    setSize: function(size) {
-        if (size != null) {
-            this.size = size;
-        }
-        this.draw();
-    },
-    
-    /**
-     * Method: setUrl
-     * 
-     * Parameters:
-     * url - {String} 
-     */
-    setUrl: function(url) {
-        if (url != null) {
-            this.url = url;
-        }
-        this.draw();
-    },
-
-    /** 
-     * Method: draw
-     * Move the div to the given pixel.
-     * 
-     * Parameters:
-     * px - {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an
-     *                                  object with a 'x' and 'y' properties.
-     * 
+     * Method: getPressedButton
+     * Get the pressed button, if any. Returns undefined if no button
+     * was pressed.
+     *
+     * Arguments:
+     * element - {DOMElement} The event target.
+     *
      * Returns:
-     * {DOMElement} A new DOM Image of this icon set at the location passed-in
+     * {DOMElement} The button element, or undefined.
      */
-    draw: function(px) {
-        OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, 
-                                            null, 
-                                            null, 
-                                            this.size, 
-                                            this.url, 
-                                            "absolute");
-        this.moveTo(px);
-        return this.imageDiv;
-    }, 
+    getPressedButton: function(element) {
+        var depth = 3, // limit the search depth
+            button;
+        do {
+            if(OpenLayers.Element.hasClass(element, "olButton")) {
+                // hit!
+                button = element;
+                break;
+            }
+            element = element.parentNode;
+        } while(--depth > 0 && element);
+        return button;
+    },
 
-    /** 
-     * Method: erase
-     * Erase the underlying image element.
-     */
-    erase: function() {
-        if (this.imageDiv != null && this.imageDiv.parentNode != null) {
-            OpenLayers.Element.remove(this.imageDiv);
-        }
-    }, 
-    
-    /** 
-     * Method: setOpacity
-     * Change the icon's opacity
+    /**
+     * Method: buttonClick
+     * Check if a button was clicked, and fire the buttonclick event
      *
      * Parameters:
-     * opacity - {float} 
+     * evt - {Event}
      */
-    setOpacity: function(opacity) {
-        OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, null, null, null, 
-                                            null, null, null, null, opacity);
-
-    },
-    
-    /**
-     * Method: moveTo
-     * move icon to passed in px.
-     *
-     * Parameters:
-     * px - {<OpenLayers.Pixel>|Object} the pixel position to move to.
-     * An OpenLayers.Pixel or an object with a 'x' and 'y' properties.
-     */
-    moveTo: function (px) {
-        //if no px passed in, use stored location
-        if (px != null) {
-            this.px = px;
-        }
-
-        if (this.imageDiv != null) {
-            if (this.px == null) {
-                this.display(false);
-            } else {
-                if (this.calculateOffset) {
-                    this.offset = this.calculateOffset(this.size);  
+    buttonClick: function(evt) {
+        var propagate = true,
+            element = OpenLayers.Event.element(evt);
+        if (element && (OpenLayers.Event.isLeftClick(evt) || !~evt.type.indexOf("mouse"))) {
+            // was a button pressed?
+            var button = this.getPressedButton(element);
+            if (button) {
+                if (evt.type === "keydown") {
+                    switch (evt.keyCode) {
+                    case OpenLayers.Event.KEY_RETURN:
+                    case OpenLayers.Event.KEY_SPACE:
+                        this.target.triggerEvent("buttonclick", {
+                            buttonElement: button
+                        });
+                        OpenLayers.Event.stop(evt);
+                        propagate = false;
+                        break;
+                    }
+                } else if (this.startEvt) {
+                    if (this.completeRegEx.test(evt.type)) {
+                        var pos = OpenLayers.Util.pagePosition(button);
+                        this.target.triggerEvent("buttonclick", {
+                            buttonElement: button,
+                            buttonXY: {
+                                x: this.startEvt.clientX - pos[0],
+                                y: this.startEvt.clientY - pos[1]
+                            }
+                        });
+                    }
+                    if (this.cancelRegEx.test(evt.type)) {
+                        delete this.startEvt;
+                    }
+                    OpenLayers.Event.stop(evt);
+                    propagate = false;
                 }
-                OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, null, {
-                    x: this.px.x + this.offset.x,
-                    y: this.px.y + this.offset.y
-                });
+                if (this.startRegEx.test(evt.type)) {
+                    this.startEvt = evt;
+                    OpenLayers.Event.stop(evt);
+                    propagate = false;
+                }
+            } else {
+                delete this.startEvt;
             }
         }
-    },
+        return propagate;
+    }
     
-    /** 
-     * Method: display
-     * Hide or show the icon
-     *
-     * Parameters:
-     * display - {Boolean} 
-     */
-    display: function(display) {
-        this.imageDiv.style.display = (display) ? "" : "none"; 
-    },
-    
-
-    /**
-     * APIMethod: isDrawn
-     * 
-     * Returns:
-     * {Boolean} Whether or not the icon is drawn.
-     */
-    isDrawn: function() {
-        // nodeType 11 for ie, whose nodes *always* have a parentNode
-        // (of type document fragment)
-        var isDrawn = (this.imageDiv && this.imageDiv.parentNode && 
-                       (this.imageDiv.parentNode.nodeType != 11));    
-
-        return isDrawn;   
-    },
-
-    CLASS_NAME: "OpenLayers.Icon"
 });
 /* ======================================================================
     OpenLayers/Control/Panel.js
@@ -35638,6 +35656,131 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /* ======================================================================
+    OpenLayers/Strategy.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ */
+
+/**
+ * Class: OpenLayers.Strategy
+ * Abstract vector layer strategy class.  Not to be instantiated directly.  Use
+ *     one of the strategy subclasses instead.
+ */
+OpenLayers.Strategy = OpenLayers.Class({
+    
+    /**
+     * Property: layer
+     * {<OpenLayers.Layer.Vector>} The layer this strategy belongs to.
+     */
+    layer: null,
+    
+    /**
+     * Property: options
+     * {Object} Any options sent to the constructor.
+     */
+    options: null,
+
+    /** 
+     * Property: active 
+     * {Boolean} The control is active.
+     */
+    active: null,
+
+    /**
+     * Property: autoActivate
+     * {Boolean} The creator of the strategy can set autoActivate to false
+     *      to fully control when the protocol is activated and deactivated.
+     *      Defaults to true.
+     */
+    autoActivate: true,
+
+    /**
+     * Property: autoDestroy
+     * {Boolean} The creator of the strategy can set autoDestroy to false
+     *      to fully control when the strategy is destroyed. Defaults to
+     *      true.
+     */
+    autoDestroy: true,
+
+    /**
+     * Constructor: OpenLayers.Strategy
+     * Abstract class for vector strategies.  Create instances of a subclass.
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on the
+     *     instance.
+     */
+    initialize: function(options) {
+        OpenLayers.Util.extend(this, options);
+        this.options = options;
+        // set the active property here, so that user cannot override it
+        this.active = false;
+    },
+    
+    /**
+     * APIMethod: destroy
+     * Clean up the strategy.
+     */
+    destroy: function() {
+        this.deactivate();
+        this.layer = null;
+        this.options = null;
+    },
+
+    /**
+     * Method: setLayer
+     * Called to set the <layer> property.
+     *
+     * Parameters:
+     * layer - {<OpenLayers.Layer.Vector>}
+     */
+    setLayer: function(layer) {
+        this.layer = layer;
+    },
+    
+    /**
+     * Method: activate
+     * Activate the strategy.  Register any listeners, do appropriate setup.
+     *
+     * Returns:
+     * {Boolean} True if the strategy was successfully activated or false if
+     *      the strategy was already active.
+     */
+    activate: function() {
+        if (!this.active) {
+            this.active = true;
+            return true;
+        }
+        return false;
+    },
+    
+    /**
+     * Method: deactivate
+     * Deactivate the strategy.  Unregister any listeners, do appropriate
+     *     tear-down.
+     *
+     * Returns:
+     * {Boolean} True if the strategy was successfully deactivated or false if
+     *      the strategy was already inactive.
+     */
+    deactivate: function() {
+        if (this.active) {
+            this.active = false;
+            return true;
+        }
+        return false;
+    },
+   
+    CLASS_NAME: "OpenLayers.Strategy" 
+});
+/* ======================================================================
     OpenLayers/Strategy/Fixed.js
    ====================================================================== */
 
@@ -35771,6 +35914,253 @@ OpenLayers.Strategy.Fixed = OpenLayers.Class(OpenLayers.Strategy, {
     },
 
     CLASS_NAME: "OpenLayers.Strategy.Fixed"
+});
+/* ======================================================================
+    OpenLayers/Icon.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ */
+
+/**
+ * Class: OpenLayers.Icon
+ * 
+ * The icon represents a graphical icon on the screen.  Typically used in
+ * conjunction with a <OpenLayers.Marker> to represent markers on a screen.
+ *
+ * An icon has a url, size and position.  It also contains an offset which 
+ * allows the center point to be represented correctly.  This can be
+ * provided either as a fixed offset or a function provided to calculate
+ * the desired offset. 
+ * 
+ */
+OpenLayers.Icon = OpenLayers.Class({
+    
+    /** 
+     * Property: url 
+     * {String}  image url
+     */
+    url: null,
+    
+    /** 
+     * Property: size 
+     * {<OpenLayers.Size>|Object} An OpenLayers.Size or
+     * an object with a 'w' and 'h' properties.
+     */
+    size: null,
+
+    /** 
+     * Property: offset 
+     * {<OpenLayers.Pixel>|Object} distance in pixels to offset the
+     * image when being rendered. An OpenLayers.Pixel or an object
+     * with a 'x' and 'y' properties.
+     */
+    offset: null,    
+    
+    /** 
+     * Property: calculateOffset 
+     * {Function} Function to calculate the offset (based on the size)
+     */
+    calculateOffset: null,    
+    
+    /** 
+     * Property: imageDiv 
+     * {DOMElement} 
+     */
+    imageDiv: null,
+
+    /** 
+     * Property: px 
+     * {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an object
+     * with a 'x' and 'y' properties.
+     */
+    px: null,
+    
+    /** 
+     * Constructor: OpenLayers.Icon
+     * Creates an icon, which is an image tag in a div.  
+     *
+     * url - {String} 
+     * size - {<OpenLayers.Size>|Object} An OpenLayers.Size or an
+     *                                   object with a 'w' and 'h'
+     *                                   properties.
+     * offset - {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an
+     *                                      object with a 'x' and 'y'
+     *                                      properties.
+     * calculateOffset - {Function} 
+     */
+    initialize: function(url, size, offset, calculateOffset) {
+        this.url = url;
+        this.size = size || {w: 20, h: 20};
+        this.offset = offset || {x: -(this.size.w/2), y: -(this.size.h/2)};
+        this.calculateOffset = calculateOffset;
+
+        var id = OpenLayers.Util.createUniqueID("OL_Icon_");
+        this.imageDiv = OpenLayers.Util.createAlphaImageDiv(id);
+    },
+    
+    /** 
+     * Method: destroy
+     * Nullify references and remove event listeners to prevent circular 
+     * references and memory leaks
+     */
+    destroy: function() {
+        // erase any drawn elements
+        this.erase();
+
+        OpenLayers.Event.stopObservingElement(this.imageDiv.firstChild); 
+        this.imageDiv.innerHTML = "";
+        this.imageDiv = null;
+    },
+
+    /** 
+     * Method: clone
+     * 
+     * Returns:
+     * {<OpenLayers.Icon>} A fresh copy of the icon.
+     */
+    clone: function() {
+        return new OpenLayers.Icon(this.url, 
+                                   this.size, 
+                                   this.offset, 
+                                   this.calculateOffset);
+    },
+    
+    /**
+     * Method: setSize
+     * 
+     * Parameters:
+     * size - {<OpenLayers.Size>|Object} An OpenLayers.Size or
+     * an object with a 'w' and 'h' properties.
+     */
+    setSize: function(size) {
+        if (size != null) {
+            this.size = size;
+        }
+        this.draw();
+    },
+    
+    /**
+     * Method: setUrl
+     * 
+     * Parameters:
+     * url - {String} 
+     */
+    setUrl: function(url) {
+        if (url != null) {
+            this.url = url;
+        }
+        this.draw();
+    },
+
+    /** 
+     * Method: draw
+     * Move the div to the given pixel.
+     * 
+     * Parameters:
+     * px - {<OpenLayers.Pixel>|Object} An OpenLayers.Pixel or an
+     *                                  object with a 'x' and 'y' properties.
+     * 
+     * Returns:
+     * {DOMElement} A new DOM Image of this icon set at the location passed-in
+     */
+    draw: function(px) {
+        OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, 
+                                            null, 
+                                            null, 
+                                            this.size, 
+                                            this.url, 
+                                            "absolute");
+        this.moveTo(px);
+        return this.imageDiv;
+    }, 
+
+    /** 
+     * Method: erase
+     * Erase the underlying image element.
+     */
+    erase: function() {
+        if (this.imageDiv != null && this.imageDiv.parentNode != null) {
+            OpenLayers.Element.remove(this.imageDiv);
+        }
+    }, 
+    
+    /** 
+     * Method: setOpacity
+     * Change the icon's opacity
+     *
+     * Parameters:
+     * opacity - {float} 
+     */
+    setOpacity: function(opacity) {
+        OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, null, null, null, 
+                                            null, null, null, null, opacity);
+
+    },
+    
+    /**
+     * Method: moveTo
+     * move icon to passed in px.
+     *
+     * Parameters:
+     * px - {<OpenLayers.Pixel>|Object} the pixel position to move to.
+     * An OpenLayers.Pixel or an object with a 'x' and 'y' properties.
+     */
+    moveTo: function (px) {
+        //if no px passed in, use stored location
+        if (px != null) {
+            this.px = px;
+        }
+
+        if (this.imageDiv != null) {
+            if (this.px == null) {
+                this.display(false);
+            } else {
+                if (this.calculateOffset) {
+                    this.offset = this.calculateOffset(this.size);  
+                }
+                OpenLayers.Util.modifyAlphaImageDiv(this.imageDiv, null, {
+                    x: this.px.x + this.offset.x,
+                    y: this.px.y + this.offset.y
+                });
+            }
+        }
+    },
+    
+    /** 
+     * Method: display
+     * Hide or show the icon
+     *
+     * Parameters:
+     * display - {Boolean} 
+     */
+    display: function(display) {
+        this.imageDiv.style.display = (display) ? "" : "none"; 
+    },
+    
+
+    /**
+     * APIMethod: isDrawn
+     * 
+     * Returns:
+     * {Boolean} Whether or not the icon is drawn.
+     */
+    isDrawn: function() {
+        // nodeType 11 for ie, whose nodes *always* have a parentNode
+        // (of type document fragment)
+        var isDrawn = (this.imageDiv && this.imageDiv.parentNode && 
+                       (this.imageDiv.parentNode.nodeType != 11));    
+
+        return isDrawn;   
+    },
+
+    CLASS_NAME: "OpenLayers.Icon"
 });
 /* ======================================================================
     OpenLayers/Renderer/Canvas.js

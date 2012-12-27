@@ -133,8 +133,25 @@ OpenLayers.Control.PortalToolbar = OpenLayers.Class(
     	var geoJsonString = new OpenLayers.Format.GeoJSON({
             'internalProjection': this.layer.map.projection,
             'externalProjection': this.layer.map.displayProjection
-        }).write(this.layer.features);
+        }).write(this.getFeaturesAsMultipolygon());
     	return new OpenLayers.Format.JSON().read(geoJsonString);
+    },
+    
+    getFeaturesAsWKT: function() {
+    	var wktString = new OpenLayers.Format.WKT({
+            'internalProjection': this.layer.map.projection,
+            'externalProjection': this.layer.map.displayProjection    		
+    	}).write(this.getFeaturesAsMultipolygon());
+    	return wktString;
+    },
+    
+    getFeaturesAsMultipolygon: function() {
+        var polygons = [];
+        for (i = 0; i < this.layer.features.length; i++) {
+           polygons.push(this.layer.features[i].geometry);
+        }
+        var multiPolygon = new OpenLayers.Geometry.MultiPolygon(polygons);
+        return new OpenLayers.Feature.Vector(multiPolygon);
     },
 
     CLASS_NAME: "OpenLayers.Control.PortalToolbar"
