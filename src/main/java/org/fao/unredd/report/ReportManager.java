@@ -86,7 +86,7 @@ public class ReportManager {
 	 * @return The report contents.
 	 * @throws ReportException Something went wrong. Check the {@link ReportException#Code} for further detail.
 	 */
-	public String get(String wktROI, long chartScriptId) throws ReportException {
+	public String get(String wktROI, Long chartScriptId) throws ReportException {
 		// Get ROI Geometry
 		Geometry ROI;
 		try {
@@ -102,11 +102,14 @@ public class ReportManager {
 			throw new ReportException(ReportException.Code.INVALID_WKT_ROI);			
 		}
 		
+		// Get the ChartScript resource
+		UNREDDChartScript chartScript = new UNREDDChartScript(geostore.getClient().getResource(chartScriptId));
+		
 		// Get the stats 
-		Map<String, double[][]> statsData = runStats(ROI, chartScriptId);
+		Map<String, double[][]> statsData = runStats(ROI, chartScript);
 		
 		// Get the report (chart)
-		String report = runChartScript(chartScriptId, statsData);
+		String report = runChartScript(chartScript, statsData);
 		logger.debug("============== REPORT ===============");
 		logger.debug(report);
 		logger.debug("============ END REPORT =============");
@@ -114,8 +117,7 @@ public class ReportManager {
 		return report;
 	}
 	
-	String runChartScript(long chartScriptId, Map<String, double[][]> statsDataMap) throws ReportException {
-		UNREDDChartScript chartScript = new UNREDDChartScript(geostore.getClient().getResource(chartScriptId));
+	String runChartScript(UNREDDChartScript chartScript, Map<String, double[][]> statsDataMap) throws ReportException {
 		String scriptPath = chartScript.getAttribute(UNREDDChartScript.Attributes.SCRIPTPATH);
 		
 		ScriptRunner script = new ScriptRunner(new File(scriptPath));
@@ -124,17 +126,13 @@ public class ReportManager {
 		return result;
 	}
 
-	Map<String, double[][]> runStats(Geometry ROI, long chartScriptId) throws ReportException {
+	Map<String, double[][]> runStats(Geometry ROI, UNREDDChartScript chartScript) throws ReportException {
 		OnlineStatsProcessor stats = new OnlineStatsProcessor(config);
 		
 		// Log input params
 		logger.debug("Starting RealTimeStats");
-		logger.debug("  ChartScriptID: " + String.valueOf(chartScriptId));
-		logger.debug("  WKT ROI: " + ROI);
-		
-		// Get ChartScript
-		UNREDDChartScript chartScript = new UNREDDChartScript(geostore.getClient().getResource(chartScriptId));
-		logger.debug("> Chart Script: " + chartScript.getId());
+		logger.debug(" ChartScriptID: " + String.valueOf(chartScript.getId()));
+		logger.debug(" WKT ROI: " + ROI);
 
 		// Get StatsDefs
 		List<Resource> statsDefs = geostore.searchStatsDefsByChartScript(chartScript);
@@ -188,7 +186,7 @@ public class ReportManager {
 		String month = layerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.MONTH);
 		String day = layerUpdate.getAttribute(UNREDDLayerUpdate.Attributes.DAY);
         String rasterPath = layer.getAttribute(Attributes.MOSAICPATH);
-		String statDefXML = geostore.getClient().getData(statsDef.getId());
+		String statDefXML = statsDef.getData();
 		
         // Build the location to layerUpdate file, and replace token in stats XML
         String rasterFile = NameUtils.buildTifFileName(layerName, year, month, day);

@@ -15,7 +15,7 @@
 		<netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
 
 		<jetty.version>6.1.14</jetty.version>
-		<geostore.version>1.0.1</geostore.version>
+		<geostore.version>1.1-SNAPSHOT</geostore.version>
 		<geostore.unredd.model.version>1.1-SNAPSHOT</geostore.unredd.model.version>
 		<stats.version>1.1-SNAPSHOT</stats.version>
 		<geotools.version>2.7.4</geotools.version>
