@@ -16,19 +16,15 @@
 package org.fao.unredd.wps;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.TestCase;
 
 import org.geotools.xml.Parser;
 import org.junit.Test;
 import org.n52.wps.client.WPSClientException;
-import org.xml.sax.SAXException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -43,7 +39,7 @@ import com.vividsolutions.jts.io.WKTReader;
  */
 public class TestWPSProcess extends TestCase {
 	
-	static final String WPS_URL = "http://localhost/stg_geoserver/wps";
+	static final String WPS_URL = "http://localhost:8080/geoserver/wps";
 
 	static final String BUFFER_PROCESS_ID = "JTS:buffer";
 	static final String BUFFER_INPUT_GEOMETRY_NAME = "geom";

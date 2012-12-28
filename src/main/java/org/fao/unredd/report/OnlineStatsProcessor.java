@@ -42,8 +42,8 @@ import com.vividsolutions.jts.geom.Geometry;
  * 
  * Accepts some configuration properties, default values being:
  * <ul>
- * <li>stats.concurrency=3
- * <li>stats.url=http://localhost/stg_geoserver/ows
+ * <li>stats.url=http://localhost:8080/geoserver/wps
+ * <li>stats.concurrency=4
  * <li>stats.processname=gs:OnlineStatsWPS
  * <li>stats.inputname.roi=geometry
  * <li>stats.inputname.statconf=statConf
@@ -56,11 +56,11 @@ public class OnlineStatsProcessor {
 	private static Logger logger = Logger.getLogger(OnlineStatsProcessor.class);
 
 	private final String baseURL;
+	private final int maxConcurrency;
 	private final String processName;
 	private final String ROIInputName;
 	private final String statConfInputName;
 	private final String outputName;
-	private final int maxConcurrency;
 
 	private WPSProcess process;
 	private List<WPSCall> wpsCalls;
@@ -76,12 +76,12 @@ public class OnlineStatsProcessor {
 			config = new Properties();
 		}
 	
-		baseURL = config.getProperty("stats.url", "http://localhost/stg_geoserver/ows");
+		baseURL = config.getProperty("stats.url", "http://localhost:8080/geoserver/wps");
+		maxConcurrency = Integer.parseInt(config.getProperty("stats.concurrency", "4"));
 		processName = config.getProperty("stats.processname", "gs:OnlineStatsWPS");
 		ROIInputName = config.getProperty("stats.inputname.roi", "geometry");
 		statConfInputName = config.getProperty("stats.inputname.statconf", "statConf");
 		outputName = config.getProperty("stats.outputname", "result");
-		maxConcurrency = Integer.parseInt(config.getProperty("stats.concurrency", "3"));
 		
 		try {
 			process = new WPSProcess(baseURL, processName);

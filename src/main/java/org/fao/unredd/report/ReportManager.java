@@ -32,7 +32,6 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import it.geosolutions.geostore.core.model.Resource;
-import it.geosolutions.geostore.services.rest.GeoStoreClient;
 import it.geosolutions.unredd.geostore.UNREDDGeostoreManager;
 import it.geosolutions.unredd.geostore.model.UNREDDChartScript;
 import it.geosolutions.unredd.geostore.model.UNREDDLayer;
@@ -217,23 +216,4 @@ public class ReportManager {
 		}
 	}
 
-	/**
-	 * Test function.
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		GeoStoreClient client = new GeoStoreClient();
-		client.setGeostoreRestUrl("http://demo1.geo-solutions.it/stg_geostore/rest");
-		client.setUsername("admin");
-		client.setPassword("XXXXX");
-		UNREDDGeostoreManager geostore = new UNREDDGeostoreManager(client);
-		
-		ReportManager report = new ReportManager(geostore);
-		try {
-			System.out.println(report.get("POLYGON((21.073607809505024 -2.6035981542402555, 24.105834371884185 -1.4617579288653582, 24.765014059357643 -3.3496552215281192, 21.996459371968403 -4.3580986905562, 21.073607809505024 -2.6035981542402555))", 26));
-		} catch (ReportException e) {
-			System.out.println(e.getMessage());
-		}
-	}
 }
