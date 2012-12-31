@@ -35,20 +35,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     
     <title><spring:message code="title" /></title>
-       
-    <pack:style enabled="${config.minifiedJs}">
-    	<src>/css/openlayers/style.css</src>
-    	<src>/css/jquery-ui-1.8.16.custom.css</src>
-    	<src>/css/jquery.fancybox.css</src>
-    	<src>/css/toolbar.css</src>
-    	<src>${base}/static/unredd.css</src>
-    </pack:style>
-    
+   
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
         var messages = <jsp:include page="messages.jsp"/>;
         var recaptchaKey = "${recaptchaKey}";
     </script>
+    
+    <script type="text/javascript" src="layers.json?jsonp"></script>
     
     <pack:script enabled="${config.minifiedJs}">
     	<!-- src>/js/OpenLayers-2.12.full.js</src -->
@@ -61,6 +55,15 @@
     	<src>/js/unredd.js</src>
     	<src>${base}/static/custom.js</src>
     </pack:script>
+
+    <pack:style enabled="${config.minifiedJs}">
+    	<src>/css/openlayers/style.css</src>
+    	<src>/css/jquery-ui-1.8.16.custom.css</src>
+    	<src>/css/jquery.fancybox.css</src>
+    	<src>/css/toolbar.css</src>
+    	<src>${base}/static/unredd.css</src>
+    </pack:style>
+
   </head>
   <body>
     <div id="header">

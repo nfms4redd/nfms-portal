@@ -196,10 +196,13 @@ public class ApplicationController {
     }
     
 	@RequestMapping("/layers.json")
-    public void getLayers(HttpServletResponse response) throws IOException {
+    public void getLayers(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	
     	response.setContentType("application/json;charset=UTF-8");
     	try {
+    		if(request.getParameterMap().containsKey("jsonp")) {
+        		response.getWriter().print("layers_json = ");	
+    		}
 			response.getWriter().print(setLayerTimes());
             response.flushBuffer();
 		} catch (IOException e) {
