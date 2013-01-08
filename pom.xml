@@ -24,13 +24,13 @@
 		<minified_js>false</minified_js>
 	</properties>
 
-    <distributionManagement>
-        <repository>
-            <id>nfms4redd</id>
-            <url>ftp://maven.nfms4redd.org/repo</url>
-            <uniqueVersion>false</uniqueVersion>
-        </repository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>nfms4redd</id>
+			<url>ftp://maven.nfms4redd.org/repo</url>
+			<uniqueVersion>false</uniqueVersion>
+		</repository>
+	</distributionManagement>
 
 	<dependencies>
 
@@ -54,50 +54,62 @@
 			<version>1.6.6</version>
 		</dependency>
 
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Jetty, with jsp support -->
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jetty-plus</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jsp-2.1</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
 			<artifactId>jsp-api-2.1</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
+			<scope>test</scope>
 		</dependency>
-		    
-		<!-- 52N WPS Client Library -->	    
-	    <dependency>
-            <groupId>org.n52.wps</groupId>
-            <artifactId>52n-wps-client-lib</artifactId>
-            <version>3.0</version>
-        </dependency> 
+
+		<!-- 52N WPS Client Library -->
+		<dependency>
+			<groupId>org.n52.wps</groupId>
+			<artifactId>52n-wps-client-lib</artifactId>
+			<version>3.0</version>
+		</dependency>
 
 		<!-- GeoTools Main (needed for wps parsers/generators) -->
 		<dependency>
-		   <groupId>org.geotools</groupId>
-		   <artifactId>gt-main</artifactId>
-		   <version>${geotools.version}</version>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-main</artifactId>
+			<version>${geotools.version}</version>
 		</dependency>
 
 		<!-- Apache commons -->
@@ -138,8 +150,8 @@
 			<version>2.4</version>
 			<classifier>jdk15</classifier>
 		</dependency>
-		
-		<!--  Gson: Java to Json conversion -->
+
+		<!-- Gson: Java to Json conversion -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -184,26 +196,26 @@
 			<artifactId>geostore-rest-api</artifactId>
 			<version>${geostore.version}</version>
 		</dependency>
-		
+
 		<dependency>
-	    <groupId>javax.script</groupId>
-		    <artifactId>groovy-engine</artifactId>
-		    <classifier>jdk14</classifier>
-		    <version>1.1</version>
+			<groupId>javax.script</groupId>
+			<artifactId>groovy-engine</artifactId>
+			<classifier>jdk14</classifier>
+			<version>1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>2.0.4</version>
 		</dependency>
-		
+
 		<!-- Geostore: UNREDD model -->
 		<dependency>
 			<groupId>it.geosolutions.unredd</groupId>
 			<artifactId>unredd-geostore-model</artifactId>
 			<version>${geostore.unredd.model.version}</version>
 		</dependency>
-		
+
 		<!-- Stats -->
 		<dependency>
 			<groupId>it.geosolutions.unredd</groupId>
@@ -222,27 +234,27 @@
 
 	<repositories>
 
-        <repository>
-            <id>nfms4redd</id>
-            <name>nfms4redd maven repository</name>
-            <url>http://maven.nfms4redd.org/</url>
-        </repository>
+		<repository>
+			<id>nfms4redd</id>
+			<name>nfms4redd maven repository</name>
+			<url>http://maven.nfms4redd.org/</url>
+		</repository>
 
 		<repository>
 			<id>geosolutions</id>
 			<name>GeoSolutions public maven repository</name>
 			<url>http://maven.geo-solutions.it/</url>
 		</repository>
-        <repository>
-            <id>geotools</id>
-            <name>Open Source Geospatial Foundation Repository</name>
-            <url>http://download.osgeo.org/webdav/geotools/</url>
-        </repository>
-	    <repository>
-	      <id>n52</id>
-	      <name>52 North Releases</name>
-	      <url>http://52north.org/maven/repo/releases/</url>
-	    </repository>
+		<repository>
+			<id>geotools</id>
+			<name>Open Source Geospatial Foundation Repository</name>
+			<url>http://download.osgeo.org/webdav/geotools/</url>
+		</repository>
+		<repository>
+			<id>n52</id>
+			<name>52 North Releases</name>
+			<url>http://52north.org/maven/repo/releases/</url>
+		</repository>
 		<repository>
 			<id>mule-deps</id>
 			<name>Mule Dependencies</name>
@@ -256,7 +268,7 @@
 	<build>
 		<finalName>unredd-portal</finalName>
 		<plugins>
-		
+
 			<!-- Compile -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -338,13 +350,13 @@
 
 		</plugins>
 
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ftp</artifactId>
-                <version>2.3</version>
-            </extension>
-        </extensions>
-        
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ftp</artifactId>
+				<version>2.3</version>
+			</extension>
+		</extensions>
+
 	</build>
 </project>
