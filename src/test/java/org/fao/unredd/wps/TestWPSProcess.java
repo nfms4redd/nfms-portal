@@ -22,8 +22,10 @@ import java.util.TreeMap;
 
 import junit.framework.TestCase;
 
+import org.fao.test.FunctionalTestSuite;
 import org.geotools.xml.Parser;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.n52.wps.client.WPSClientException;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -37,6 +39,7 @@ import com.vividsolutions.jts.io.WKTReader;
  * 
  * @author Oscar Fonts
  */
+@Category(FunctionalTestSuite.class)
 public class TestWPSProcess extends TestCase {
 	
 	static final String WPS_URL = "http://localhost:8080/geoserver/wps";
@@ -65,6 +68,7 @@ public class TestWPSProcess extends TestCase {
 		} catch (WPSClientException e) {
 			System.out.println(this.getClass().getName() + " testBuffer not run:");
 			System.out.println(e.getMessage());
+			fail();
 			return;
 		}
 		
