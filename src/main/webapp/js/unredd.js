@@ -121,6 +121,9 @@ UNREDD.Context = function (contextId, contextDefinition)
         for (var i = 0; i < nLayers; i++) {
             var layerName = contextDefinition.layers[i];
             this.layers.push(UNREDD.allLayers[layerName]);
+	    if (contextDefinition.layersCustomParams && contextDefinition.layersCustomParams[layerName]) {
+		UNREDD.allLayers[layerName].olLayer.mergeNewParams(contextDefinition.layersCustomParams[layerName]);
+	    }
        }
     }
 
