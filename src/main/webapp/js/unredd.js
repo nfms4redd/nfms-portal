@@ -634,12 +634,14 @@ $(window).load(function () {
 
                 // re-project to Google projection
                 for (i = 0; i < evt.features.length; i++) {
-                    evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+		    if(evt.features[i].geometry){
+		            evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
 
-                    // don't select it if most of the polygon falls outside of the viewport
-                    if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
-                      continue;
-                    }
+		            // don't select it if most of the polygon falls outside of the viewport
+		            if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
+		              continue;
+		            }
+		    }
 
                     feature = evt.features[i];
                     featureType = feature.gml.featureType;
