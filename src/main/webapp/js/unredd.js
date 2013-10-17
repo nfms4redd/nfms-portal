@@ -121,6 +121,9 @@ UNREDD.Context = function (contextId, contextDefinition)
         for (var i = 0; i < nLayers; i++) {
             var layerName = contextDefinition.layers[i];
             this.layers.push(UNREDD.allLayers[layerName]);
+	    if (contextDefinition.layersCustomParams && contextDefinition.layersCustomParams[layerName]) {
+		UNREDD.allLayers[layerName].olLayer.mergeNewParams(contextDefinition.layersCustomParams[layerName]);
+	    }
        }
     }
 
@@ -206,7 +209,7 @@ $(window).load(function () {
 
     // Set map div height
     resizeMapDiv = function () {
-        var bannerHeight = $('#header').height();
+        var bannerHeight = $('#banner').height() + $('#toolbar').height();
 
         $('#map').css('top', bannerHeight);
         $('#map').css('height', $(window).height() - bannerHeight);
@@ -593,7 +596,11 @@ $(window).load(function () {
             header: ".accordion_header", 
             animated: false
         } );
-        $("#layers_pane").show();
+
+        if (getURLParameter('layer_pane') !== 'off')
+        {
+            $("#layers_pane").show();
+        }
 
         setupAllContexts();
 
@@ -634,14 +641,12 @@ $(window).load(function () {
 
                 // re-project to Google projection
                 for (i = 0; i < evt.features.length; i++) {
-		    if(evt.features[i].geometry){
-		            evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+                    evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
 
-		            // don't select it if most of the polygon falls outside of the viewport
-		            if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
-		              continue;
-		            }
-		    }
+                    // don't select it if most of the polygon falls outside of the viewport
+                    if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
+                      continue;
+                    }
 
                     feature = evt.features[i];
                     featureType = feature.gml.featureType;
@@ -838,7 +843,10 @@ $(window).load(function () {
     });
 
     $("#layer_list_selector_pane").buttonset();
-    $("#layer_list_selector_pane").show();
+    if (getURLParameter('layer_pane') !== 'off')
+    {
+        $("#layer_list_selector_pane").show();
+    }
     
     $("#all_layers").click(function () {
         $("#layers_pane").show();
@@ -857,7 +865,10 @@ $(window).load(function () {
                 updateActiveLayersPane(mapContexts);
             }
         });
-        $("#active_layers_pane").show();
+        if (getURLParameter('layer_pane') !== 'off')
+        {
+            $("#active_layers_pane").show();
+        }
     });
 
     // Time slider management
@@ -1406,4 +1417,10 @@ function genericInfoContent(feature) {
 	};
 
 	return that;
+}
+
+function getURLParameter(name) {
+    return decodeURI(
+        (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
+    );
 }

@@ -29,11 +29,11 @@ q:before,q:after {
 }
 abbr,acronym { border:0;
 }
- 
+
 body {
 	/*font: 62.5% "Trebuchet MS", sans-serif;  margin:0;*/
 	font: 100% "Trebuchet MS", sans-serif;	margin:0;
-	padding:92px 0 20px 0;
+	padding:142px 0 20px 0;
 	background-color: #fff;
 	-moz-user-select: none;-webkit-user-select: none;
 	cursor:default;
@@ -152,7 +152,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   position:absolute;
   width:25px;
   height:25px;
-  top:148px;
+  top:6px;
   left:10px;
   background: url(../static/img/ui-elements.png) no-repeat 0 0;
   background-position: 0px -48px;
@@ -167,7 +167,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   position:absolute;
   width:25px;
   height:25px;
-  top:148px;
+  top:6px;
   left:50px;
   background: url(../static/img/ui-elements.png) no-repeat 0px 0px;
   background-position: 0px -16px;
@@ -182,7 +182,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   position:absolute;
   width:25px;
   height:25px;
-  top:148px;
+  top:6px;
   left:90px;
   background: url(../static/img/ui-elements.png) no-repeat 0px 0px;
   background-position: 0px -80px;
@@ -618,9 +618,9 @@ a.layer_info_button:hover
 #layer_list_selector_pane {
   z-index: 1100;
   width: 250px;
-  top: 90px;
+  top: 40px;
   left: 10px;
-  position: relative;
+  position: absolute;
   display: none;
 }
 

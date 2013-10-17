@@ -67,14 +67,19 @@
   </head>
   <body>
     <div id="header">
-      ${config.header}
-      
+      <% if (!"off".equals(request.getParameter("header"))) { %>
+        ${config.header}
+      <% } %>
       <div id="toolbar">
         <c:forEach items="${config.languages}" var="lang">
           <a href="?lang=${lang.key}" class="blue_button lang_button <c:if test="${lang.key == pageContext.response.locale}">selected</c:if>" id="button_${lang.key}">${lang.value}</a>
         </c:forEach>
-        <a href="#" class="blue_button" id="button_feedback"><spring:message code="feedback" /></a>
-        <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
+        <% if (!"off".equals(request.getParameter("feedback"))) { %>
+          <a href="#" class="blue_button" id="button_feedback"><spring:message code="feedback" /></a>
+        <% } %>
+        <% if (!"off".equals(request.getParameter("statistics"))) { %>
+          <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
+        <% } %>
         <div id="time_slider_pane">
           <div id="time_slider"></div>
           <div id="time_slider_label"></div>
@@ -83,26 +88,33 @@
 
     </div>
     
-    <div id="layer_list_selector_pane">
-		  <input type="radio" id="all_layers" name="layer_list_selector" checked="checked"></input><label for="all_layers"><spring:message code="layers" /></label>
-		  <input type="radio" id="active_layers" name="layer_list_selector"></input><label for="active_layers"><spring:message code="selected_layers" /></label>
-    </div>
-    <div style="z-index:1100;position:absolute;top:215px;left:10px;width:250px;font-size:10px;">
-      <div id="active_layers_pane" style="position:relative;top:0;left:0;display:none">
-        <h3><a href="#">Selected Layers</a></h3>
-        <div></div>
+    <div id="map-tools" style="position:relative">
+      <div id="layer_list_selector_pane">
+        <input type="radio" id="all_layers" name="layer_list_selector" checked="checked"></input><label for="all_layers"><spring:message code="layers" /></label>
+        <input type="radio" id="active_layers" name="layer_list_selector"></input><label for="active_layers"><spring:message code="selected_layers" /></label>
       </div>
-      <div id="layers_pane" style="position:relative;top:0;left:0;display:none"></div>   
+
+      <a class="blue_button" style="z-index:1000;top:8px;margin-right:0px;position:absolute;width:60px;right:20px;margin-top:0" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
+
+      <div style="z-index:1100;position:relative;top:40px;left:10px;width:250px;font-size:10px;">
+        <div id="active_layers_pane" style="position:relative;left:0;display:none">
+          <h3><a href="#">Selected Layers</a></h3>
+          <div></div>
+        </div>
+        <div id="layers_pane" style="position:relative;top:0;left:0;display:none"></div>
+      </div>
+
+      
+
+      <a href="#" onclick="UNREDD.map.zoomIn();return false" id="zoom_in"></a>
+      <a href="#" onclick="UNREDD.map.zoomOut();return false" id="zoom_out"></a>
+      <a href="#" onclick="UNREDD.map.setCenter(UNREDD.mapCenter, UNREDD.defaultZoomLevel); return false" id="zoom_to_max_extent"></a>
     </div>
     
-    <a class="blue_button" style="z-index:1000;top:150px;right:20px;margin-right:0px;position:absolute;width:60px;margin-top:0" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
-    
-    ${config.footer}
-    
-    <a href="#" onclick="UNREDD.map.zoomIn();return false" id="zoom_in"></a>
-    <a href="#" onclick="UNREDD.map.zoomOut();return false" id="zoom_out"></a>
-    <a href="#" onclick="UNREDD.map.setCenter(UNREDD.mapCenter, UNREDD.defaultZoomLevel); return false" id="zoom_to_max_extent"></a>
-    
+    <% if (!"off".equals(request.getParameter("footer"))) { %>
+      ${config.footer}
+    <% } %>
+
     <div id="legend_pane" title="Legend" style="padding:2px;">
       <div id="legend_pane_content" style="background-color:#fff;width:100%;height:100%"> 
       </div>
