@@ -35,7 +35,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     
     <title><spring:message code="title" /></title>
-   
+    <link rel="shortcut icon" href="./myicon.ico" />   
+
     <script type="text/javascript">
         var languageCode = "${pageContext.response.locale}";
         var messages = <jsp:include page="messages.jsp"/>;
@@ -45,14 +46,16 @@
     <script type="text/javascript" src="layers.json?jsonp"></script>
     
     <pack:script enabled="${config.minifiedJs}">
-    	<!-- src>/js/OpenLayers-2.12.full.js</src -->
-    	<src>/js/OpenLayers.unredd.js</src>
+    	<src>/js/OpenLayers-2.12.full.js</src>
+    	<!-- src>/js/OpenLayers.unredd.js</src -->
     	<src>/js/jquery-1.7.1.js</src>
     	<src>/js/jquery.mustache.js</src>
     	<src>/js/jquery-ui-1.8.16.custom.min.js</src>
     	<src>/js/jquery.fancybox.js</src>
     	<src>/js/ol-extensions/PortalToolbar.js</src>
+    	<src>/js/ol-extensions/PrintToolbar.js</src>
     	<src>/js/unredd.js</src>
+    	<src>/js/print-client.js</src>	
     	<src>${base}/static/custom.js</src>
     </pack:script>
 
@@ -201,7 +204,33 @@
         </tr>
       </table>
     </div>
-   
+
+
+    <!-- Print plugin elements -->
+    <div id="print_popup" style="display:none;">
+		<div id="print_toolbar" class="olControlPortalToolbar"></div>&nbsp;
+		<div class="fb_comment"><spring:message code="feedback_text"/></div>
+		<p><b>Choose the print options:</b></p>
+		<br />
+		<div>
+			<label for="dpis"><b>dpi resolutions</b></label>
+			<select id="dpis"></select>
+		</div>
+		<div>
+			<label for="layouts"><b>Layouts</b></label>
+			<select id="layouts"></select>
+		</div>
+		<div>
+			<label for="avaialableLayers"><b>Layer</b></label>
+			<select id="avaialableLayers"></select>
+		</div>
+		<br />
+		<div>
+			<input id="printSubmit" type="submit" value="Print" />
+			<input id="printCancel" type="button" value="<spring:message code="cancel" />" />
+		</div>
+    </div>
+
     <div id="map"></div>
     
     <div style="display:none">

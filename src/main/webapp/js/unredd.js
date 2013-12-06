@@ -614,7 +614,7 @@ $(window).load(function () {
             //maxHeight: 800,
             width: 300,
             zIndex: 2000,
-            resizable: false,
+            resizable: true,
             close: function (event, ui) {
                 // destroy all features
                 $.each(selectedFeatures, function (layerId, feature) {
@@ -624,7 +624,7 @@ $(window).load(function () {
             autoOpen: false
         });
 
-        showInfo = function (evt) {
+        showInfo = function (evt, infoHTML) {
             var x = evt.xy.x - 100,
                 y = evt.xy.y - 200,
                 i,
@@ -641,13 +641,13 @@ $(window).load(function () {
 
                 // re-project to Google projection
                 for (i = 0; i < evt.features.length; i++) {
-                    evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-
-                    // don't select it if most of the polygon falls outside of the viewport
-                    if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
-                      continue;
-                    }
-
+                    if(evt.features[i].geometry){
+			    evt.features[i].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+		            // don't select it if most of the polygon falls outside of the viewport
+		            if (!viewportExtent.scale(1.3).containsBounds(evt.features[i].geometry.getBounds())) {
+		              continue;
+		            }
+		    }
                     feature = evt.features[i];
                     featureType = feature.gml.featureType;
                     selectedFeatures[featureType] = feature;
@@ -682,6 +682,7 @@ $(window).load(function () {
                     return;
                 }
                 
+		var flag = true;
                 $.each(selectedFeatures, function (layerId, feature) {
                     var table,
                         info,
@@ -691,7 +692,18 @@ $(window).load(function () {
                     if (UNREDD.layerInfo.hasOwnProperty(layerId)) {
                         info = UNREDD.layerInfo[layerId](feature);
                     } else {
-                        info = genericInfoContent(feature);
+			// That's an horrible system to avoid that the HTML generate by geoserver will be displayed more than one time.
+			// ISSUE 1 : the content can be positioned in the middle of stats section (better show all stats link then the getFeaturesInfo)
+			// ISUE 2 : JUST ONE BUTTON FOR EACH FEATURE!!! Generate it server side!
+			
+			if(flag){
+				flag = false;
+				info = infoHTML;//genericInfoContent(feature);
+			}
+			else{
+				info = "";
+				return true;			
+			}                        
                     }
                     
                     table = $("<table>");
@@ -708,7 +720,7 @@ $(window).load(function () {
                         highlightLayer.removeAllFeatures();
                         highlightLayer.redraw();
                     });
-                    td1.append(info.title().toLowerCase());
+                    td1.append(info);//info.title().toLowerCase());
 
                     tr2 = $("<tr/>");
                     td2 = $("<td class=\"td_left\"/>");
@@ -782,7 +794,7 @@ $(window).load(function () {
                     totalHeight += $(elem).height() + 12;
                 });
 
-                infoPopup.dialog('option', 'height', totalHeight/* + 35*/);
+                infoPopup.dialog('option', 'height', totalHeight + 35);
             }
         };
     };
@@ -993,7 +1005,8 @@ $(window).load(function () {
     	$("#time_slider_pane").hide();
     }
   
-    // Info click handler
+    // Perform getFeatureInfo requesting GML outputformat to get the geometry
+    var ouptputGetFeatureInfoGML;
     infoControl = new OpenLayers.Control.WMSGetFeatureInfo({
         url: UNREDD.wmsServers[0],
         title: 'Identify features by clicking',
@@ -1013,7 +1026,11 @@ $(window).load(function () {
 
             getfeatureinfo: function (evt) {
                 if (evt.features && evt.features.length) {
-                    showInfo(evt);
+		    ouptputGetFeatureInfoGML = evt;
+		    infoAsHTML = UNREDD.map.getControl("infoAsHTML");
+		    infoAsHTML.activate();
+		    infoAsHTML.request(evt.xy);
+	   	    infoAsHTML.deactivate();
                 }
             }
         },
@@ -1024,6 +1041,36 @@ $(window).load(function () {
     UNREDD.map.addControl(infoControl);
     infoControl.activate();
 
+    // Perform getFeatureInfo requesting HTML outputformat to get the HTML template
+    infoAsHTML = new OpenLayers.Control.WMSGetFeatureInfo({
+        url: UNREDD.wmsServers[0],
+        title: 'Display feature\'s HTML template by clicking on it',
+        layers: UNREDD.queryableLayers,
+        queryVisible: true,
+        infoFormat: 'text/html',
+        hover: false,
+        drillDown: true,
+        maxFeatures: 5,
+        handlerOptions: {
+            "click": {
+                'single': true,
+                'double': false
+            }
+        },
+        eventListeners: {
+
+            getfeatureinfo: function (evt) {
+		showInfo(ouptputGetFeatureInfoGML, evt.text);		
+            }
+        },
+        formatOptions: {
+            typeName: 'XXX', featureNS: 'http://www.openplans.org/unredd'
+        }
+    });
+    infoAsHTML.id = "infoAsHTML";
+    UNREDD.map.addControl(infoAsHTML);
+
+
     UNREDD.map.addLayers(UNREDD.visibleLayers);
     //var wikimapia = new OpenLayers.Layer.Wikimapia( "Wikimapia",
     //  {sphericalMercator: true, isBaseLayer: false, 'buffer': 0 } );
@@ -1033,6 +1080,23 @@ $(window).load(function () {
     styleMap = new OpenLayers.StyleMap({'strokeWidth': 5, fillOpacity: 0, strokeColor: '#ee4400', strokeOpacity: 0.5, strokeLinecap: 'round'});
     highlightLayer = new OpenLayers.Layer.Vector("Highlighted Features", {styleMap: styleMap});
     UNREDD.map.addLayer(highlightLayer);
+
+
+    /******************/
+    /** Print-Client **/
+    /******************/
+
+    // Statistics vector layer
+    printLayer = new OpenLayers.Layer.Vector("Print");  
+    UNREDD.map.addLayer(printLayer);
+
+    // Print button
+    $("#button_print").bind('click', function () {
+	if (!$("#button_print").hasClass('selected') && !$("#button_print").hasClass('selected')) {
+		activatePrintDialog();
+	}
+	return false;
+    });
 
 
     /****************/
