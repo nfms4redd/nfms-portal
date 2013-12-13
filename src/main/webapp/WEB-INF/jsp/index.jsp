@@ -77,12 +77,7 @@
         <c:forEach items="${config.languages}" var="lang">
           <a href="?lang=${lang.key}" class="blue_button lang_button <c:if test="${lang.key == pageContext.response.locale}">selected</c:if>" id="button_${lang.key}">${lang.value}</a>
         </c:forEach>
-        <% if (!"off".equals(request.getParameter("feedback"))) { %>
-          <a href="#" class="blue_button" id="button_feedback"><spring:message code="feedback" /></a>
-        <% } %>
-        <% if (!"off".equals(request.getParameter("statistics"))) { %>
-          <a href="#" class="blue_button" id="button_statistics"><spring:message code="statistics" /></a>
-        <% } %>
+        <a href="#" class="blue_button" id="button_print">print</a>
         <div id="time_slider_pane">
           <div id="time_slider"></div>
           <div id="time_slider_label"></div>
@@ -97,7 +92,7 @@
         <input type="radio" id="active_layers" name="layer_list_selector"></input><label for="active_layers"><spring:message code="selected_layers" /></label>
       </div>
 
-      <a class="blue_button" style="z-index:1000;top:8px;margin-right:0px;position:absolute;width:60px;right:20px;margin-top:0" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
+      <a class="blue_button" style="z-index:1000;top:150px;margin-right:0px;position:fixed;width:60px;right:20px;margin-top:0" href="#" id="toggle_legend"><spring:message code="legend_button" /></a>
 
       <div style="z-index:1100;position:relative;top:40px;left:10px;width:250px;font-size:10px;">
         <div id="active_layers_pane" style="position:relative;left:0;display:none">
