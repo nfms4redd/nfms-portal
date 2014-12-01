@@ -84,7 +84,7 @@ UNREDD.Layer = function (layerId, layerDefinition)
         layerId,
         urls,
         wmsParams,
-        {transitionEffect: "resize", removeBackBufferDelay: 0, isBaseLayer: false, 'buffer': 0, visibility: layerDefinition.visible === 'true', projection: 'EPSG:900913', noMagic: true}
+        {transitionEffect: "resize", removeBackBufferDelay: 0, isBaseLayer: false, 'buffer': 0, visibility: layerDefinition.visible === 'true', projection: 'EPSG:900913', noMagic: true, wrapDateLine: true}
     );
 }
 
