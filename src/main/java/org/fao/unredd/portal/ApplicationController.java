@@ -160,6 +160,7 @@ public class ApplicationController {
        
     @RequestMapping("/static/**")
     public void getCustomStaticFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	
     	// Get path to file
     	String fileName = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         
@@ -200,9 +201,30 @@ public class ApplicationController {
     	
     	response.setContentType("application/json;charset=UTF-8");
     	try {
-    		if(request.getParameterMap().containsKey("jsonp")) {
+    		
+    		/*
+        	 * Checking whether a custom configuration file has to be requested within an Overview Portal.
+        	 * This feature is useful to upload different custom configuration files (i.e. layers.json) according to the country you want to select
+        	 * within a Regional Portal.
+        	 * 
+        	 * FEATURE:
+        	 * In order to load a specific layers.json, there will be a portals_config/<country_name>/ new dir in the
+        	 * /var/portal/ main directory to host the custom layers.json configuration file. The configuration files available here have a custom
+        	 * syntax defined to fit with the new functionality - i.e. if the portal is for Fiji 
+        	 * Islands the configuration file name will be layers_fiji.json; in order to pick up
+        	 * the right configuration file the head definition will be /portals_config/fiji/layers.json?fiji
+        	 * 
+        	 * @author Alfonsetti
+        	 */
+    		if(request.getParameterMap().containsKey("fiji"))
+    		{
+    			System.out.println("testfiji");
+    			response.getWriter().print("layers_json = ");
+    		}    		
+    		else if(request.getParameterMap().containsKey("jsonp")) {
         		response.getWriter().print("layers_json = ");	
     		}
+    		
 			response.getWriter().print(setLayerTimes());
             response.flushBuffer();
 		} catch (IOException e) {
@@ -210,6 +232,7 @@ public class ApplicationController {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
     }
+	
 	@RequestMapping("/charts.json")
 	public void getCharts(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	response.setContentType("application/json;charset=UTF-8");
