@@ -28,7 +28,8 @@
       "imageFormat": "image/png8",
       "visible": true,
       "sourceLink": "http://www.wri.org/publication/interactive-forest-atlas-democratic-republic-of-congo",
-      "sourceLabel": "WRI"
+      "sourceLabel": "WRI",
+      "queryable": true
     },{
       "id": "provinces",
       "baseUrl": "/geoserver/wms",

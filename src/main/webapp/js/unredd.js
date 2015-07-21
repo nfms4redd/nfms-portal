@@ -683,7 +683,7 @@ $(window).load(function () {
                     //infoPopup.dialog('close');
                     return;
                 }
-                
+                flag=true;
                 $.each(selectedFeatures, function (layerId, feature) {
                     var table,
                         info,
