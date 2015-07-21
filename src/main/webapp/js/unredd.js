@@ -84,7 +84,7 @@ UNREDD.Layer = function (layerId, layerDefinition)
         layerId,
         urls,
         wmsParams,
-        {transitionEffect: "resize", removeBackBufferDelay: 0, isBaseLayer: false, 'buffer': 0, visibility: layerDefinition.visible === 'true', projection: 'EPSG:900913', noMagic: true, wrapDateLine: true}
+        {transitionEffect: 'resize', removeBackBufferDelay: 0, isBaseLayer: false, 'buffer': 0, visibility: layerDefinition.visible === 'true', projection: 'EPSG:900913', noMagic: true, wrapDateLine: true}
     );
 }
 
@@ -258,7 +258,7 @@ $(window).load(function () {
         restrictedExtent:  UNREDD.restrictedExtent,
         allOverlays:       true,
         controls:          [
-                               new OpenLayers.Control.Navigation({ documentDrag: true, zoomWheelEnabled: false }),
+                               new OpenLayers.Control.Navigation({dragPanOptions:{enableKinetic: true}}),
                                new OpenLayers.Control.Scale()
                            ]
     };
@@ -1426,8 +1426,6 @@ $(window).load(function () {
 	};
     
     UNREDD.map.setCenter(UNREDD.mapCenter, UNREDD.defaultZoomLevel);
-       
-    UNREDD.map.addControl(new OpenLayers.Control.Navigation());
     
     if (!UNREDD.map.getCenter()) {
         UNREDD.map.zoomToMaxExtent();
