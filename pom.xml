@@ -208,12 +208,6 @@
 			<version>${geostore.version}</version>
 		</dependency>
 
-		<!-- dependency>
-			<groupId>javax.script</groupId>
-			<artifactId>groovy-engine</artifactId>
-			<classifier>jdk14</classifier>
-			<version>1.1</version>
-		</dependency-->
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -250,7 +244,6 @@
 			<name>nfms4redd maven repository</name>
 			<url>http://maven.nfms4redd.org/</url>
 		</repository>
-
 		<repository>
 			<id>geosolutions</id>
 			<name>GeoSolutions public maven repository</name>
@@ -265,14 +258,6 @@
 			<id>n52</id>
 			<name>52 North Releases</name>
 			<url>http://52north.org/maven/repo/releases/</url>
-		</repository>
-		<repository>
-			<id>mule-deps</id>
-			<name>Mule Dependencies</name>
-			<url>http://dist.codehaus.org/mule/dependencies/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
 		</repository>
 		
 	</repositories>
